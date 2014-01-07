@@ -1,20 +1,23 @@
 package com.haines.ml.rce.eventstream;
 
+import java.nio.channels.NetworkChannel;
+import java.nio.channels.SelectableChannel;
+
 import com.haines.ml.rce.dispatcher.Dispatcher;
 
-public class SelectorEventStreamFactory implements EventStreamFactory{
+public class SelectorEventStreamFactory<T extends SelectableChannel & NetworkChannel> implements EventStreamFactory{
 
-	private final NetworkChannelFactory channelFactory;
+	private final NetworkChannelProcessor<T> channelFactory;
 	private final SelectorEventStreamConfig config;
 	
-	public SelectorEventStreamFactory(SelectorEventStreamConfig config, NetworkChannelFactory channelFactory){
+	public SelectorEventStreamFactory(SelectorEventStreamConfig config, NetworkChannelProcessor<T> channelFactory){
 		this.channelFactory = channelFactory;
 		this.config = config;
 	}
 	
 	@Override
 	public EventStream create(Dispatcher dispatcher) {
-		return new SelectorEventStream(dispatcher, config, channelFactory);
+		return new SelectorEventStream<T>(dispatcher, config, channelFactory);
 	}
 
 }

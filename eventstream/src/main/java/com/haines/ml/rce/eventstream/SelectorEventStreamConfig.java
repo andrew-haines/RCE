@@ -1,5 +1,7 @@
 package com.haines.ml.rce.eventstream;
 
+import java.net.SocketAddress;
+
 public class SelectorEventStreamConfig {
 
 	public static enum BufferType{
@@ -9,10 +11,12 @@ public class SelectorEventStreamConfig {
 	
 	private final BufferType bufferType;
 	private final int bufferCapacity;
+	private final SocketAddress socketAddress;
 	
-	private SelectorEventStreamConfig(BufferType bufferType, int bufferCapacity){
+	private SelectorEventStreamConfig(BufferType bufferType, int bufferCapacity, SocketAddress socketAddress){
 		this.bufferType = bufferType;
 		this.bufferCapacity = bufferCapacity;
+		this.socketAddress = socketAddress;
 	}
 	
 	public BufferType getBufferType(){
@@ -23,10 +27,15 @@ public class SelectorEventStreamConfig {
 		return bufferCapacity;
 	}
 	
+	public SocketAddress getAddress() {
+		return socketAddress;
+	}
+	
 	public static class SelectorEventStreamConfigBuilder{
 		
 		private BufferType bufferType = BufferType.DIRECT_BUFFER;
 		private int bufferCapacity = 8192;
+		private SocketAddress socketAddress;
 
 		public SelectorEventStreamConfigBuilder bufferType(BufferType bufferType) {
 			this.bufferType = bufferType;
@@ -40,8 +49,14 @@ public class SelectorEventStreamConfig {
 			return this;
 		}
 		
+		public SelectorEventStreamConfigBuilder socketAddress(SocketAddress socketAddress) {
+			this.socketAddress = socketAddress;
+			
+			return this;
+		}
+		
 		public SelectorEventStreamConfig build(){
-			return new SelectorEventStreamConfig(bufferType, bufferCapacity);
+			return new SelectorEventStreamConfig(bufferType, bufferCapacity, socketAddress);
 		}
 	}
 }

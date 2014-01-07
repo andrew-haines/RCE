@@ -7,15 +7,15 @@
 	<version>1.0.0.0</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
-    <artifactId>rce-dispatcher</artifactId>
+    <artifactId>rce-eventstream</artifactId>
     <packaging>jar</packaging>
-    <name>Realtime Classification Engine - Dispatcher</name>
-    
+    <name>Realtime Classification Engine - Event Stream</name>
+
     <dependencies>
-    	<dependency>
-    		<groupId>${project.groupId}</groupId>
-    		<artifactId>rce-model</artifactId>
-    		<version>${project.version}</version>
-    	</dependency>
+	<dependency>
+		<groupId>${project.groupId}</groupId>
+		<artifactId>rce-dispatcher</artifactId>
+		<version>${project.version}</version>
+	</dependency>
     </dependencies>
 </project>

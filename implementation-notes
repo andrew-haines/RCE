@@ -1,0 +1,2 @@
+* no input validation from event stream for performance reasons. System must be utilised in a managed environment
+* no DOS protection from event stream for performance reasons. Systems must be utilised in a managed environment

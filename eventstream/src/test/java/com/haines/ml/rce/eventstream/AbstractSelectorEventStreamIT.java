@@ -39,7 +39,7 @@ public abstract class AbstractSelectorEventStreamIT<T extends SelectableChannel 
 	private static final Logger LOG = LoggerFactory.getLogger(AbstractSelectorEventStreamIT.class);
 	
 	private static final int TEST_PORT = 45322;
-	private static final int NUMBER_EVENTS_TO_SEND = 10;
+	private static final int NUMBER_EVENTS_TO_SEND = 127;
 	private SelectorEventStream<T> candidate;
 	private Executor executor;
 	private TestDispatcher dispatcher;
@@ -113,9 +113,7 @@ public abstract class AbstractSelectorEventStreamIT<T extends SelectableChannel 
 		
 		// sendmessage
 		
-		WritableByteChannel channel = getClientChannel(config.getAddress());
-		
-		sendEventToServer(new TestEvent(TEST_EVENT_MESSAGE, TEST_EVENT_ID), channel);
+		sendEventToServer(new TestEvent(TEST_EVENT_MESSAGE, TEST_EVENT_ID));
 		
 		dispatcher.waitForEvents();
 		// now verify that the dispatcher recieved the event
@@ -140,10 +138,8 @@ public abstract class AbstractSelectorEventStreamIT<T extends SelectableChannel 
 		
 		// sendmessages
 		
-		WritableByteChannel channel = getClientChannel(config.getAddress());
-		
 		for (int i = 0; i < NUMBER_EVENTS_TO_SEND; i++){
-			sendEventToServer(new TestEvent(TEST_EVENT_MESSAGE, i), channel);
+			sendEventToServer(new TestEvent(TEST_EVENT_MESSAGE, i));
 		}
 		
 		dispatcher.waitForEvents();
@@ -161,10 +157,10 @@ public abstract class AbstractSelectorEventStreamIT<T extends SelectableChannel 
 		
 	}
 	
-	private void sendEventToServer(TestEvent event, WritableByteChannel channel) throws IOException, InterruptedException{
-		
+	private void sendEventToServer(TestEvent event) throws IOException, InterruptedException{
+
+		WritableByteChannel channel = getClientChannel(config.getAddress());
 		LOG.debug("Sending event: "+event.testString1+"("+event.testInt1+")");
-		channel = getClientChannel(config.getAddress());
 		// dont need to worry about efficiency in test case...
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
 		out.write(event.testString1.getBytes());
@@ -180,11 +176,8 @@ public abstract class AbstractSelectorEventStreamIT<T extends SelectableChannel 
 		
 		channel.write(ByteBuffer.wrap(out.toByteArray()));
 		
-		finishChannel(channel);
 		channel.close();
 	}
-	
-	protected abstract void finishChannel(WritableByteChannel channel) throws IOException;
 	
 	protected abstract WritableByteChannel getClientChannel(SocketAddress address) throws IOException, InterruptedException;
 	

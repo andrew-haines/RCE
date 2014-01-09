@@ -19,21 +19,13 @@ public class TcpSelectorEventStreamITest extends AbstractSelectorEventStreamIT<S
 		SelectorProvider.provider().openSelector();
 		
 		SocketChannel socketChannel = SocketChannel.open();
-	    socketChannel.configureBlocking(false);
+	    socketChannel.configureBlocking(true);
 	  
 	    // Kick off connection establishment
 	    socketChannel.connect(address);
 	    
-	    while(!socketChannel.finishConnect()){
-	    	Thread.sleep(50);
-	    }
+	    socketChannel.finishConnect();
 	    
 	    return socketChannel;
 	}
-
-	@Override
-	protected void finishChannel(WritableByteChannel channel) throws IOException {
-		((SocketChannel)channel).finishConnect();
-	}
-
 }

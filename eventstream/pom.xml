@@ -2,9 +2,9 @@
     xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 
     <parent>
-	<groupId>com.haines.ml.rce</groupId>
-	<artifactId>rce-parent</artifactId>
-	<version>1.0.0.0</version>
+		<groupId>com.haines.ml.rce</groupId>
+		<artifactId>rce-parent</artifactId>
+		<version>1.0.0.0-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <artifactId>rce-eventstream</artifactId>
@@ -12,10 +12,20 @@
     <name>Realtime Classification Engine - Event Stream</name>
 
     <dependencies>
-	<dependency>
-		<groupId>${project.groupId}</groupId>
-		<artifactId>rce-dispatcher</artifactId>
-		<version>${project.version}</version>
-	</dependency>
+		<dependency>
+			<groupId>${project.groupId}</groupId>
+			<artifactId>rce-dispatcher</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.google.guava</groupId>
+			<artifactId>guava</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-log4j12</artifactId>
+			<scope>test</scope>
+		</dependency>
     </dependencies>
 </project>

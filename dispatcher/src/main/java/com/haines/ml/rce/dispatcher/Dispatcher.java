@@ -4,6 +4,7 @@ import com.haines.ml.rce.model.Event;
 
 public class Dispatcher<E extends Event> {
 
+	
 	public Dispatcher(){
 		
 	}

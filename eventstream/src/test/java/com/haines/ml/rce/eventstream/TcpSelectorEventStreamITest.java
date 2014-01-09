@@ -31,4 +31,9 @@ public class TcpSelectorEventStreamITest extends AbstractSelectorEventStreamIT<S
 	    return socketChannel;
 	}
 
+	@Override
+	protected void finishChannel(WritableByteChannel channel) throws IOException {
+		((SocketChannel)channel).finishConnect();
+	}
+
 }

@@ -10,17 +10,17 @@ import java.nio.channels.NetworkChannel;
 import java.nio.channels.SelectableChannel;
 import java.nio.channels.WritableByteChannel;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.Iterables;
 import com.haines.ml.rce.dispatcher.Dispatcher;
@@ -36,8 +36,10 @@ public abstract class AbstractSelectorEventStreamIT<T extends SelectableChannel 
 
 	private static final String TEST_EVENT_MESSAGE  = "This is a test event";
 	private static final int TEST_EVENT_ID = 257; // 0x101
+	private static final Logger LOG = LoggerFactory.getLogger(AbstractSelectorEventStreamIT.class);
 	
 	private static final int TEST_PORT = 45322;
+	private static final int NUMBER_EVENTS_TO_SEND = 10;
 	private SelectorEventStream<T> candidate;
 	private Executor executor;
 	private TestDispatcher dispatcher;
@@ -47,9 +49,12 @@ public abstract class AbstractSelectorEventStreamIT<T extends SelectableChannel 
 	
 	@Before
 	public void before() throws UnknownHostException{
+		before(1);
+	}
+	public void before(int eventsExpected) throws UnknownHostException{
 		
 		executor = Executors.newSingleThreadExecutor();
-		dispatcher = new TestDispatcher(1);
+		dispatcher = new TestDispatcher(eventsExpected);
 		
 		config = new SelectorEventStreamConfig.SelectorEventStreamConfigBuilder()
 		.bufferCapacity(3)
@@ -108,25 +113,58 @@ public abstract class AbstractSelectorEventStreamIT<T extends SelectableChannel 
 		
 		// sendmessage
 		
-		sendEventToServer(new TestEvent(TEST_EVENT_MESSAGE, TEST_EVENT_ID));
+		WritableByteChannel channel = getClientChannel(config.getAddress());
 		
-		dispatcher.waitForEvent(1);
+		sendEventToServer(new TestEvent(TEST_EVENT_MESSAGE, TEST_EVENT_ID), channel);
+		
+		dispatcher.waitForEvents();
 		// now verify that the dispatcher recieved the event
 		
 		Iterable<TestEvent> events = dispatcher.getEventsRecieved();
 		
 		assertThat(Iterables.size(events), is(equalTo(1)));
 		
-		System.out.println(Arrays.toString(Iterables.get(events, 0).testString1.getBytes()));
-		System.out.println(Arrays.toString(TEST_EVENT_MESSAGE.getBytes()));
 		assertThat(Iterables.get(events, 0).testString1, is(equalTo(TEST_EVENT_MESSAGE)));
 		assertThat(Iterables.get(events, 0).testInt1, is(equalTo(TEST_EVENT_ID)));
 	}
 	
-	private void sendEventToServer(TestEvent event) throws IOException, InterruptedException{
+	@Test
+	public void givenStartedCandidate_whenPushingMultipleEventsToPort_thenDispatcherIsInvokedWithAllEvents() throws InterruptedException, IOException{
+		
+		before(NUMBER_EVENTS_TO_SEND);
+		// start server
+		executor.execute(getStarter(candidate));
+		
+		//await startup to complete
+		startupLatch.await();
+		
+		// sendmessages
 		
 		WritableByteChannel channel = getClientChannel(config.getAddress());
 		
+		for (int i = 0; i < NUMBER_EVENTS_TO_SEND; i++){
+			sendEventToServer(new TestEvent(TEST_EVENT_MESSAGE, i), channel);
+		}
+		
+		dispatcher.waitForEvents();
+		// now verify that the dispatcher recieved the event
+		
+		Iterable<TestEvent> events = dispatcher.getEventsRecieved();
+		
+		assertThat(Iterables.size(events), is(equalTo(NUMBER_EVENTS_TO_SEND)));
+		
+		int idx = 0;
+		for (TestEvent event:events){
+			assertThat(event.testString1, is(equalTo(TEST_EVENT_MESSAGE)));
+			assertThat(event.testInt1, is(equalTo(idx++)));
+		}
+		
+	}
+	
+	private void sendEventToServer(TestEvent event, WritableByteChannel channel) throws IOException, InterruptedException{
+		
+		LOG.debug("Sending event: "+event.testString1+"("+event.testInt1+")");
+		channel = getClientChannel(config.getAddress());
 		// dont need to worry about efficiency in test case...
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
 		out.write(event.testString1.getBytes());
@@ -142,8 +180,11 @@ public abstract class AbstractSelectorEventStreamIT<T extends SelectableChannel 
 		
 		channel.write(ByteBuffer.wrap(out.toByteArray()));
 		
+		finishChannel(channel);
 		channel.close();
 	}
+	
+	protected abstract void finishChannel(WritableByteChannel channel) throws IOException;
 	
 	protected abstract WritableByteChannel getClientChannel(SocketAddress address) throws IOException, InterruptedException;
 	
@@ -221,6 +262,7 @@ public abstract class AbstractSelectorEventStreamIT<T extends SelectableChannel 
 			this.testIntIdx = 0;
 			this.testString1.setLength(0); // reset string buffer
 			this.lastRead = 0;
+			this.currentProperty = TestEventProperty.TEST_STRING1;
 			return new TestEvent(testString1.toString(), testInt1);
 		}
 	}
@@ -236,13 +278,15 @@ public abstract class AbstractSelectorEventStreamIT<T extends SelectableChannel 
 		
 		@Override
 		public void dispatchEvent(TestEvent event) {
+			
+			LOG.debug("recieved event: "+event.testString1+"("+event.testInt1+")");
 			this.events.add(event);
 			
 			latch.countDown();
 
 		}
 
-		public void waitForEvent(int numEvents) throws InterruptedException {
+		public void waitForEvents() throws InterruptedException {
 			latch.await();
 		}
 

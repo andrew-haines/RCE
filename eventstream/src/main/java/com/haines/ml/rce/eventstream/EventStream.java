@@ -6,5 +6,5 @@ public interface EventStream {
 	
 	void stop() throws EventStreamException;
 	
-	boolean isRunning();
+	boolean isAlive();
 }

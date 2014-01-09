@@ -9,6 +9,7 @@ import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.spi.SelectorProvider;
 import java.util.Set;
+import java.util.concurrent.CountDownLatch;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,18 +29,20 @@ class SelectorEventStream<T extends SelectableChannel & NetworkChannel> implemen
 
 	private static final Logger LOG = LoggerFactory.getLogger(SelectorEventStream.class);
 	
-	private volatile boolean isRunning;
+	private volatile boolean isAlive;
 	private final SelectorEventStreamConfig config;
 	private final Dispatcher<?> dispatcher;
 	private final NetworkChannelProcessor<T> processor;
 	private final EventBuffer<?> eventBuffer;
+	private final EventStreamListener listener;
 	
-	<E extends Event> SelectorEventStream(Dispatcher<E> dispatcher, SelectorEventStreamConfig config, NetworkChannelProcessor<T> processor, EventBuffer<E> eventBuffer){
-		this.isRunning = false;
+	<E extends Event> SelectorEventStream(Dispatcher<E> dispatcher, SelectorEventStreamConfig config, NetworkChannelProcessor<T> processor, EventBuffer<E> eventBuffer, EventStreamListener listener){
+		this.isAlive = false;
 		this.dispatcher = dispatcher;
 		this.config = config;
 		this.processor = processor;
 		this.eventBuffer = eventBuffer;
+		this.listener = listener;
 	}
 	
 	@Override
@@ -47,12 +50,14 @@ class SelectorEventStream<T extends SelectableChannel & NetworkChannel> implemen
 		
 		Selector selector = initiateSelector();
 		
-		isRunning = true;
+		ByteBuffer buffer = createBuffer();
+		isAlive = true;
+		
+		listener.streamStarted();
+		
 		LOG.info("Server selector ("+selector.getClass().getName()+") started on address: "+config.getAddress().toString()); 
 		
-		ByteBuffer buffer = createBuffer();
-		
-		while(isRunning){
+		while(isAlive){
 			try{
 				select(selector, buffer);
 			} catch (IOException e){
@@ -142,11 +147,14 @@ class SelectorEventStream<T extends SelectableChannel & NetworkChannel> implemen
 	
 	@Override
 	public void stop() throws EventStreamException{
-		isRunning = false;
+		
+		isAlive = false;
+		
+		listener.streamStopped();
 	}
 	
 	@Override
-	public boolean isRunning(){
-		return isRunning;
+	public boolean isAlive(){
+		return isAlive;
 	}
 }

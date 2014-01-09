@@ -12,21 +12,27 @@ public class SelectorEventStreamFactory<T extends SelectableChannel & NetworkCha
 	private final NetworkChannelProcessor<T> channelFactory;
 	private final SelectorEventStreamConfig config;
 	private final EventBuffer<?> eventBuffer;
+	private final EventStreamListener listener;
 	
-	public SelectorEventStreamFactory(SelectorEventStreamConfig config, NetworkChannelProcessor<T> channelFactory, EventBuffer<?> eventBuffer){
+	public SelectorEventStreamFactory(SelectorEventStreamConfig config, NetworkChannelProcessor<T> channelFactory, EventBuffer<?> eventBuffer, EventStreamListener listener){
 		this.channelFactory = channelFactory;
 		this.config = config;
 		this.eventBuffer = eventBuffer;
+		this.listener = listener;
+	}
+	
+	public SelectorEventStreamFactory(SelectorEventStreamConfig config, NetworkChannelProcessor<T> channelFactory, EventBuffer<?> eventBuffer){
+		this(config, channelFactory, eventBuffer, EventStreamListener.NO_OP_LISTENER);
 	}
 	
 	@Override
-	public EventStream create(Dispatcher<?> dispatcher) {
+	public SelectorEventStream<T> create(Dispatcher<?> dispatcher) {
 		return genericCreate(dispatcher);
 	}
 	
 	@SuppressWarnings("unchecked")
-	private <E extends Event> EventStream genericCreate(Dispatcher<E> dispatcher){
-		return new SelectorEventStream<T>(dispatcher, config, channelFactory, (EventBuffer<E>)eventBuffer);
+	private <E extends Event> SelectorEventStream<T> genericCreate(Dispatcher<E> dispatcher){
+		return new SelectorEventStream<T>(dispatcher, config, channelFactory, (EventBuffer<E>)eventBuffer, listener);
 	}
 
 }

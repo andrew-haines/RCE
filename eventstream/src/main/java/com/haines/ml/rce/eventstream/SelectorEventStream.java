@@ -14,6 +14,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.haines.ml.rce.dispatcher.Dispatcher;
+import com.haines.ml.rce.model.Event;
+import com.haines.ml.rce.model.EventBuffer;
 
 /**
  * A nio selector event stream for processing io events to the dispatcher. This selector is
@@ -28,14 +30,16 @@ class SelectorEventStream<T extends SelectableChannel & NetworkChannel> implemen
 	
 	private volatile boolean isRunning;
 	private final SelectorEventStreamConfig config;
-	private final Dispatcher dispatcher;
+	private final Dispatcher<?> dispatcher;
 	private final NetworkChannelProcessor<T> processor;
+	private final EventBuffer<?> eventBuffer;
 	
-	SelectorEventStream(Dispatcher dispatcher, SelectorEventStreamConfig config, NetworkChannelProcessor<T> processor){
+	<E extends Event> SelectorEventStream(Dispatcher<E> dispatcher, SelectorEventStreamConfig config, NetworkChannelProcessor<T> processor, EventBuffer<E> eventBuffer){
 		this.isRunning = false;
 		this.dispatcher = dispatcher;
 		this.config = config;
 		this.processor = processor;
+		this.eventBuffer = eventBuffer;
 	}
 	
 	@Override
@@ -49,8 +53,11 @@ class SelectorEventStream<T extends SelectableChannel & NetworkChannel> implemen
 		ByteBuffer buffer = createBuffer();
 		
 		while(isRunning){
-			
-			select(selector, buffer);
+			try{
+				select(selector, buffer);
+			} catch (IOException e){
+				LOG.error("Error selecting event from stream", e);
+			}
 		}
 	}
 	
@@ -72,24 +79,44 @@ class SelectorEventStream<T extends SelectableChannel & NetworkChannel> implemen
 		}
 	}
 	
-	private void select(Selector selector, ByteBuffer buffer) throws EventStreamException{
-		try{
-			selector.select();
-			
-			Set<SelectionKey> keys = selector.selectedKeys();
-			
-			for (SelectionKey key: keys){
-				if (key.isValid() && key.isAcceptable()){
-					@SuppressWarnings("unchecked")
-					T channel = (T)key.channel();
+	private void select(Selector selector, ByteBuffer buffer) throws IOException{
+		selector.select();
+		
+		Set<SelectionKey> keys = selector.selectedKeys();
+		
+		for (SelectionKey key: keys){
+			if (key.isValid() && key.isAcceptable()){
+				buffer.clear();
+				@SuppressWarnings("unchecked")
+				T channel = (T)key.channel();
+				
+				ScatteringByteChannel readerChannel = processor.getByteChannel(channel);
+				
+				buffer.clear();
+				
+				while(readerChannel.read(buffer) != -1){
+					buffer.flip();
 					
-					ScatteringByteChannel readerChannel = processor.getByteChannel(channel);
+					eventBuffer.marshal(buffer);
 					
-					readerChannel.read(buffer);
+					buffer.flip();
 				}
+				
+				Event event = eventBuffer.buildEventAndResetBuffer();
+				
+				@SuppressWarnings({"rawtypes" })
+				Dispatcher rawDispatcher = dispatcher;
+				
+				rawDispatcher.dispatchEvent(event);
+				
+				// now close the connection
+				channel.close();
+				if (readerChannel.isOpen()){
+					readerChannel.close();
+				}
+				
+				key.cancel();
 			}
-		} catch (IOException e){
-			throw new EventStreamException("Unable to select from selector", e);
 		}
 	}
 

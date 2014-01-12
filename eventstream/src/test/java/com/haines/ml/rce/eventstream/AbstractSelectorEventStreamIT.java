@@ -38,8 +38,8 @@ public abstract class AbstractSelectorEventStreamIT<T extends SelectableChannel 
 	private static final int TEST_EVENT_ID = 257; // 0x101
 	private static final Logger LOG = LoggerFactory.getLogger(AbstractSelectorEventStreamIT.class);
 	
-	private static final int TEST_PORT = 45322;
-	private static final int NUMBER_EVENTS_TO_SEND = 127;
+	public static final int TEST_PORT = 34564;
+	private static final int NUMBER_EVENTS_TO_SEND = 16000;
 	private SelectorEventStream<T> candidate;
 	private Executor executor;
 	private TestDispatcher dispatcher;
@@ -160,19 +160,19 @@ public abstract class AbstractSelectorEventStreamIT<T extends SelectableChannel 
 	private void sendEventToServer(TestEvent event) throws IOException, InterruptedException{
 
 		WritableByteChannel channel = getClientChannel(config.getAddress());
-		LOG.debug("Sending event: "+event.testString1+"("+event.testInt1+")");
+		LOG.debug("Sending event: "+event.testString1+"("+Integer.toBinaryString(event.testInt1)+"##"+event.testInt1+")");
 		// dont need to worry about efficiency in test case...
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
 		out.write(event.testString1.getBytes());
 		out.write(Character.CONTROL);
 		
-		out.write(event.testInt1 & 0xFF);
-		out.write((event.testInt1 & (0xFF00)) >> 8);
-		out.write((event.testInt1 & (0xFF0000)) >> 16);
-		out.write((event.testInt1 & (0xFF000000)) >> 24);
-		out.write((event.testInt1 & (0xFF000000)) >> 24);
+		ByteBuffer byteBuffer = ByteBuffer.allocate(4);
+		
+		byteBuffer.putInt(event.testInt1);
+		out.write(byteBuffer.array());
 		
 		out.flush();
+		out.close();
 		
 		channel.write(ByteBuffer.wrap(out.toByteArray()));
 		
@@ -213,7 +213,7 @@ public abstract class AbstractSelectorEventStreamIT<T extends SelectableChannel 
 			TEST_INT_1
 		}
 		private StringBuilder testString1 = new StringBuilder();
-		private int testInt1;
+		private ByteBuffer testInt1 = ByteBuffer.allocate(4);
 		private byte lastRead;
 		private int testIntIdx = 0;
 		
@@ -230,7 +230,9 @@ public abstract class AbstractSelectorEventStreamIT<T extends SelectableChannel 
 				
 				switch(currentProperty){
 					case TEST_INT_1 :{
-						testInt1 |= (nextByte << (testIntIdx * 8)); // shift by 8 bits for each byte
+						
+						//testInt1 |= (nextByte << (testIntIdx * 8)); // shift by 8 bits for each byte
+						testInt1.put(nextByte);
 						testIntIdx++;
 						break;
 					}
@@ -249,9 +251,10 @@ public abstract class AbstractSelectorEventStreamIT<T extends SelectableChannel 
 		public TestEvent buildEventAndResetBuffer() throws UnMarshalableException {
 			
 			String testString1 = this.testString1.toString();
-			int testInt1 = this.testInt1;
+			testInt1.flip();
+			int testInt1 = this.testInt1.getInt();
 			
-			this.testInt1 = 0;
+			this.testInt1.clear();
 			this.testIntIdx = 0;
 			this.testString1.setLength(0); // reset string buffer
 			this.lastRead = 0;
@@ -272,7 +275,7 @@ public abstract class AbstractSelectorEventStreamIT<T extends SelectableChannel 
 		@Override
 		public void dispatchEvent(TestEvent event) {
 			
-			LOG.debug("recieved event: "+event.testString1+"("+event.testInt1+")");
+			LOG.debug("recieved event: "+event.testString1+"("+Integer.toBinaryString(event.testInt1)+"##"+event.testInt1+")");
 			this.events.add(event);
 			
 			latch.countDown();

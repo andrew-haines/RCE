@@ -100,45 +100,40 @@ class SelectorEventStream<T extends SelectableChannel & NetworkChannel> implemen
 	}
 	
 	private void select(Selector selector, ByteBuffer buffer) throws IOException{
-		selector.select();
+		if (selector.select() > 0){
 		
-		//Set<SelectionKey> keys = selector.selectedKeys();
-		
-		Iterator<SelectionKey> selectedKeys = selector.selectedKeys().iterator();
-		while (selectedKeys.hasNext()){
-			SelectionKey key = selectedKeys.next();
-			selectedKeys.remove();
-			if (key.isValid()){
-				if(key.isAcceptable()){
-					@SuppressWarnings("unchecked")
-					T channel = (T)key.channel();
-					
-					processor.acceptChannel(selector, channel);
-				} else if (key.isReadable()){
-					buffer.clear();
-					
-					ScatteringByteChannel readerChannel = (ScatteringByteChannel)key.channel();
-					while(readerChannel.read(buffer) != -1){
-						buffer.flip();
+			Iterator<SelectionKey> selectedKeys = selector.selectedKeys().iterator();
+			while (selectedKeys.hasNext()){
+				SelectionKey key = selectedKeys.next();
+				selectedKeys.remove();
+				if (key.isValid()){
+					if(key.isAcceptable()){
+						@SuppressWarnings("unchecked")
+						T channel = (T)key.channel();
 						
-						eventBuffer.marshal(buffer);
+						processor.acceptChannel(selector, channel);
+					} else if (key.isReadable()){
+						buffer.clear();
 						
-						buffer.flip();
+						ScatteringByteChannel readerChannel = (ScatteringByteChannel)key.channel();
+						while(readerChannel.read(buffer) > 0){
+							buffer.flip();
+							
+							eventBuffer.marshal(buffer);
+							
+							buffer.flip();
+						}
+						
+						// now close the connection
+						readerChannel.close();						
+						
+						Event event = eventBuffer.buildEventAndResetBuffer();
+						
+						@SuppressWarnings({"rawtypes" })
+						Dispatcher rawDispatcher = dispatcher;
+						
+						rawDispatcher.dispatchEvent(event);
 					}
-					
-					Event event = eventBuffer.buildEventAndResetBuffer();
-					
-					@SuppressWarnings({"rawtypes" })
-					Dispatcher rawDispatcher = dispatcher;
-					
-					rawDispatcher.dispatchEvent(event);
-					
-					// now close the connection
-					if (readerChannel.isOpen()){
-						readerChannel.close();
-					}
-					
-					key.cancel();
 				}
 			}
 		}

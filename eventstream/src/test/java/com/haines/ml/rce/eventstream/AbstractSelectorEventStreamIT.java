@@ -24,6 +24,7 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.Iterables;
 import com.haines.ml.rce.dispatcher.Dispatcher;
+import com.haines.ml.rce.eventstream.SelectorEventStreamConfig.BufferType;
 import com.haines.ml.rce.model.Event;
 import com.haines.ml.rce.model.EventBuffer;
 import com.haines.ml.rce.model.UnMarshalableException;
@@ -32,7 +33,7 @@ import static org.junit.Assert.assertThat;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.equalTo;
 
-public abstract class AbstractSelectorEventStreamIT<T extends SelectableChannel & NetworkChannel> {
+public abstract class AbstractSelectorEventStreamIT<T extends SelectableChannel & NetworkChannel, C extends WritableByteChannel> {
 
 	private static final String TEST_EVENT_MESSAGE  = "This is a test event";
 	private static final int TEST_EVENT_ID = 257; // 0x101
@@ -57,7 +58,8 @@ public abstract class AbstractSelectorEventStreamIT<T extends SelectableChannel 
 		dispatcher = new TestDispatcher(eventsExpected);
 		
 		config = new SelectorEventStreamConfig.SelectorEventStreamConfigBuilder()
-		.bufferCapacity(3)
+		.bufferCapacity(getBufferCapacity())
+		.bufferType(BufferType.DIRECT_BUFFER)
 		.socketAddress(new InetSocketAddress(InetAddress.getLocalHost(), TEST_PORT))
 		.build();
 		
@@ -67,6 +69,8 @@ public abstract class AbstractSelectorEventStreamIT<T extends SelectableChannel 
 		SelectorEventStreamFactory<T> streamFactory = new SelectorEventStreamFactory<T>(config, createNetworkChannelProcessor(), new TestEventBuffer(), new LatchNotifierEventStreamListener(startupLatch, shutdownLatch));
 		candidate = streamFactory.create(dispatcher);
 	}
+	
+	abstract protected int getBufferCapacity();
 	
 	@After
 	public void after() throws EventStreamException, InterruptedException{
@@ -138,12 +142,16 @@ public abstract class AbstractSelectorEventStreamIT<T extends SelectableChannel 
 		
 		// sendmessages
 		
+		long startTime = System.currentTimeMillis();
 		for (int i = 0; i < NUMBER_EVENTS_TO_SEND; i++){
 			sendEventToServer(new TestEvent(TEST_EVENT_MESSAGE, i));
 		}
 		
 		dispatcher.waitForEvents();
 		// now verify that the dispatcher recieved the event
+		
+		long timeSpent = System.currentTimeMillis() - startTime;
+		LOG.debug("Sent "+NUMBER_EVENTS_TO_SEND+" in "+(timeSpent)+"ms - "+calculateRPS(timeSpent, NUMBER_EVENTS_TO_SEND)+" rps");
 		
 		Iterable<TestEvent> events = dispatcher.getEventsRecieved();
 		
@@ -157,10 +165,14 @@ public abstract class AbstractSelectorEventStreamIT<T extends SelectableChannel 
 		
 	}
 	
+	private static double calculateRPS(long timeSpent, int numberEventsToSend) {
+		
+		return 1000 / ((double)timeSpent / numberEventsToSend);
+	}
 	private void sendEventToServer(TestEvent event) throws IOException, InterruptedException{
 
-		WritableByteChannel channel = getClientChannel(config.getAddress());
-		LOG.debug("Sending event: "+event.testString1+"("+Integer.toBinaryString(event.testInt1)+"##"+event.testInt1+")");
+		C channel = getClientChannel(config.getAddress());
+		//LOG.debug("Sending event: "+event.testString1+"("+Integer.toBinaryString(event.testInt1)+"##"+event.testInt1+")");
 		// dont need to worry about efficiency in test case...
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
 		out.write(event.testString1.getBytes());
@@ -174,12 +186,18 @@ public abstract class AbstractSelectorEventStreamIT<T extends SelectableChannel 
 		out.flush();
 		out.close();
 		
-		channel.write(ByteBuffer.wrap(out.toByteArray()));
+		sendBytes(channel, ByteBuffer.wrap(out.toByteArray()), config.getAddress());
 		
 		channel.close();
+		
 	}
 	
-	protected abstract WritableByteChannel getClientChannel(SocketAddress address) throws IOException, InterruptedException;
+	protected void sendBytes(C channel, ByteBuffer buffer, SocketAddress address) throws IOException{
+		channel.write(buffer);
+		
+	}
+	
+	protected abstract C getClientChannel(SocketAddress address) throws IOException, InterruptedException;
 	
 	private static Runnable getStarter(final SelectorEventStream<?> candidate){
 		return new Runnable(){
@@ -220,7 +238,7 @@ public abstract class AbstractSelectorEventStreamIT<T extends SelectableChannel 
 		private TestEventProperty currentProperty = TestEventProperty.TEST_STRING1;
 		
 		@Override
-		public void marshal(ByteBuffer content) {
+		public boolean marshal(ByteBuffer content) {
 			while(content.hasRemaining()){
 				byte nextByte = content.get();
 	
@@ -245,6 +263,8 @@ public abstract class AbstractSelectorEventStreamIT<T extends SelectableChannel 
 				}
 				lastRead  = nextByte;
 			}
+			
+			return testIntIdx == 4;
 		}
 
 		@Override
@@ -275,7 +295,7 @@ public abstract class AbstractSelectorEventStreamIT<T extends SelectableChannel 
 		@Override
 		public void dispatchEvent(TestEvent event) {
 			
-			LOG.debug("recieved event: "+event.testString1+"("+Integer.toBinaryString(event.testInt1)+"##"+event.testInt1+")");
+			//LOG.debug("recieved event: "+event.testString1+"("+Integer.toBinaryString(event.testInt1)+"##"+event.testInt1+")");
 			this.events.add(event);
 			
 			latch.countDown();

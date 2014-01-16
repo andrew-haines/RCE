@@ -2,7 +2,6 @@ package com.haines.ml.rce.eventstream;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.nio.channels.Channel;
 import java.nio.channels.NetworkChannel;
 import java.nio.channels.ScatteringByteChannel;
 import java.nio.channels.SelectableChannel;
@@ -50,7 +49,7 @@ class SelectorEventStream<T extends SelectableChannel & NetworkChannel> implemen
 	public void start() throws EventStreamException{
 		
 		executingThread = Thread.currentThread();
-		ChannelDetails channelDetails = initiateSelectorAndChannel();
+		ChannelDetails<T> channelDetails = initiateSelectorAndChannel();
 		
 		ByteBuffer buffer = createBuffer();
 		isAlive = true;
@@ -81,18 +80,18 @@ class SelectorEventStream<T extends SelectableChannel & NetworkChannel> implemen
 		listener.streamStopped();
 	}
 	
-	private ChannelDetails initiateSelectorAndChannel() throws EventStreamException {
+	private ChannelDetails<T> initiateSelectorAndChannel() throws EventStreamException {
 		try{
 			SelectorProvider provider = SelectorProvider.provider();
 			final Selector socketSelector = provider.openSelector();
 			
 			final T channel = processor.createChannel(provider);
 			channel.configureBlocking(false);
-			channel.bind(config.getAddress());
 			
-			channel.register(socketSelector, SelectionKey.OP_ACCEPT);
+			channel.register(socketSelector, processor.getRegisterOpCodes());
+			processor.connect(config.getAddress(), channel);
 			
-			return new ChannelDetails(socketSelector, channel);
+			return new ChannelDetails<T>(socketSelector, channel, processor);
 			
 		} catch (IOException e){
 			throw new EventStreamException("Unable to start selector event stream", e);
@@ -107,32 +106,40 @@ class SelectorEventStream<T extends SelectableChannel & NetworkChannel> implemen
 				SelectionKey key = selectedKeys.next();
 				selectedKeys.remove();
 				if (key.isValid()){
+					
+					@SuppressWarnings("unchecked")
+					T channel = (T)key.channel();
+					
 					if(key.isAcceptable()){
-						@SuppressWarnings("unchecked")
-						T channel = (T)key.channel();
 						
 						processor.acceptChannel(selector, channel);
 					} else if (key.isReadable()){
 						buffer.clear();
 						
 						ScatteringByteChannel readerChannel = (ScatteringByteChannel)key.channel();
-						while(readerChannel.read(buffer) > 0){
+					
+						int totalRead = 0;
+						int tmpBytesRead = 0;
+						boolean enoughBuffersReadToBuildEvent = false;
+						while(!enoughBuffersReadToBuildEvent && (tmpBytesRead = processor.readFromChannel(readerChannel, buffer)) > 0){
+							totalRead += tmpBytesRead;
 							buffer.flip();
 							
-							eventBuffer.marshal(buffer);
+							enoughBuffersReadToBuildEvent = eventBuffer.marshal(buffer);
 							
 							buffer.flip();
 						}
 						
 						// now close the connection
-						readerChannel.close();						
+						processor.closeAccept(readerChannel);					
 						
-						Event event = eventBuffer.buildEventAndResetBuffer();
-						
-						@SuppressWarnings({"rawtypes" })
-						Dispatcher rawDispatcher = dispatcher;
-						
-						rawDispatcher.dispatchEvent(event);
+						if (totalRead > 0){
+							Event event = eventBuffer.buildEventAndResetBuffer();
+							@SuppressWarnings({"rawtypes" })
+							Dispatcher rawDispatcher = dispatcher;
+							
+							rawDispatcher.dispatchEvent(event);
+						}
 					}
 				}
 			}
@@ -172,14 +179,16 @@ class SelectorEventStream<T extends SelectableChannel & NetworkChannel> implemen
 		return isAlive;
 	}
 	
-	private static final class ChannelDetails{
+	private static final class ChannelDetails<T extends SelectableChannel & NetworkChannel>{
 		
 		private final Selector socketSelector;
-		private final Channel channel;
+		private final T channel;
+		private final NetworkChannelProcessor<T> processor;
 
-		public ChannelDetails(Selector socketSelector, Channel channel) {
+		public ChannelDetails(Selector socketSelector, T channel, NetworkChannelProcessor<T> processor) {
 			this.socketSelector = socketSelector;
 			this.channel = channel;
+			this.processor = processor;
 		}
 
 		public Selector getSelector() {
@@ -189,6 +198,8 @@ class SelectorEventStream<T extends SelectableChannel & NetworkChannel> implemen
 		public void close() throws IOException {
 			socketSelector.close();
 			channel.close();
+			
+			processor.close(channel);
 		}
 		
 		

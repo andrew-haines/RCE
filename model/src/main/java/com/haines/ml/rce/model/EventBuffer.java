@@ -14,7 +14,14 @@ import java.nio.ByteBuffer;
  */
 public interface EventBuffer<E extends Event> {
 
-	void marshal(ByteBuffer content);
+	/**
+	 * marshals this buffer of content. Expect this to be called possibly more then once before {@link #buildEventAndResetBuffer()} is invoked.
+	 * If the buffer has all the data it needs to construct it's event then this should return true.
+	 * 
+	 * @param content the buffer to read
+	 * @return  Whether the event has read enough buffers to fully create the event.
+	 */
+	boolean marshal(ByteBuffer content);
 	
 	E buildEventAndResetBuffer() throws UnMarshalableException;
 	

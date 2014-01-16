@@ -32,6 +32,6 @@ public class TcpSelectorEventStreamITest extends AbstractSelectorEventStreamIT<S
 
 	@Override
 	protected int getBufferCapacity() { // we wish to test a dynamic buffer where the event can be read over multiple buffer reads hence why the size is so small.
-		return 2048;
+		return 10;
 	}
 }

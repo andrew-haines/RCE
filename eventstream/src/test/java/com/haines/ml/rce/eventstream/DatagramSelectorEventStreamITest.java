@@ -30,7 +30,7 @@ public class DatagramSelectorEventStreamITest extends AbstractSelectorEventStrea
 
 	@Override
 	protected int getBufferCapacity() {
-		return 2048; // with udp we cannot span the event packet over multiple reads from a buffer so this needs to be the maxiumum size of the udp packet
+		return 64; // with udp we cannot span the event packet over multiple reads from a buffer so this needs to be the maxiumum size of the udp packet
 	}
 
 	

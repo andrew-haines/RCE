@@ -53,6 +53,10 @@ public abstract class AbstractSelectorEventStreamIT<T extends SelectableChannel 
 	public void before() throws UnknownHostException{
 		before(1);
 	}
+	
+	protected int getNumberOfEvents(){
+		return NUMBER_EVENTS_TO_SEND;
+	}
 	public void before(int eventsExpected) throws UnknownHostException{
 		
 		executor = Executors.newSingleThreadExecutor();
@@ -134,7 +138,7 @@ public abstract class AbstractSelectorEventStreamIT<T extends SelectableChannel 
 	@Test
 	public void givenStartedCandidate_whenPushingMultipleEventsToPort_thenDispatcherIsInvokedWithAllEvents() throws InterruptedException, IOException{
 		
-		before(NUMBER_EVENTS_TO_SEND);
+		before(getNumberOfEvents());
 		// start server
 		executor.execute(getStarter(candidate));
 		
@@ -144,7 +148,7 @@ public abstract class AbstractSelectorEventStreamIT<T extends SelectableChannel 
 		// sendmessages
 		
 		long startTime = System.currentTimeMillis();
-		for (int i = 0; i < NUMBER_EVENTS_TO_SEND; i++){
+		for (int i = 0; i < getNumberOfEvents(); i++){
 			sendEventToServer(new TestEvent(TEST_EVENT_MESSAGE, i));
 		}
 		
@@ -152,11 +156,11 @@ public abstract class AbstractSelectorEventStreamIT<T extends SelectableChannel 
 		// now verify that the dispatcher recieved the event
 		
 		long timeSpent = System.currentTimeMillis() - startTime;
-		LOG.debug("Sent "+NUMBER_EVENTS_TO_SEND+" in "+(timeSpent)+"ms - "+calculateRPS(timeSpent, NUMBER_EVENTS_TO_SEND)+" rps");
+		LOG.debug("Sent "+getNumberOfEvents()+" in "+(timeSpent)+"ms - "+calculateRPS(timeSpent, getNumberOfEvents())+" rps");
 		
 		Iterable<TestEvent> events = dispatcher.getEventsRecieved();
 		
-		assertThat(Iterables.size(events), is(equalTo(NUMBER_EVENTS_TO_SEND)));
+		assertThat(Iterables.size(events), is(equalTo(getNumberOfEvents())));
 		
 		int idx = 0;
 		for (TestEvent event:events){

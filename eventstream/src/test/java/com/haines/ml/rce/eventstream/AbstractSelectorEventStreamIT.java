@@ -24,6 +24,7 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.Iterables;
 import com.haines.ml.rce.dispatcher.Dispatcher;
+import com.haines.ml.rce.dispatcher.DispatcherConsumer;
 import com.haines.ml.rce.eventstream.SelectorEventStreamConfig.BufferType;
 import com.haines.ml.rce.model.Event;
 import com.haines.ml.rce.model.EventBuffer;
@@ -289,6 +290,7 @@ public abstract class AbstractSelectorEventStreamIT<T extends SelectableChannel 
 		private CountDownLatch latch;
 		
 		private TestDispatcher(int numberEventsExpected){
+			super(Collections.<DispatcherConsumer<TestEvent>>emptyList());
 			this.latch = new CountDownLatch(numberEventsExpected);
 		}
 		

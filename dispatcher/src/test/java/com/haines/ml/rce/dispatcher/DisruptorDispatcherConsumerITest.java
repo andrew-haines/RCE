@@ -64,10 +64,6 @@ public class DisruptorDispatcherConsumerITest {
 		assertThat(Iterables.get(consumer.getEventsRecieved(), 0).testNum, is(equalTo(1)));
 	}
 	
-	private void warmDisruptor(){
-		
-	}
-	
 	@Test
 	public void givenSingleConsumerCandidate_whenAddingMultipleEvents_thenEventsConsumed() throws InterruptedException{
 		

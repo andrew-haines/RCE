@@ -9,12 +9,15 @@ import java.util.concurrent.Executors;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.google.common.base.Function;
 import com.google.common.collect.Iterables;
 import com.haines.ml.rce.model.Event;
 import com.haines.ml.rce.model.EventConsumer;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.not;
+import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertThat;
 
 public class DisruptorDispatcherConsumerITest {
@@ -24,11 +27,12 @@ public class DisruptorDispatcherConsumerITest {
 	private static final int NUM_TEST_EVENTS = 5000000;
 	
 	private Dispatcher<TestEvent> candidate;
-	private TestEventConsumer consumer;
+	private Iterable<TestEventConsumer> consumers;
 	private CountDownLatch consumerLatch;
 	
 	@Before
 	public void before(){
+		
 		before(1);
 	}
 	
@@ -36,9 +40,14 @@ public class DisruptorDispatcherConsumerITest {
 		
 		consumerLatch = new CountDownLatch(numEventExpected);
 		
-		consumer = new TestEventConsumer(consumerLatch);
+		consumers = Arrays.asList(new TestEventConsumer(consumerLatch));
 		
-		candidate = new Dispatcher<TestEvent>(getTestConsumers(consumer));
+		before(numEventExpected, consumers);
+	}
+	
+	public void before(int numEventExpected, Iterable<TestEventConsumer> consumers){
+		
+		candidate = new Dispatcher<TestEvent>(getTestConsumers(consumers));
 	}
 	
 	@Test
@@ -47,10 +56,16 @@ public class DisruptorDispatcherConsumerITest {
 		
 		consumerLatch.await();
 		
+		TestEventConsumer consumer = Iterables.get(consumers, 0);
+		
 		assertThat(consumer.getEventsRecieved().size(), is(equalTo(1)));
 		
 		assertThat(Iterables.get(consumer.getEventsRecieved(), 0).testString, is(equalTo(TEST_EVENT_STRING)));
 		assertThat(Iterables.get(consumer.getEventsRecieved(), 0).testNum, is(equalTo(1)));
+	}
+	
+	private void warmDisruptor(){
+		
 	}
 	
 	@Test
@@ -58,8 +73,10 @@ public class DisruptorDispatcherConsumerITest {
 		
 		before(NUM_TEST_EVENTS);
 		
+		candidate.dispatchEvent(new TestEvent(TEST_EVENT_STRING+0, 0));
+		
 		long timeStarted = System.currentTimeMillis();
-		for (int i = 0; i < NUM_TEST_EVENTS; i++){
+		for (int i = 1; i < NUM_TEST_EVENTS; i++){
 			candidate.dispatchEvent(new TestEvent(TEST_EVENT_STRING+i, i));
 		}
 		
@@ -68,6 +85,8 @@ public class DisruptorDispatcherConsumerITest {
 		long runTime = System.currentTimeMillis() - timeStarted;
 		
 		System.out.println(NUM_TEST_EVENTS+" events processed in "+ runTime+" ms - "+calculateRPS(runTime, NUM_TEST_EVENTS)+" rps");
+		
+		TestEventConsumer consumer = Iterables.get(consumers, 0);
 		
 		assertThat(consumer.getEventsRecieved().size(), is(equalTo(NUM_TEST_EVENTS)));
 		
@@ -79,19 +98,74 @@ public class DisruptorDispatcherConsumerITest {
 		}
 	}
 	
+	@Test
+	public void givenMultipleConsumerCandidate_whenAddingMultipleEvents_thenEventsConsumedOverAllConsumers() throws InterruptedException{
+		
+		consumerLatch = new CountDownLatch(NUM_TEST_EVENTS);
+		Collection<TestEventConsumer> consumers = new ArrayList<TestEventConsumer>();
+		
+		consumers.add(new TestEventConsumer(consumerLatch));
+		consumers.add(new TestEventConsumer(consumerLatch));
+		consumers.add(new TestEventConsumer(consumerLatch));
+		consumers.add(new TestEventConsumer(consumerLatch));
+		consumers.add(new TestEventConsumer(consumerLatch));
+		consumers.add(new TestEventConsumer(consumerLatch));
+		consumers.add(new TestEventConsumer(consumerLatch));
+		
+		before(NUM_TEST_EVENTS, consumers);
+		
+		candidate.dispatchEvent(new TestEvent(TEST_EVENT_STRING+0, 0));
+		
+		long timeStarted = System.currentTimeMillis();
+		for (int i = 1; i < NUM_TEST_EVENTS; i++){
+			candidate.dispatchEvent(new TestEvent(TEST_EVENT_STRING+i, i));
+		}
+		
+		consumerLatch.await();
+		
+		long runTime = System.currentTimeMillis() - timeStarted;
+		
+		System.out.println(NUM_TEST_EVENTS+" events processed in "+ runTime+" ms - "+calculateRPS(runTime, NUM_TEST_EVENTS)+" rps");
+		
+		int totalEvents = 0;
+		
+		for (TestEventConsumer consumer: consumers){
+			totalEvents += consumer.getEventsRecieved().size();
+			
+			assertThat(consumer.getEventsRecieved().size() > 0, is(equalTo(true)));
+			for (TestEvent event: consumer.getEventsRecieved()){
+				assertThat(event.testString, is(not(nullValue())));
+				assertThat(event.testNum >= 0, is(equalTo(true)));
+			}
+		}
+		
+		assertThat(totalEvents, is(equalTo(NUM_TEST_EVENTS)));
+		
+		
+	}
+	
 	private static double calculateRPS(long timeSpent, int numberEventsToSend) {
 		
 		return 1000 / ((double)timeSpent / numberEventsToSend);
 	}
 
-	private Iterable<DispatcherConsumer<TestEvent>> getTestConsumers(TestEventConsumer consumer) {
+	private Iterable<DispatcherConsumer<TestEvent>> getTestConsumers(Iterable<TestEventConsumer> consumers) {
 		
-		return Arrays.<DispatcherConsumer<TestEvent>>asList(new DisruptorConsumer.Builder<TestEvent>(Executors.newSingleThreadExecutor(), 
-				new DisruptorConfig.Builder()
-					.ringSize(1024)
-					.build()
-				).addConsumer(consumer)
-				.build());
+		Iterable<DispatcherConsumer<TestEvent>> builders = Iterables.transform(consumers, new Function<TestEventConsumer, DispatcherConsumer<TestEvent>>(){
+
+			@Override
+			public DispatcherConsumer<TestEvent> apply(TestEventConsumer input) {
+				return new DisruptorConsumer.Builder<TestEvent>(Executors.newSingleThreadExecutor(), 
+						new DisruptorConfig.Builder()
+							.ringSize(1024)
+							.build()
+				).addConsumer(input)
+				.build();
+			}
+			
+		});
+		
+		return builders;
 	}
 
 	private static class TestEvent implements Event{
@@ -116,6 +190,8 @@ public class DisruptorDispatcherConsumerITest {
 		
 		@Override
 		public void consume(TestEvent event) {
+			
+			//System.out.println("event: "+event.testNum+" consumed");
 			this.getEventsRecieved().add(event);
 			latch.countDown();
 		}

@@ -20,6 +20,8 @@ import static org.junit.Assert.assertThat;
 public class DisruptorDispatcherConsumerITest {
 
 	private static final String TEST_EVENT_STRING = "testString";
+
+	private static final int NUM_TEST_EVENTS = 5000000;
 	
 	private Dispatcher<TestEvent> candidate;
 	private TestEventConsumer consumer;
@@ -51,6 +53,37 @@ public class DisruptorDispatcherConsumerITest {
 		assertThat(Iterables.get(consumer.getEventsRecieved(), 0).testNum, is(equalTo(1)));
 	}
 	
+	@Test
+	public void givenSingleConsumerCandidate_whenAddingMultipleEvents_thenEventsConsumed() throws InterruptedException{
+		
+		before(NUM_TEST_EVENTS);
+		
+		long timeStarted = System.currentTimeMillis();
+		for (int i = 0; i < NUM_TEST_EVENTS; i++){
+			candidate.dispatchEvent(new TestEvent(TEST_EVENT_STRING+i, i));
+		}
+		
+		consumerLatch.await();
+		
+		long runTime = System.currentTimeMillis() - timeStarted;
+		
+		System.out.println(NUM_TEST_EVENTS+" events processed in "+ runTime+" ms - "+calculateRPS(runTime, NUM_TEST_EVENTS)+" rps");
+		
+		assertThat(consumer.getEventsRecieved().size(), is(equalTo(NUM_TEST_EVENTS)));
+		
+		int i = 0;
+		for (TestEvent event: consumer.getEventsRecieved()){
+			assertThat(event.testString, is(equalTo(TEST_EVENT_STRING+i)));
+			assertThat(event.testNum, is(equalTo(i)));
+			i++;
+		}
+	}
+	
+	private static double calculateRPS(long timeSpent, int numberEventsToSend) {
+		
+		return 1000 / ((double)timeSpent / numberEventsToSend);
+	}
+
 	private Iterable<DispatcherConsumer<TestEvent>> getTestConsumers(TestEventConsumer consumer) {
 		
 		return Arrays.<DispatcherConsumer<TestEvent>>asList(new DisruptorConsumer.Builder<TestEvent>(Executors.newSingleThreadExecutor(), 

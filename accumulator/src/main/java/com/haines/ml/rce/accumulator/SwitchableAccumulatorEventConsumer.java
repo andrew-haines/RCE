@@ -1,7 +1,5 @@
 package com.haines.ml.rce.accumulator;
 
-import java.util.concurrent.atomic.AtomicInteger;
-
 import com.haines.ml.rce.model.Event;
 import com.haines.ml.rce.model.EventConsumer;
 
@@ -25,7 +23,7 @@ public class SwitchableAccumulatorEventConsumer<E extends Event, T extends Event
 		consumers[liveConsumer].consume(event);
 	}
 	
-	public T switchConsumer(){
+	public T switchLiveConsumer(){
 		
 		int stagingConsumer = this.liveConsumer;
 		this.liveConsumer = (byte)((this.liveConsumer+1) & 0x1);

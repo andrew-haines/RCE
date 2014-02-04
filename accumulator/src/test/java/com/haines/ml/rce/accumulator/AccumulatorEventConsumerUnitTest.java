@@ -83,6 +83,37 @@ public class AccumulatorEventConsumerUnitTest {
 		}
 	}
 	
+	@Test
+	public void givenCandidate_whenConsumingMultipleEventsAcrossAllLines2_thenAccumulatorsUpdatedCorrectly(){
+		assertThat(candidate.getAccumulatorValue(1), is(equalTo(0)));
+		
+		for (int j = 65536-2048; j < 65536; j++){
+			for (int i = 0; i < j; i++){
+				candidate.consume(new TestEvent(new int[]{j}));
+			}
+		}
+		
+		for (int j = 65536-2048; j < 65536; j++){
+			assertThat(candidate.getAccumulatorValue(j), is(equalTo(j)));
+		}
+	}
+	
+	@Test
+	public void givenCandidate_whenConsumingSlotsPerEvent_thenAccumulatorsUpdatedCorrectly(){
+		assertThat(candidate.getAccumulatorValue(1), is(equalTo(0)));
+		
+		candidate.consume(new TestEvent(new int[]{1, 5, 7,8 ,3 ,4}));
+		
+		assertThat(candidate.getAccumulatorValue(0), is(equalTo(0)));
+		assertThat(candidate.getAccumulatorValue(1), is(equalTo(1)));
+		assertThat(candidate.getAccumulatorValue(2), is(equalTo(0)));
+		assertThat(candidate.getAccumulatorValue(5), is(equalTo(1)));
+		assertThat(candidate.getAccumulatorValue(7), is(equalTo(1)));
+		assertThat(candidate.getAccumulatorValue(8), is(equalTo(1)));
+		assertThat(candidate.getAccumulatorValue(3), is(equalTo(1)));
+		assertThat(candidate.getAccumulatorValue(4), is(equalTo(1)));
+	}
+	
 	private static class TestEvent implements Event{
 		
 		private final int[] slotsToIncrement;

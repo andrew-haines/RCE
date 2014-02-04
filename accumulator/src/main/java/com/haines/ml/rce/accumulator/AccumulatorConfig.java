@@ -8,7 +8,7 @@ public class AccumulatorConfig {
 		this.accumulatorSlots = accumulatorSlots;
 	}
 
-	public int getAccumulatorSlots() {
+	public int getAccumulatorLines() {
 		return accumulatorSlots;
 	}
 }

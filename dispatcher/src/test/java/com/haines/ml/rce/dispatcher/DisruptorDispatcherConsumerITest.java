@@ -3,16 +3,20 @@ package com.haines.ml.rce.dispatcher;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Function;
 import com.google.common.collect.Iterables;
 import com.haines.ml.rce.model.Event;
 import com.haines.ml.rce.model.EventConsumer;
+import com.haines.ml.rce.model.Feature;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
@@ -21,6 +25,8 @@ import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertThat;
 
 public class DisruptorDispatcherConsumerITest {
+	
+	private static final Logger LOG = LoggerFactory.getLogger(DisruptorDispatcherConsumerITest.class);
 
 	private static final String TEST_EVENT_STRING = "testString";
 
@@ -80,7 +86,7 @@ public class DisruptorDispatcherConsumerITest {
 		
 		long runTime = System.currentTimeMillis() - timeStarted;
 		
-		System.out.println(NUM_TEST_EVENTS+" events processed in "+ runTime+" ms - "+calculateRPS(runTime, NUM_TEST_EVENTS)+" rps");
+		LOG.debug(NUM_TEST_EVENTS+" events processed in "+ runTime+" ms - "+calculateRPS(runTime, NUM_TEST_EVENTS)+" rps");
 		
 		TestEventConsumer consumer = Iterables.get(consumers, 0);
 		
@@ -121,7 +127,7 @@ public class DisruptorDispatcherConsumerITest {
 		
 		long runTime = System.currentTimeMillis() - timeStarted;
 		
-		System.out.println(NUM_TEST_EVENTS+" events processed in "+ runTime+" ms - "+calculateRPS(runTime, NUM_TEST_EVENTS)+" rps");
+		LOG.debug(NUM_TEST_EVENTS+" events processed in "+ runTime+" ms - "+calculateRPS(runTime, NUM_TEST_EVENTS)+" rps");
 		
 		int totalEvents = 0;
 		
@@ -173,6 +179,11 @@ public class DisruptorDispatcherConsumerITest {
 			this.testString = testString;
 			this.testNum = testNum;
 		}
+
+		@Override
+		public Collection<Feature> getFeatures() {
+			return Collections.emptyList();
+		}
 	}
 	
 	private static class TestEventConsumer implements EventConsumer<TestEvent>{
@@ -187,8 +198,7 @@ public class DisruptorDispatcherConsumerITest {
 		@Override
 		public void consume(TestEvent event) {
 			
-			//System.out.println("event: "+event.testNum+" consumed");
-			this.getEventsRecieved().add(event);
+			eventsRecieved.add(event);
 			latch.countDown();
 		}
 

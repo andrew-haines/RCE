@@ -25,6 +25,15 @@
 			<groupId>com.lmax</groupId>
 			<artifactId>disruptor</artifactId>
 		</dependency>
+		<dependency>
+			<groupId>net.sf.trove4j</groupId>
+    		<artifactId>trove4j</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>ch.qos.logback</groupId>
+			<artifactId>logback-classic</artifactId>
+			<scope>test</scope>
+		</dependency>
             
     </dependencies>
 </project>

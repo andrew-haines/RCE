@@ -5,4 +5,6 @@ import com.haines.ml.rce.model.Event;
 public interface AccumulatorLookupStrategy<T extends Event> {
 
 	int[] getSlots(T event);
+	
+	int getMaxIndex();
 }

@@ -28,6 +28,7 @@ import com.haines.ml.rce.dispatcher.DispatcherConsumer;
 import com.haines.ml.rce.eventstream.SelectorEventStreamConfig.BufferType;
 import com.haines.ml.rce.model.Event;
 import com.haines.ml.rce.model.EventBuffer;
+import com.haines.ml.rce.model.Feature;
 import com.haines.ml.rce.model.UnMarshalableException;
 
 import static org.junit.Assert.assertThat;
@@ -167,7 +168,6 @@ public abstract class AbstractSelectorEventStreamIT<T extends SelectableChannel 
 			assertThat(event.testString1, is(equalTo(TEST_EVENT_MESSAGE)));
 			assertThat(event.testInt1, is(equalTo(idx++)));
 		}
-		
 	}
 	
 	private static double calculateRPS(long timeSpent, int numberEventsToSend) {
@@ -194,12 +194,10 @@ public abstract class AbstractSelectorEventStreamIT<T extends SelectableChannel 
 		sendBytes(channel, ByteBuffer.wrap(out.toByteArray()), config.getAddress());
 		
 		channel.close();
-		
 	}
 	
 	protected void sendBytes(C channel, ByteBuffer buffer, SocketAddress address) throws IOException{
 		channel.write(buffer);
-		
 	}
 	
 	protected abstract C getClientChannel(SocketAddress address) throws IOException, InterruptedException;
@@ -226,6 +224,11 @@ public abstract class AbstractSelectorEventStreamIT<T extends SelectableChannel 
 		private TestEvent(String testString1, int testInt1){
 			this.testString1 = testString1;
 			this.testInt1 = testInt1;
+		}
+
+		@Override
+		public Collection<Feature> getFeatures() {
+			return Collections.emptyList();
 		}
 	}
 	

@@ -10,6 +10,7 @@
 		<module>parent</module>
 		<module>model</module>
 		<module>accumulator</module>
+		<module>naivebayes</module>
 		<module>dispatcher</module>
 		<module>eventstream</module>
 	</modules>

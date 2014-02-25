@@ -2,7 +2,6 @@ package com.haines.ml.rce.accumulator.lookups;
 
 import gnu.trove.map.hash.THashMap;
 
-import java.util.HashMap;
 import java.util.Map;
 
 import com.haines.ml.rce.model.Classification;
@@ -22,11 +21,8 @@ import com.haines.ml.rce.model.Feature;
  * @author haines
  *
  */
-public class NaiveBayesGlobalIndexes {
-	
-	private final Map<Feature, Map<Classification, Integer>> posteriorProbabilityIndexes;
-	private final Map<Classification, Integer> priorProbabilityIndexes;
-	private int maxIndex;
+public class NaiveBayesGlobalIndexes extends NaiveBayesIndexes{
+
 	
 	/**
 	 * Enables constructions of this class to use a more fitting map (such as EnumMap) if
@@ -35,49 +31,11 @@ public class NaiveBayesGlobalIndexes {
 	 * @param posteriorProbabilityIndexes
 	 * @param priorProbabilityIndexes
 	 */
-	public NaiveBayesGlobalIndexes(Map<Feature, Map<Classification, Integer>> posteriorProbabilityIndexes, Map<Classification, Integer> priorProbabilityIndexes){
-		this.posteriorProbabilityIndexes = checkIsEmpty(posteriorProbabilityIndexes);
-		this.priorProbabilityIndexes = checkIsEmpty(priorProbabilityIndexes);
-
-		maxIndex = 0;
+	public NaiveBayesGlobalIndexes(Map<Classification, Map<Feature, Integer>> posteriorProbabilityIndexes, Map<Classification, Integer> priorProbabilityIndexes){
+		super(posteriorProbabilityIndexes, priorProbabilityIndexes, 0);
 	}
 	
 	public NaiveBayesGlobalIndexes(){
-		this(new THashMap<Feature, Map<Classification, Integer>>(), new THashMap<Classification, Integer>());
+		this(new THashMap<Classification, Map<Feature, Integer>>(), new THashMap<Classification, Integer>());
 	}
-
-	private <K, V> Map<K, V> checkIsEmpty(Map<K, V> map) {
-		if (!map.isEmpty()){
-			throw new IllegalArgumentException("Map passed into global index must be empty");
-		}
-		return map;
-	}
-	
-	public int getPosteriorIndex(Feature feature, Classification classification){
-		Map<Classification, Integer> innerMap = posteriorProbabilityIndexes.get(feature);
-		
-		if (innerMap != null){
-			Integer index = innerMap.get(classification);
-			
-			if (index != null){
-				return index;
-			}
-		}
-		return -1;
-	}
-	
-	public int getPriorIndex(Classification classification){
-		Integer index = priorProbabilityIndexes.get(classification);
-		
-		if (index != null){
-			return index;
-		}
-		return -1;
-	}
-
-	public int getMaxIndex() {
-		return maxIndex;
-	}
-	
-	
 }

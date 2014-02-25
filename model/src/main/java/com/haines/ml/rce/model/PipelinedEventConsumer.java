@@ -1,13 +1,5 @@
 package com.haines.ml.rce.model;
 
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.locks.AbstractQueuedSynchronizer;
-import java.util.concurrent.locks.Condition;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReadWriteLock;
-import java.util.concurrent.locks.ReentrantLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
-
 
 /**
  * A switchable accumulator consumer that defines 2 pipelines - live and staging - that ensentially
@@ -15,10 +7,47 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
  * using the {@link #switchLiveConsumer()} method you are transferring ownership for writes to
  * the thread calling that method. When this happens, no other thread will be able to read or write
  * to the returned consumer. This class also guarantees that any thread that was writing to the now
- * staging consumer has finished by the time that this method returns. Its worth noting, that due to
- * the actual switching occurring on the consumer thread so that memory barriers can be put in place,
- * an additional consumer event will need to be triggered before the barrier can be put in place
- * and the coordinator thread 
+ * staging consumer has finished by the time that this method returns. 
+ * 
+ * This class is meant to be used with at most 2 threads. One being the consumer thread, the thread that
+ * calls the {@link #consume(Event)} method and the other the coordinator thread that calls the
+ * {@link #switchLiveConsumer()}. 
+ * 
+ *                T(consumer)
+ *                     \
+ *                      \
+ *                       \ w
+ *                        \
+ *                         \
+ *        consumer0          consumer 1
+ *            \
+ *             \
+ *              \ w
+ *               \
+ *                \
+ *               T(coordinator)
+ *               
+ *               
+ *               
+ *        After coordinator calls {@link #switchLiveConsumer()}:
+ *        
+ *                T(consumer)
+ *                     /
+ *                    / 
+ *                 w / 
+ *                  / 
+ *                 /
+ *        consumer0          consumer 1
+ *                              /
+ *                             /
+ *                            / w
+ *                           /
+ *                          /
+ *               T(coordinator)
+ *        
+ *        
+ *        
+ *        
  * @author haines
  *
  * @param <E>
@@ -28,9 +57,6 @@ public class PipelinedEventConsumer<E extends Event, T extends EventConsumer<E>>
 
 	private final static byte LIVE_CONSUMER_MASK = 0x1;
 	private final static byte LIVE_CONSUMER_ACTIVE_MASK = 0x2;
-	private final static byte STAGING_CONSUMER_ACTIVE_MASK = 0x4;
-	private final static byte ATTEMPTING_TO_SWITCH = 0x8;
-	private final Condition ownershipTransferNotifier = new AbstractQueuedSynchronizer(){}.new ConditionObject();
 	
 	private final T[] consumers;
 	private volatile byte liveConsumerState;
@@ -87,6 +113,7 @@ public class PipelinedEventConsumer<E extends Event, T extends EventConsumer<E>>
 		
 		while ((liveConsumerState & liveConsumerActiveMask) == liveConsumerActiveMask){
 			// busy spin.
+			Thread.yield();
 		}
 		
 		return consumers[toBeStagingConsumer];

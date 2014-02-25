@@ -67,6 +67,7 @@ public class AccumulatorEventConsumer<T extends Event> implements EventConsumer<
 		getAccumulatorLine(slot)[accumulatorIdx]--;
 	}
 
+	@Override
 	public int getAccumulatorValue(int slot){
 		
 		if (slot > lookup.getMaxIndex()){

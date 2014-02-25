@@ -5,6 +5,24 @@ import com.haines.ml.rce.model.Feature;
 
 public interface NaiveBayesProperty {
 
+	PropertyType<?> getType();
+	
+	public static class PropertyType<T extends NaiveBayesProperty>{
+		
+		private final Class<T> clazz;
+		
+		private PropertyType(Class<T> clazz){
+			this.clazz = clazz;
+		}
+		
+		public T cast(NaiveBayesProperty property){
+			return clazz.cast(property);
+		}
+		
+		public static final PropertyType<NaiveBayesPosteriorProperty> POSTERIOR_TYPE = new PropertyType<NaiveBayesPosteriorProperty>(NaiveBayesPosteriorProperty.class){};
+		
+		public static final PropertyType<NaiveBayesPriorProperty> PRIOR_TYPE = new PropertyType<NaiveBayesPriorProperty>(NaiveBayesPriorProperty.class){};
+	}
 	
 	public static class NaiveBayesPosteriorProperty implements NaiveBayesProperty{
 		
@@ -23,6 +41,11 @@ public interface NaiveBayesProperty {
 		public Classification getClassification(){
 			return classification;
 		}
+
+		@Override
+		public PropertyType<?> getType() {
+			return PropertyType.POSTERIOR_TYPE;
+		}
 	}
 	
 	public static class NaiveBayesPriorProperty implements NaiveBayesProperty{
@@ -35,6 +58,11 @@ public interface NaiveBayesProperty {
 
 		public Classification getClassification() {
 			return classification;
+		}
+
+		@Override
+		public PropertyType<?> getType() {
+			return PropertyType.PRIOR_TYPE;
 		}
 	}
 }

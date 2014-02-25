@@ -6,6 +6,7 @@ import com.haines.ml.rce.accumulator.AccumulatorLookupStrategy;
 import com.haines.ml.rce.model.Classification;
 import com.haines.ml.rce.model.ClassifiedEvent;
 import com.haines.ml.rce.model.Feature;
+import com.haines.ml.rce.naivebayes.NaiveBayesIndexes;
 
 public class RONaiveBayesMapBasedLookupStrategy<T extends ClassifiedEvent> implements AccumulatorLookupStrategy<T>{
 

@@ -1,4 +1,4 @@
-package com.haines.ml.rce.accumulator.lookups;
+package com.haines.ml.rce.naivebayes;
 
 import gnu.trove.map.hash.THashMap;
 
@@ -32,7 +32,7 @@ public class NaiveBayesGlobalIndexes extends NaiveBayesIndexes{
 	 * @param priorProbabilityIndexes
 	 */
 	public NaiveBayesGlobalIndexes(Map<Classification, Map<Feature, Integer>> posteriorProbabilityIndexes, Map<Classification, Integer> priorProbabilityIndexes){
-		super(posteriorProbabilityIndexes, priorProbabilityIndexes, -1); // no index set at beginning.
+		super(posteriorProbabilityIndexes, priorProbabilityIndexes, NaiveBayesIndexes.NO_INDEX_FOUND); // no index set at beginning.
 	}
 	
 	public NaiveBayesGlobalIndexes(){

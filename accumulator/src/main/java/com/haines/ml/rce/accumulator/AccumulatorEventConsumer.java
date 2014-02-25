@@ -23,7 +23,7 @@ import com.haines.ml.rce.model.EventConsumer;
  *
  * @param <T>
  */
-public class AccumulatorEventConsumer<T extends Event> implements EventConsumer<T>{
+public class AccumulatorEventConsumer<T extends Event> implements EventConsumer<T>, Accumulator{
 
 	private final Logger LOG = LoggerFactory.getLogger(AccumulatorEventConsumer.class);
 	

@@ -9,6 +9,9 @@ import org.junit.Test;
 import com.haines.ml.rce.model.Classification;
 import com.haines.ml.rce.model.ClassifiedEvent;
 import com.haines.ml.rce.model.Feature;
+import com.haines.ml.rce.naivebayes.NaiveBayesGlobalIndexes;
+import com.haines.ml.rce.naivebayes.NaiveBayesIndexes;
+import com.haines.ml.rce.naivebayes.NaiveBayesLocalIndexes;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.CoreMatchers.is;
@@ -36,12 +39,16 @@ public class RONaiveBayesMapBasedLookupStrategyUnitTest {
 	
 	@Test
 	public void givenCandidateWithNoGlobalIndexes_whenCallingGetSlots_thenNewIndexesReturned(){
+		
+		assertThat(candidate.getMaxIndex(), is(equalTo(-1)));
 		int[] indexes = candidate.getSlots(TEST_EVENT_1);
 		
 		assertThat(indexes.length, is(equalTo(3)));
 		assertThat(indexes[0], is(equalTo(0)));
 		assertThat(indexes[1], is(equalTo(1)));
 		assertThat(indexes[2], is(equalTo(2)));
+		
+		assertThat(candidate.getMaxIndex(), is(equalTo(2)));
 	}
 	
 	@Test
@@ -109,22 +116,6 @@ public class RONaiveBayesMapBasedLookupStrategyUnitTest {
 		
 		assertThat(indexes.length, is(equalTo(4)));
 		assertThat(indexes[0], is(equalTo(3))); // all different for this event as classification is different
-		assertThat(indexes[1], is(equalTo(4)));
-		assertThat(indexes[2], is(equalTo(1))); 
-		assertThat(indexes[3], is(equalTo(2)));
-	}
-	
-	@Test
-	public void givenCandidateWithGlobalIndexes_whenCallingGetSlotsFromEvent1AlreadyInGlobalIndex_thenSameIndexesRetuned(){
-		int[] indexes = candidate.getSlots(TEST_EVENT_1);
-		assertThat(indexes[0], is(equalTo(0)));
-		assertThat(indexes[1], is(equalTo(1)));
-		assertThat(indexes[2], is(equalTo(2)));
-		
-		indexes = candidate.getSlots(TEST_EVENT_5);
-		
-		assertThat(indexes.length, is(equalTo(4)));
-		assertThat(indexes[0], is(equalTo(3))); // these events share the same classification so some feature/classification pairs are the same indexes
 		assertThat(indexes[1], is(equalTo(4)));
 		assertThat(indexes[2], is(equalTo(1))); 
 		assertThat(indexes[3], is(equalTo(2)));

@@ -1,4 +1,4 @@
-package com.haines.ml.rce.accumulator.lookups;
+package com.haines.ml.rce.naivebayes;
 
 import gnu.trove.map.hash.THashMap;
 
@@ -12,7 +12,7 @@ public class NaiveBayesLocalIndexes extends NaiveBayesIndexes{
 	private final NaiveBayesIndexes globalIndexes;
 	
 	public NaiveBayesLocalIndexes(Map<Classification, Map<Feature, Integer>> posteriorProbabilityIndexes, Map<Classification, Integer> priorProbabilityIndexes, NaiveBayesIndexes globalIndexes){
-		super(posteriorProbabilityIndexes, priorProbabilityIndexes, globalIndexes.getMaxIndex()+1);
+		super(posteriorProbabilityIndexes, priorProbabilityIndexes, globalIndexes.getMaxIndex());
 		this.globalIndexes = globalIndexes;
 	}
 	
@@ -38,7 +38,7 @@ public class NaiveBayesLocalIndexes extends NaiveBayesIndexes{
 				innerMap = new THashMap<Feature, Integer>();
 				posteriorProbabilityIndexes.put(classification, innerMap);
 			}
-			int newIndex = super.maxIndex++;
+			int newIndex = ++super.maxIndex;
 			innerMap.put(feature, newIndex);
 			
 			return newIndex;
@@ -54,7 +54,7 @@ public class NaiveBayesLocalIndexes extends NaiveBayesIndexes{
 			Integer localIndex = priorProbabilityIndexes.get(classification);
 			
 			if (localIndex == null){
-				localIndex = super.maxIndex++;
+				localIndex = ++super.maxIndex;
 				priorProbabilityIndexes.put(classification, localIndex);
 			}
 			

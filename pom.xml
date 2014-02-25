@@ -11,6 +11,7 @@
 		<module>model</module>
 		<module>accumulator</module>
 		<module>naivebayes</module>
+		<module>aggregator</module>
 		<module>dispatcher</module>
 		<module>eventstream</module>
 	</modules>

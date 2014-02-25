@@ -36,6 +36,7 @@ public class NaiveBayesLocalIndexes extends NaiveBayesIndexes{
 				}
 			} else {
 				innerMap = new THashMap<Feature, Integer>();
+				posteriorProbabilityIndexes.put(classification, innerMap);
 			}
 			int newIndex = super.maxIndex++;
 			innerMap.put(feature, newIndex);

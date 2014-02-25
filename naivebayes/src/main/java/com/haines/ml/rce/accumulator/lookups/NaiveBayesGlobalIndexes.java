@@ -32,7 +32,7 @@ public class NaiveBayesGlobalIndexes extends NaiveBayesIndexes{
 	 * @param priorProbabilityIndexes
 	 */
 	public NaiveBayesGlobalIndexes(Map<Classification, Map<Feature, Integer>> posteriorProbabilityIndexes, Map<Classification, Integer> priorProbabilityIndexes){
-		super(posteriorProbabilityIndexes, priorProbabilityIndexes, 0);
+		super(posteriorProbabilityIndexes, priorProbabilityIndexes, -1); // no index set at beginning.
 	}
 	
 	public NaiveBayesGlobalIndexes(){

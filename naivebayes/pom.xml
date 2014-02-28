@@ -16,5 +16,12 @@
     		<artifactId>rce-accumulator</artifactId>
     		<version>${project.version}</version>
     	</dependency>
+    	<dependency>
+    		<groupId>${project.groupId}</groupId>
+    		<artifactId>rce-model</artifactId>
+    		<version>${project.version}</version>
+    		<classifier>tests</classifier>
+    		<scope>test</scope>
+    	</dependency>
     </dependencies>
 </project>

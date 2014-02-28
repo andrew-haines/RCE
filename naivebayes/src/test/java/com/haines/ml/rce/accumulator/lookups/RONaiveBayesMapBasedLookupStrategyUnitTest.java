@@ -1,17 +1,15 @@
 package com.haines.ml.rce.accumulator.lookups;
 
 import java.util.Arrays;
-import java.util.Collection;
 
 import org.junit.Before;
 import org.junit.Test;
-
-import com.haines.ml.rce.model.Classification;
-import com.haines.ml.rce.model.ClassifiedEvent;
-import com.haines.ml.rce.model.Feature;
 import com.haines.ml.rce.naivebayes.NaiveBayesGlobalIndexes;
 import com.haines.ml.rce.naivebayes.NaiveBayesIndexes;
 import com.haines.ml.rce.naivebayes.NaiveBayesLocalIndexes;
+import com.haines.ml.rce.test.TestClassification;
+import com.haines.ml.rce.test.TestEvent;
+import com.haines.ml.rce.test.TestFeature;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.CoreMatchers.is;
@@ -119,65 +117,5 @@ public class RONaiveBayesMapBasedLookupStrategyUnitTest {
 		assertThat(indexes[1], is(equalTo(4)));
 		assertThat(indexes[2], is(equalTo(1))); 
 		assertThat(indexes[3], is(equalTo(2)));
-	}
-	
-	private static class TestEvent implements ClassifiedEvent {
-
-		private final Collection<Feature> features;
-		private final Collection<Classification> classifications;
-		
-		@SuppressWarnings("unchecked")
-		private TestEvent(Collection<? extends Feature> features, Collection<? extends Classification> classifications){
-			this.features = (Collection<Feature>)features;
-			this.classifications = (Collection<Classification>)classifications;
-		}
-		
-		@Override
-		public Collection<Feature> getFeatures() {
-			return features;
-		}
-
-		@Override
-		public Collection<Classification> getClassifications() {
-			return classifications;
-		}
-	}
-	
-	private static class TestFeature implements Feature {
-		
-		private final String featureStr;
-		
-		private TestFeature(String featureStr){
-			this.featureStr = featureStr;
-		}
-		
-		@Override
-		public int hashCode() {
-			return featureStr.hashCode();
-		}
-
-		@Override
-		public boolean equals(Object obj) {
-			return featureStr.equals(((TestFeature)obj).featureStr);
-		}
-	}
-	
-	private static class TestClassification implements Classification {
-		
-		private final String classificationStr;
-		
-		private TestClassification(String classificationStr){
-			this.classificationStr = classificationStr;
-		}
-		
-		@Override
-		public int hashCode() {
-			return classificationStr.hashCode();
-		}
-
-		@Override
-		public boolean equals(Object obj) {
-			return classificationStr.equals(((TestClassification)obj).classificationStr);
-		}
 	}
 }

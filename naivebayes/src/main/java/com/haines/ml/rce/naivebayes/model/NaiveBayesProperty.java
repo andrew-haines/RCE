@@ -19,6 +19,11 @@ public interface NaiveBayesProperty {
 			return clazz.cast(property);
 		}
 		
+		@SuppressWarnings("unchecked")
+		public NaiveBayesCounts<T> cast(NaiveBayesCounts<?> counts){
+			return (NaiveBayesCounts<T>) counts;
+		}
+		
 		public static final PropertyType<NaiveBayesPosteriorProperty> POSTERIOR_TYPE = new PropertyType<NaiveBayesPosteriorProperty>(NaiveBayesPosteriorProperty.class){};
 		
 		public static final PropertyType<NaiveBayesPriorProperty> PRIOR_TYPE = new PropertyType<NaiveBayesPriorProperty>(NaiveBayesPriorProperty.class){};

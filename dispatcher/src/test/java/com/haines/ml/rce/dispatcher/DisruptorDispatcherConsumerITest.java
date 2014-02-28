@@ -3,7 +3,6 @@ package com.haines.ml.rce.dispatcher;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
 
@@ -16,7 +15,6 @@ import com.google.common.base.Function;
 import com.google.common.collect.Iterables;
 import com.haines.ml.rce.model.Event;
 import com.haines.ml.rce.model.EventConsumer;
-import com.haines.ml.rce.model.Feature;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
@@ -178,11 +176,6 @@ public class DisruptorDispatcherConsumerITest {
 		private TestEvent(String testString, int testNum){
 			this.testString = testString;
 			this.testNum = testNum;
-		}
-
-		@Override
-		public Collection<Feature> getFeatures() {
-			return Collections.emptyList();
 		}
 	}
 	

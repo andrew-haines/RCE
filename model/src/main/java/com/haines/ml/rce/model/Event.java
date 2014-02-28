@@ -4,5 +4,4 @@ import java.util.Collection;
 
 public interface Event {
 
-	Collection<Feature> getFeatures();
 }

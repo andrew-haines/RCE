@@ -51,10 +51,76 @@ public interface NaiveBayesProperty {
 		public PropertyType<?> getType() {
 			return PropertyType.POSTERIOR_TYPE;
 		}
+
+		@Override
+		public int hashCode() {
+			final int prime = 31;
+			int result = 1;
+			result = prime
+					* result
+					+ ((classification == null) ? 0 : classification.hashCode());
+			result = prime * result
+					+ ((feature == null) ? 0 : feature.hashCode());
+			return result;
+		}
+
+		@Override
+		public boolean equals(Object obj) {
+			if (this == obj)
+				return true;
+			if (obj == null)
+				return false;
+			if (getClass() != obj.getClass())
+				return false;
+			NaiveBayesPosteriorProperty other = (NaiveBayesPosteriorProperty) obj;
+			if (classification == null) {
+				if (other.classification != null)
+					return false;
+			} else if (!classification.equals(other.classification))
+				return false;
+			if (feature == null) {
+				if (other.feature != null)
+					return false;
+			} else if (!feature.equals(other.feature))
+				return false;
+			return true;
+		}
+		
+		@Override
+		public String toString(){
+			return feature.toString() +"|"+classification.toString();
+		}
 	}
 	
 	public static class NaiveBayesPriorProperty implements NaiveBayesProperty{
 		
+		@Override
+		public int hashCode() {
+			final int prime = 31;
+			int result = 1;
+			result = prime
+					* result
+					+ ((classification == null) ? 0 : classification.hashCode());
+			return result;
+		}
+
+		@Override
+		public boolean equals(Object obj) {
+			if (this == obj)
+				return true;
+			if (obj == null)
+				return false;
+			if (getClass() != obj.getClass())
+				return false;
+			NaiveBayesPriorProperty other = (NaiveBayesPriorProperty) obj;
+			if (classification == null) {
+				if (other.classification != null)
+					return false;
+			} else if (!classification.equals(other.classification))
+				return false;
+			return true;
+		}
+
 		private final Classification classification;
 		
 		public NaiveBayesPriorProperty(Classification classification){
@@ -68,6 +134,11 @@ public interface NaiveBayesProperty {
 		@Override
 		public PropertyType<?> getType() {
 			return PropertyType.PRIOR_TYPE;
+		}
+		
+		@Override
+		public String toString(){
+			return classification.toString();
 		}
 	}
 }

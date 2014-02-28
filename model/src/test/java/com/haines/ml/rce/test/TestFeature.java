@@ -19,4 +19,9 @@ public class TestFeature implements Feature {
 	public boolean equals(Object obj) {
 		return featureStr.equals(((TestFeature)obj).featureStr);
 	}
+	
+	@Override
+	public String toString(){
+		return featureStr;
+	}
 }

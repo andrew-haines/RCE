@@ -22,6 +22,39 @@ public class NaiveBayesCounts<T extends NaiveBayesProperty> {
 		return new MutableNaiveBayesCounts<T>(getProperty(), getCounts());
 	}
 	
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + counts;
+		result = prime * result
+				+ ((property == null) ? 0 : property.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		NaiveBayesCounts<?> other = (NaiveBayesCounts<?>) obj;
+		if (counts != other.counts)
+			return false;
+		if (property == null) {
+			if (other.property != null)
+				return false;
+		} else if (!property.equals(other.property))
+			return false;
+		return true;
+	}
+
+	@Override
+	public String toString(){
+		return "{"+getProperty().toString()+"="+getCounts()+"}";
+	}
+
+
 	public static class MutableNaiveBayesCounts<T extends NaiveBayesProperty> extends NaiveBayesCounts<T>{
 
 		public MutableNaiveBayesCounts(T property, int counts) {

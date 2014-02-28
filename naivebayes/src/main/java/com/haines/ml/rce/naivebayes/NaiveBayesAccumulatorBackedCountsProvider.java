@@ -2,7 +2,7 @@ package com.haines.ml.rce.naivebayes;
 
 import com.google.common.base.Function;
 import com.google.common.collect.Iterables;
-import com.haines.ml.rce.accumulator.Accumulator;
+import com.haines.ml.rce.accumulator.AccumulatorProvider;
 import com.haines.ml.rce.naivebayes.model.NaiveBayesCounts;
 import com.haines.ml.rce.naivebayes.model.NaiveBayesProperty.NaiveBayesPosteriorProperty;
 import com.haines.ml.rce.naivebayes.model.NaiveBayesProperty.NaiveBayesPriorProperty;
@@ -12,10 +12,10 @@ public class NaiveBayesAccumulatorBackedCountsProvider implements NaiveBayesCoun
 	private final Function<NaiveBayesPosteriorProperty, NaiveBayesCounts<NaiveBayesPosteriorProperty>> posteriorPropertyToCountsFunction;
 	private final Function<NaiveBayesPriorProperty, NaiveBayesCounts<NaiveBayesPriorProperty>> priorPropertyToCountsFunction;
 	
-	private final Accumulator accumulator;
+	private final AccumulatorProvider accumulator;
 	private final NaiveBayesIndexes indexes;
 	
-	public NaiveBayesAccumulatorBackedCountsProvider(Accumulator accumulator, NaiveBayesIndexes indexes){
+	public NaiveBayesAccumulatorBackedCountsProvider(AccumulatorProvider accumulator, NaiveBayesIndexes indexes){
 		this.accumulator = accumulator;
 		this.indexes = indexes;
 		

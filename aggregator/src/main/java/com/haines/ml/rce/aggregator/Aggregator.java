@@ -81,6 +81,6 @@ public class Aggregator {
 	
 	@SuppressWarnings("unchecked")
 	public Iterable<NaiveBayesCounts<NaiveBayesPriorProperty>> getAccumulatedPriorCounts(){
-		return (Iterable<NaiveBayesCounts<NaiveBayesPriorProperty>>)(Iterable<?>)posteriorCounts.values();
+		return (Iterable<NaiveBayesCounts<NaiveBayesPriorProperty>>)(Iterable<?>)priorCounts.values();
 	}
 }

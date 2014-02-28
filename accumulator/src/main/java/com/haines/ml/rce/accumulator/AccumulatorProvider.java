@@ -1,6 +1,6 @@
 package com.haines.ml.rce.accumulator;
 
-public interface Accumulator {
+public interface AccumulatorProvider {
 
 	/**
 	 * Returns the accumulator value at a particular slot.

@@ -22,6 +22,7 @@ import com.haines.ml.rce.test.TestFeature;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.Matchers.hasItem;
 
 public class AggregatorUnitTest {
 	
@@ -67,7 +68,20 @@ public class AggregatorUnitTest {
 		candidate.aggregate(counts);
 		
 		Iterable<NaiveBayesCounts<NaiveBayesPosteriorProperty>> posteriorCounts = candidate.getAccumulatedPosteriorCounts();
-		
+		Iterable<NaiveBayesCounts<NaiveBayesPriorProperty>> priorCounts = candidate.getAccumulatedPriorCounts();
+
 		assertThat(Iterables.size(posteriorCounts), is(equalTo(7)));
+		assertThat(Iterables.size(priorCounts), is(equalTo(2)));
+		
+		assertThat(posteriorCounts, hasItem(new NaiveBayesCounts<>(new NaiveBayesPosteriorProperty(FEATURE1, CLASSIFICATION1), 781)));
+		assertThat(posteriorCounts, hasItem(new NaiveBayesCounts<>(new NaiveBayesPosteriorProperty(FEATURE2, CLASSIFICATION1), 128)));
+		assertThat(posteriorCounts, hasItem(new NaiveBayesCounts<>(new NaiveBayesPosteriorProperty(FEATURE1, CLASSIFICATION2), 139)));
+		assertThat(posteriorCounts, hasItem(new NaiveBayesCounts<>(new NaiveBayesPosteriorProperty(FEATURE2, CLASSIFICATION2), 33)));
+		assertThat(posteriorCounts, hasItem(new NaiveBayesCounts<>(new NaiveBayesPosteriorProperty(FEATURE4, CLASSIFICATION1), 399)));
+		assertThat(posteriorCounts, hasItem(new NaiveBayesCounts<>(new NaiveBayesPosteriorProperty(FEATURE3, CLASSIFICATION2), 4)));
+		assertThat(posteriorCounts, hasItem(new NaiveBayesCounts<>(new NaiveBayesPosteriorProperty(FEATURE4, CLASSIFICATION2), 47)));
+		
+		assertThat(priorCounts, hasItem(new NaiveBayesCounts<>(new NaiveBayesPriorProperty(CLASSIFICATION1), 151)));
+		assertThat(priorCounts, hasItem(new NaiveBayesCounts<>(new NaiveBayesPriorProperty(CLASSIFICATION2), 106)));
 	}
 }

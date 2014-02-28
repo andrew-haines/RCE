@@ -100,11 +100,6 @@ public class PipelinedEventConsumerUnitTest {
 		public TestEvent(int currentThread) {
 			this.currentThread = currentThread;
 		}
-
-		@Override
-		public Collection<Feature> getFeatures() {
-			return Collections.emptyList();
-		}
 	}
 	
 	private static class TestEventConsumer implements EventConsumer<TestEvent>{

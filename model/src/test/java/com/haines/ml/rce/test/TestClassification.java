@@ -19,4 +19,9 @@ public class TestClassification implements Classification {
 	public boolean equals(Object obj) {
 		return classificationStr.equals(((TestClassification)obj).classificationStr);
 	}
+	
+	@Override
+	public String toString(){
+		return classificationStr;
+	}
 }

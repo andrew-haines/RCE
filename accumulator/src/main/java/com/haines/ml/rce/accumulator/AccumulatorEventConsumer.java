@@ -1,5 +1,7 @@
 package com.haines.ml.rce.accumulator;
 
+import java.util.Arrays;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -23,7 +25,7 @@ import com.haines.ml.rce.model.EventConsumer;
  *
  * @param <T>
  */
-public class AccumulatorEventConsumer<T extends Event> implements EventConsumer<T>, Accumulator{
+public class AccumulatorEventConsumer<T extends Event> implements EventConsumer<T>{
 
 	private final Logger LOG = LoggerFactory.getLogger(AccumulatorEventConsumer.class);
 	
@@ -66,36 +68,20 @@ public class AccumulatorEventConsumer<T extends Event> implements EventConsumer<
 		
 		getAccumulatorLine(slot)[accumulatorIdx]--;
 	}
-
-	@Override
-	public int getAccumulatorValue(int slot){
-		
-		if (slot > lookup.getMaxIndex()){
-			return 0;
-		}
-		int[][] firstAccumulatorLine = getFirstAccumulatorLine(slot);
-		
-		int[] accumulatorLine = firstAccumulatorLine[getSecondAccumulatorLineIdx(slot)];
-		if (accumulatorLine == null){
-			return 0;
-		}
-		
-		return accumulatorLine[getAccumulatorIdx(slot)];
-	}
 	
-	private int[][] getFirstAccumulatorLine(int slot){
+	private static int[][] getFirstAccumulatorLine(int slot, int[][][] accumulators){
 		int firstAccumulatorLineIdx = (slot & 0xFC0000) >> 18;//use most significant 64 bits for first index
 		
 		return accumulators[firstAccumulatorLineIdx];
 	}
 	
-	private int getSecondAccumulatorLineIdx(int slot){
+	private static int getSecondAccumulatorLineIdx(int slot){
 		return (slot & 0x3F000) >> 12;
 	}
 	
 	private int[] getAccumulatorLine(int slot){
 		
-		int[][] firstAccumulatorLine = getFirstAccumulatorLine(slot);
+		int[][] firstAccumulatorLine = getFirstAccumulatorLine(slot, accumulators);
 		
 		int secondAccumulatorLineId = getSecondAccumulatorLineIdx(slot);
 		if (firstAccumulatorLine[secondAccumulatorLineId] == null){
@@ -112,7 +98,75 @@ public class AccumulatorEventConsumer<T extends Event> implements EventConsumer<
 		
 	}
 
-	private int getAccumulatorIdx(int slot) {
+	private static int getAccumulatorIdx(int slot) {
 		return (slot & 0xFFF);
 	}
+
+	public AccumulatorProvider getAccumulatorProvider() {
+		
+		return new MemorySafeAccumulatorProvider(accumulators, lookup.getMaxIndex());
+	}
+	
+	/**
+	 * enforces a memory barrier so that other threads can read the contents
+	 * of this accumulator
+	 * @author haines
+	 *
+	 */
+	private static class MemorySafeAccumulatorProvider implements AccumulatorProvider{
+
+		private volatile int[][][] accumulators;
+		private final int maxIndex;
+		
+		public MemorySafeAccumulatorProvider(int[][][] accumulators, int maxIndex) {
+			this.accumulators = new int[accumulators.length][][];
+			
+			deepCopy(accumulators, this.accumulators);
+			
+			this.maxIndex = maxIndex;
+		}
+
+		private void deepCopy(int[][][] src, int[][][] dest) {
+			for (int i = 0; i < src.length; i++){
+				dest[i] = new int[src[i].length][];
+				
+				if (src[i] != null){
+					for (int j = 0; j < src[i].length; j++){
+						if (src[i][j] != null){
+							dest[i][j] = new int[src[i][j].length];
+						
+							System.arraycopy(src[i][j], 0, dest[i][j], 0, src[i][j].length);
+						} 
+						//else {
+						//	break; // same as comment below
+						//}
+					}
+				} 
+				//else{
+					// as the accumulators are located sequentially we can break out of the loop
+					// at this point as everything further will be null
+					
+					//break;
+				//}
+				
+			}
+		}
+
+		@Override
+		public int getAccumulatorValue(int slot){
+			
+			if (slot > maxIndex){
+				return 0;
+			}
+			int[][] firstAccumulatorLine = getFirstAccumulatorLine(slot, accumulators);
+			
+			int[] accumulatorLine = firstAccumulatorLine[getSecondAccumulatorLineIdx(slot)];
+			if (accumulatorLine == null){
+				return 0;
+			}
+			
+			return accumulatorLine[getAccumulatorIdx(slot)];
+		}
+	}
+
 }

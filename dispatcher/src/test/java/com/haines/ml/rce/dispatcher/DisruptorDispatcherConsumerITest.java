@@ -140,8 +140,6 @@ public class DisruptorDispatcherConsumerITest {
 		}
 		
 		assertThat(totalEvents, is(equalTo(NUM_TEST_EVENTS)));
-		
-		
 	}
 	
 	private static double calculateRPS(long timeSpent, int numberEventsToSend) {
@@ -162,7 +160,6 @@ public class DisruptorDispatcherConsumerITest {
 				).addConsumer(input)
 				.build();
 			}
-			
 		});
 		
 		return builders;

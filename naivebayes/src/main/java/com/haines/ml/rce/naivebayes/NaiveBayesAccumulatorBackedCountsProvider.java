@@ -12,11 +12,9 @@ public class NaiveBayesAccumulatorBackedCountsProvider implements NaiveBayesCoun
 	private final Function<NaiveBayesPosteriorProperty, NaiveBayesCounts<NaiveBayesPosteriorProperty>> posteriorPropertyToCountsFunction;
 	private final Function<NaiveBayesPriorProperty, NaiveBayesCounts<NaiveBayesPriorProperty>> priorPropertyToCountsFunction;
 	
-	private final AccumulatorProvider accumulator;
 	private final NaiveBayesIndexes indexes;
 	
-	public NaiveBayesAccumulatorBackedCountsProvider(AccumulatorProvider accumulator, NaiveBayesIndexes indexes){
-		this.accumulator = accumulator;
+	public NaiveBayesAccumulatorBackedCountsProvider(final AccumulatorProvider accumulator, NaiveBayesIndexes indexes){
 		this.indexes = indexes;
 		
 		this.posteriorPropertyToCountsFunction = new Function<NaiveBayesPosteriorProperty, NaiveBayesCounts<NaiveBayesPosteriorProperty>>(){
@@ -26,7 +24,7 @@ public class NaiveBayesAccumulatorBackedCountsProvider implements NaiveBayesCoun
 				
 				int slot = NaiveBayesAccumulatorBackedCountsProvider.this.indexes.getPosteriorIndex(input.getFeature(), input.getClassification());
 				
-				return new NaiveBayesCounts<NaiveBayesPosteriorProperty>(input, NaiveBayesAccumulatorBackedCountsProvider.this.accumulator.getAccumulatorValue(slot));
+				return new NaiveBayesCounts<NaiveBayesPosteriorProperty>(input, accumulator.getAccumulatorValue(slot));
 			}
 		};
 		
@@ -37,7 +35,7 @@ public class NaiveBayesAccumulatorBackedCountsProvider implements NaiveBayesCoun
 				
 				int slot = NaiveBayesAccumulatorBackedCountsProvider.this.indexes.getPriorIndex(input.getClassification());
 
-				return new NaiveBayesCounts<NaiveBayesPriorProperty>(input, NaiveBayesAccumulatorBackedCountsProvider.this.accumulator.getAccumulatorValue(slot));
+				return new NaiveBayesCounts<NaiveBayesPriorProperty>(input, accumulator.getAccumulatorValue(slot));
 			}
 			
 		};

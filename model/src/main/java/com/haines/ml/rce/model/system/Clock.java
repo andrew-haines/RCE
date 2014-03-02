@@ -10,20 +10,23 @@ public interface Clock {
 		public long getCurrentTime() {
 			return System.currentTimeMillis();
 		}
-		
 	}
 	
 	public static class StaticClock implements Clock {
 
-		private final long staticTime;
+		private long staticTime;
 		
 		public StaticClock(long staticTime){
 			this.staticTime = staticTime;
 		}
+		
 		@Override
 		public long getCurrentTime() {
 			return staticTime;
 		}
 		
+		public void setCurrentTime(long staticTime){
+			this.staticTime = staticTime;
+		}
 	}
 }

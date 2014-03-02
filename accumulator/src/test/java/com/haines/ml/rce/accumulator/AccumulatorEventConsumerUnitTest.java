@@ -15,7 +15,7 @@ public class AccumulatorEventConsumerUnitTest {
 	
 	@Before
 	public void before(){
-		candidate = new AccumulatorEventConsumer<TestEvent>(null, new TestEventAccumulatorLookupStrategy());
+		candidate = new AccumulatorEventConsumer<TestEvent>(new TestEventAccumulatorLookupStrategy());
 	}
 	
 	@Test
@@ -82,14 +82,14 @@ public class AccumulatorEventConsumerUnitTest {
 	public void givenCandidate_whenConsumingMultipleEventsAcrossAllLines_thenAccumulatorsUpdatedCorrectly(){
 		assertThat(candidate.getAccumulatorProvider().getAccumulatorValue(1), is(equalTo(0)));
 		for (int i = 0; i < 3; i++){
-			for (int j = 0; j < 16777216; j++){
+			for (int j = 4096; j < 16777216; j++){
 				candidate.consume(new TestEvent(new int[]{j}));
 			}
 		}
 		
 		AccumulatorProvider provider = candidate.getAccumulatorProvider();
 		
-		for (int j = 0; j < 16777216; j++){
+		for (int j = 4096; j < 16777216; j++){
 			assertThat("j="+j, provider.getAccumulatorValue(j), is(equalTo(3)));
 		}
 	}

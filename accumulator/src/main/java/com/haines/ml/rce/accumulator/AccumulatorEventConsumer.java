@@ -1,7 +1,5 @@
 package com.haines.ml.rce.accumulator;
 
-import java.util.Arrays;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,6 +25,9 @@ import com.haines.ml.rce.model.EventConsumer;
  */
 public class AccumulatorEventConsumer<T extends Event> implements EventConsumer<T>{
 
+	private static final int SECOND_LINE_LENGTH = 4096;
+	private static final int ACCUMULATOR_PHYSICAL_LIMIT = 64 *64 * SECOND_LINE_LENGTH;
+
 	private final Logger LOG = LoggerFactory.getLogger(AccumulatorEventConsumer.class);
 	
 	private final int[][][] accumulators;
@@ -44,7 +45,7 @@ public class AccumulatorEventConsumer<T extends Event> implements EventConsumer<
 		
 		for (int i = 0; i < slots.length; i++){
 			int slot = slots[i];
-			if (slot > lookup.getMaxIndex()){
+			if (slot > lookup.getMaxIndex() || slot > ACCUMULATOR_PHYSICAL_LIMIT){
 				LOG.warn("We are trying to update an accumulator which we dont have an index for. Rolling back event updates");
 				
 				rollbackSlots(slots, i);
@@ -85,7 +86,7 @@ public class AccumulatorEventConsumer<T extends Event> implements EventConsumer<
 		
 		int secondAccumulatorLineId = getSecondAccumulatorLineIdx(slot);
 		if (firstAccumulatorLine[secondAccumulatorLineId] == null){
-			firstAccumulatorLine[secondAccumulatorLineId] = new int[4096];
+			firstAccumulatorLine[secondAccumulatorLineId] = new int[SECOND_LINE_LENGTH];
 		}
 		
 		return firstAccumulatorLine[secondAccumulatorLineId];
@@ -115,57 +116,50 @@ public class AccumulatorEventConsumer<T extends Event> implements EventConsumer<
 	 */
 	private static class MemorySafeAccumulatorProvider implements AccumulatorProvider{
 
-		private volatile int[][][] accumulators;
+		private volatile int[] accumulators;
 		private final int maxIndex;
 		
 		public MemorySafeAccumulatorProvider(int[][][] accumulators, int maxIndex) {
-			this.accumulators = new int[accumulators.length][][];
+			this.accumulators = new int[maxIndex];
 			
-			deepCopy(accumulators, this.accumulators);
+			deepCopy(accumulators, this.accumulators, maxIndex);
 			
 			this.maxIndex = maxIndex;
 		}
 
-		private void deepCopy(int[][][] src, int[][][] dest) {
-			for (int i = 0; i < src.length; i++){
-				dest[i] = new int[src[i].length][];
+		private void deepCopy(int[][][] src, int[] dest, int maxIdx) {
+			
+			int firstIdx = 0;
+			int secondIdx = 0;
+			int[][] firstLine = src[firstIdx++];
+			int[] secondLine = null;
+			
+			for (int i = 0; i < maxIdx; i+=SECOND_LINE_LENGTH){
+
 				
-				if (src[i] != null){
-					for (int j = 0; j < src[i].length; j++){
-						if (src[i][j] != null){
-							dest[i][j] = new int[src[i][j].length];
-						
-							System.arraycopy(src[i][j], 0, dest[i][j], 0, src[i][j].length);
-						} 
-						//else {
-						//	break; // same as comment below
-						//}
+				if (secondIdx == firstLine.length){
+					if (firstIdx == src.length){
+						break;
 					}
-				} 
-				//else{
-					// as the accumulators are located sequentially we can break out of the loop
-					// at this point as everything further will be null
-					
-					//break;
-				//}
+					firstLine = src[firstIdx++];
+					secondIdx = 0;
+				}
 				
+				secondLine = firstLine[secondIdx++];
+				
+				if (secondLine != null){	
+				
+					System.arraycopy(secondLine, 0, dest, i, secondLine.length);
+				}
 			}
 		}
 
 		@Override
 		public int getAccumulatorValue(int slot){
-			
-			if (slot > maxIndex){
-				return 0;
+			if (slot < maxIndex){
+				return accumulators[slot];
 			}
-			int[][] firstAccumulatorLine = getFirstAccumulatorLine(slot, accumulators);
-			
-			int[] accumulatorLine = firstAccumulatorLine[getSecondAccumulatorLineIdx(slot)];
-			if (accumulatorLine == null){
-				return 0;
-			}
-			
-			return accumulatorLine[getAccumulatorIdx(slot)];
+			return 0;
 		}
 	}
 

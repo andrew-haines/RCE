@@ -120,7 +120,7 @@ public class AccumulatorEventConsumerUnitTest {
 		
 		assertThat(provider.getAccumulatorValue(0), is(equalTo(1)));
 		assertThat(provider.getAccumulatorValue(1), is(equalTo(1)));
-		assertThat(provider.getAccumulatorValue(16777216), is(equalTo(1))); // only updated once
+		assertThat(provider.getAccumulatorValue(16777216), is(equalTo(0))); // only updated once
 		assertThat(provider.getAccumulatorValue(16777217), is(equalTo(0))); // never updated
 		assertThat(provider.getAccumulatorValue(16777210), is(equalTo(0))); // never updated
 		assertThat(provider.getAccumulatorValue(3), is(equalTo(0))); // never updated
@@ -190,7 +190,7 @@ public class AccumulatorEventConsumerUnitTest {
 
 		@Override
 		public int getMaxIndex() {
-			return 16777216;
+			return 16777218;
 		}
 		
 	}

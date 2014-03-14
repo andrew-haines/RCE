@@ -1,6 +1,7 @@
 package com.haines.ml.rce.accumulator;
 
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.haines.ml.rce.model.Event;
@@ -167,11 +168,11 @@ public class AccumulatorEventConsumerUnitTest {
 		assertThat(provider.getAccumulatorValue(0), is(equalTo(0)));
 	}
 	
-	private static class TestEvent implements Event{
+	static class TestEvent implements Event{
 		
 		private final int[] slotsToIncrement;
 		
-		private TestEvent(int[] slotsToIncrement){
+		 TestEvent(int[] slotsToIncrement){
 			this.slotsToIncrement = slotsToIncrement;
 		}
 
@@ -181,7 +182,7 @@ public class AccumulatorEventConsumerUnitTest {
 
 	}
 	
-	private static class TestEventAccumulatorLookupStrategy implements AccumulatorLookupStrategy<TestEvent>{
+	static class TestEventAccumulatorLookupStrategy implements AccumulatorLookupStrategy<TestEvent>{
 
 		@Override
 		public int[] getSlots(TestEvent event) {
@@ -194,4 +195,5 @@ public class AccumulatorEventConsumerUnitTest {
 		}
 		
 	}
+
 }

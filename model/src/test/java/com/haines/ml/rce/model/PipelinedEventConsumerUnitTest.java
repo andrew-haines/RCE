@@ -76,6 +76,7 @@ public class PipelinedEventConsumerUnitTest {
 					throw new RuntimeException(e);
 				} catch (Throwable t){
 					inError.set(true);
+					LOG.error("error in thread: ", t);
 					throw t;
 				}
 			}

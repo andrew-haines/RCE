@@ -8,6 +8,7 @@ import com.google.common.base.Function;
 import com.google.common.collect.Iterables;
 import com.haines.ml.rce.model.Classification;
 import com.haines.ml.rce.model.Feature;
+import com.haines.ml.rce.naivebayes.NaiveBayesCountsProvider;
 import com.haines.ml.rce.naivebayes.model.NaiveBayesCounts.MutableNaiveBayesCounts;
 import com.haines.ml.rce.naivebayes.model.NaiveBayesProperty;
 import com.haines.ml.rce.naivebayes.model.NaiveBayesCounts;
@@ -15,7 +16,7 @@ import com.haines.ml.rce.naivebayes.model.NaiveBayesProperty.NaiveBayesPosterior
 import com.haines.ml.rce.naivebayes.model.NaiveBayesProperty.NaiveBayesPriorProperty;
 import com.haines.ml.rce.naivebayes.model.NaiveBayesProperty.PropertyType;
 
-public class Aggregator {
+public class Aggregator implements NaiveBayesCountsProvider{
 
 	private static final Function<Map<Feature, MutableNaiveBayesCounts<NaiveBayesPosteriorProperty>>, Iterable<? extends NaiveBayesCounts<NaiveBayesPosteriorProperty>>> FLATTEN_POSTERIOR_MAP_FUNC = new Function<Map<Feature, MutableNaiveBayesCounts<NaiveBayesPosteriorProperty>>, Iterable<? extends NaiveBayesCounts<NaiveBayesPosteriorProperty>>>(){
 
@@ -82,5 +83,15 @@ public class Aggregator {
 	@SuppressWarnings("unchecked")
 	public Iterable<NaiveBayesCounts<NaiveBayesPriorProperty>> getAccumulatedPriorCounts(){
 		return (Iterable<NaiveBayesCounts<NaiveBayesPriorProperty>>)(Iterable<?>)priorCounts.values();
+	}
+
+	@Override
+	public Iterable<NaiveBayesCounts<NaiveBayesPosteriorProperty>> getPosteriorCounts() {
+		return getAccumulatedPosteriorCounts();
+	}
+
+	@Override
+	public Iterable<NaiveBayesCounts<NaiveBayesPriorProperty>> getPriorCounts() {
+		return getAccumulatedPriorCounts();
 	}
 }

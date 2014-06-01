@@ -20,7 +20,6 @@ public abstract class NaiveBayesIndexes {
 		public NaiveBayesPriorProperty apply(Classification input) {
 			return new NaiveBayesPriorProperty(input);
 		}
-		
 	};
 	
 	protected final Map<Classification, Map<Feature, Integer>> posteriorProbabilityIndexes;
@@ -82,7 +81,7 @@ public abstract class NaiveBayesIndexes {
 					
 					@Override
 					public boolean hasNext() {
-						return keySetIt.hasNext() && (currentPosteriorFeatureForClassification == null || currentPosteriorFeatureForClassification.hasNext());
+						return keySetIt.hasNext();
 					}
 
 					@Override

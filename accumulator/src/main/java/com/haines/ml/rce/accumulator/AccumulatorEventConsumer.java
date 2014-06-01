@@ -215,7 +215,7 @@ public class AccumulatorEventConsumer<T extends Event> implements EventConsumer<
 				
 				if (secondLine != null){	
 				
-					System.arraycopy(secondLine, 0, dest, i, secondLine.length);
+					System.arraycopy(secondLine, 0, dest, i, Math.min(dest.length, secondLine.length));
 				}
 			}
 		}

@@ -24,4 +24,9 @@ public class TestClassification implements Classification {
 	public String toString(){
 		return classificationStr;
 	}
+
+	@Override
+	public String toExternalForm() {
+		return classificationStr;
+	}
 }

@@ -1,5 +1,6 @@
 package com.haines.ml.rce.naivebayes;
 
+import java.util.Comparator;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -8,6 +9,15 @@ import com.haines.ml.rce.model.Classification;
 import com.haines.ml.rce.model.Feature;
 
 public class NaiveBayesService {
+	
+	private final Comparator<Double> INVERSE_NUMBER_COMPARATOR = new Comparator<Double>(){
+
+		@Override
+		public int compare(Double o1, Double o2) {
+			return -(o1.compareTo(o2));
+		}
+		
+	};
 
 	private final NaiveBayesProbabilities probabilities;
 	
@@ -17,7 +27,7 @@ public class NaiveBayesService {
 	
 	public Iterable<Classification> getMaximumLikelihoodClassifications(Iterable<? extends Feature> features, int numClassifications){
 		
-		Map<Double, Classification> sortedClassifications = new TreeMap<Double, Classification>();
+		Map<Double, Classification> sortedClassifications = new TreeMap<Double, Classification>(INVERSE_NUMBER_COMPARATOR);
 		sortedClassifications.put(0D, Classification.UNKNOWN);
 		
 		for (Classification possibleClassification: probabilities.getAllClassifications()){

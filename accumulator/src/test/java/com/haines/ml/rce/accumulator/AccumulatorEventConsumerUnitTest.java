@@ -1,7 +1,6 @@
 package com.haines.ml.rce.accumulator;
 
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import com.haines.ml.rce.model.Event;

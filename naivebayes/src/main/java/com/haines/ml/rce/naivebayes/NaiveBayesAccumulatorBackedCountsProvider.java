@@ -56,14 +56,14 @@ public class NaiveBayesAccumulatorBackedCountsProvider implements NaiveBayesCoun
 		return Iterables.transform(indexes.getPriors(), priorPropertyToCountsFunction);
 	}
 	
-	private static class NaiveBayesAccumulatorBackedProbabilities implements NaiveBayesProbabilities{
+	static class NaiveBayesAccumulatorBackedProbabilities implements NaiveBayesProbabilities{
 
 		private static final double NOMINAL_PROBABILITY = 0.00001;
 		
 		private final Map<Classification, Map<Feature, Probability>> posteriorProbabilities;
 		private final Map<Classification, Probability> priorProbabilities;
 		
-		private NaiveBayesAccumulatorBackedProbabilities(NaiveBayesAccumulatorBackedCountsProvider provider){
+		NaiveBayesAccumulatorBackedProbabilities(NaiveBayesAccumulatorBackedCountsProvider provider){
 			
 			Map<Classification, Integer> postertiorTotals = getPosteriorTotals(provider);
 			

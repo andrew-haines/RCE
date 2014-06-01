@@ -9,7 +9,7 @@ public class Probability {
 	public Probability(int outcomes, int totals){
 		this.outcomes = outcomes;
 		this.totals = totals;
-		this.probability = outcomes / totals;
+		this.probability = outcomes / (double)totals;
 	}
 	
 	public double getProbability(){

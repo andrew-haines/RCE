@@ -48,7 +48,7 @@ public interface NaiveBayesProperty {
 		}
 
 		@Override
-		public PropertyType<?> getType() {
+		public PropertyType<NaiveBayesPosteriorProperty> getType() {
 			return PropertyType.POSTERIOR_TYPE;
 		}
 
@@ -132,7 +132,7 @@ public interface NaiveBayesProperty {
 		}
 
 		@Override
-		public PropertyType<?> getType() {
+		public PropertyType<NaiveBayesPriorProperty> getType() {
 			return PropertyType.PRIOR_TYPE;
 		}
 		

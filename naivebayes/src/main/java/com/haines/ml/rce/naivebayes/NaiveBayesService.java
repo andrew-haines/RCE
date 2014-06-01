@@ -1,5 +1,9 @@
 package com.haines.ml.rce.naivebayes;
 
+import java.util.Map;
+import java.util.TreeMap;
+
+import com.google.common.collect.Iterables;
 import com.haines.ml.rce.model.Classification;
 import com.haines.ml.rce.model.Feature;
 
@@ -11,10 +15,10 @@ public class NaiveBayesService {
 		this.probabilities = probabilities;
 	}
 	
-	public Classification getMaximumLikelihoodClassification(Iterable<? extends Feature> features){
+	public Iterable<Classification> getMaximumLikelihoodClassifications(Iterable<? extends Feature> features, int numClassifications){
 		
-		double currentMaximumLikelinessProbability = 0;
-		Classification currentMostProbablyClassification = Classification.UNKNOWN;
+		Map<Double, Classification> sortedClassifications = new TreeMap<Double, Classification>();
+		sortedClassifications.put(0D, Classification.UNKNOWN);
 		
 		for (Classification possibleClassification: probabilities.getAllClassifications()){
 			double likelihoodProbability = 1;
@@ -23,14 +27,15 @@ public class NaiveBayesService {
 			}
 			likelihoodProbability *= probabilities.getPriorProbability(possibleClassification);
 			
-			// now check the maximum a posteriori
+			// now add to the sorted map where sortedClassifications.values[0] is the maximum a posteriori
 			
-			if (likelihoodProbability > currentMaximumLikelinessProbability){
-				currentMaximumLikelinessProbability = likelihoodProbability;
-				currentMostProbablyClassification = possibleClassification;
-			}
+			sortedClassifications.put(likelihoodProbability, possibleClassification);
 		}
 		
-		return currentMostProbablyClassification;
+		return Iterables.limit(sortedClassifications.values(), numClassifications);
+	}
+	
+	public Classification getMaximumLikelihoodClassification(Iterable<? extends Feature> features){
+		return getMaximumLikelihoodClassifications(features, 1).iterator().next();
 	}
 }

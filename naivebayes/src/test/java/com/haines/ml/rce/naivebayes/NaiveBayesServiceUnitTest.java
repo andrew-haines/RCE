@@ -1,7 +1,6 @@
 package com.haines.ml.rce.naivebayes;
 
 import java.util.Arrays;
-import java.util.Collections;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -26,13 +25,16 @@ public class NaiveBayesServiceUnitTest {
 	private static final TestEvent TEST_EVENT_3 = new TestEvent(Arrays.asList(new TestFeature("feature5"), new TestFeature("feature2")), Arrays.asList(new TestClassification("class2")));
 	private static final TestEvent TEST_EVENT_4 = new TestEvent(Arrays.asList(new TestFeature("feature9"), new TestFeature("feature10")), Arrays.asList(new TestClassification("class3")));
 	private static final TestEvent TEST_EVENT_5 = new TestEvent(Arrays.asList(new TestFeature("feature11"), new TestFeature("feature12"), new TestFeature("feature9")), Arrays.asList(new TestClassification("class2")));
-	private static final TestEvent TEST_EVENT_6 = new TestEvent(Arrays.asList(new TestFeature("feature1"), new TestFeature("feature12"), new TestFeature("feature2")), Arrays.asList(new TestClassification("class2")));
+	private static final TestEvent TEST_EVENT_6 = new TestEvent(Arrays.asList(new TestFeature("feature5"), new TestFeature("feature12"), new TestFeature("feature2")), Arrays.asList(new TestClassification("class2")));
 	private static final TestEvent TEST_EVENT_7 = new TestEvent(Arrays.asList(new TestFeature("feature3"), new TestFeature("feature12"), new TestFeature("feature7")), Arrays.asList(new TestClassification("class3")));
 	private static final TestEvent TEST_EVENT_8 = new TestEvent(Arrays.asList(new TestFeature("feature5"), new TestFeature("feature1"), new TestFeature("feature2")), Arrays.asList(new TestClassification("class1")));
-	private static final TestEvent TEST_EVENT_9 = new TestEvent(Arrays.asList(new TestFeature("feature8"), new TestFeature("feature6"), new TestFeature("feature2")), Arrays.asList(new TestClassification("class2")));
+	private static final TestEvent TEST_EVENT_9 = new TestEvent(Arrays.asList(new TestFeature("feature8"), new TestFeature("feature6"), new TestFeature("feature2")), Arrays.asList(new TestClassification("class1")));
 	private static final TestEvent TEST_EVENT_10 = new TestEvent(Arrays.asList(new TestFeature("feature1"), new TestFeature("feature6"), new TestFeature("feature2")), Arrays.asList(new TestClassification("class4")));
-	private static final Iterable<Feature> TEST_FEATURE_CLASSIFICATION = Arrays.<Feature>asList(new TestFeature("feature1"), new TestFeature("feature6"), new TestFeature("feature2"));
-
+	private static final TestEvent TEST_EVENT_11 = new TestEvent(Arrays.asList(new TestFeature("feature20"), new TestFeature("feature21"), new TestFeature("feature22")), Arrays.asList(new TestClassification("class4")));
+	private static final TestEvent TEST_EVENT_12 = new TestEvent(Arrays.asList(new TestFeature("feature90"), new TestFeature("feature27"), new TestFeature("feature23")), Arrays.asList(new TestClassification("class4")));
+	private static final TestEvent TEST_EVENT_13 = new TestEvent(Arrays.asList(new TestFeature("feature90"), new TestFeature("feature65"), new TestFeature("feature29")), Arrays.asList(new TestClassification("class4")));
+	private static final Iterable<Feature> TEST_FEATURE_CLASSIFICATION = Arrays.<Feature>asList(new TestFeature("feature90"), new TestFeature("feature6"), new TestFeature("feature2"));
+	private static final Iterable<Feature> TEST_FEATURE_CLASSIFICATION2 = Arrays.<Feature>asList(new TestFeature("feature1"), new TestFeature("feature2"), new TestFeature("feature3"));
 
 	private NaiveBayesService candidate;
 	
@@ -61,6 +63,9 @@ public class NaiveBayesServiceUnitTest {
 		eventConsumer.consume(TEST_EVENT_8);
 		eventConsumer.consume(TEST_EVENT_9);
 		eventConsumer.consume(TEST_EVENT_10);
+		eventConsumer.consume(TEST_EVENT_11);
+		eventConsumer.consume(TEST_EVENT_12);
+		eventConsumer.consume(TEST_EVENT_13);
 	}
 	
 	@Test
@@ -68,5 +73,12 @@ public class NaiveBayesServiceUnitTest {
 		Classification classification = candidate.getMaximumLikelihoodClassification(TEST_FEATURE_CLASSIFICATION);
 		
 		assertThat(classification.toExternalForm(), is(equalTo("class4")));
+	}
+	
+	@Test
+	public void givenCandidate_whenCallingGetMaximumLikelihoodClassification2_thenCorrectClassReturned(){
+		Classification classification = candidate.getMaximumLikelihoodClassification(TEST_FEATURE_CLASSIFICATION2);
+		
+		assertThat(classification.toExternalForm(), is(equalTo("class1")));
 	}
 }

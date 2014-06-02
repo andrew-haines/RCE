@@ -67,7 +67,7 @@ public class NaiveBayesAccumulatorBackedCountsProvider implements NaiveBayesCoun
 			
 			Map<Classification, Integer> postertiorTotals = getPosteriorTotals(provider);
 			
-			int priorTotal = getPriorTotal(provider);
+			int priorTotal = getPriorTotal(provider); // TODO check that classification priors are calculated by instance seen and not feature seen
 			
 			posteriorProbabilities = new HashMap<Classification, Map<Feature, Probability>>();
 			priorProbabilities = new HashMap<Classification, Probability>();

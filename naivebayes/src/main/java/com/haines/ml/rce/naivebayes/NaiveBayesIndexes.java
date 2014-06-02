@@ -81,7 +81,7 @@ public abstract class NaiveBayesIndexes {
 					
 					@Override
 					public boolean hasNext() {
-						return keySetIt.hasNext();
+						return keySetIt.hasNext() || (currentPosteriorFeatureForClassification != null && currentPosteriorFeatureForClassification.hasNext());
 					}
 
 					@Override

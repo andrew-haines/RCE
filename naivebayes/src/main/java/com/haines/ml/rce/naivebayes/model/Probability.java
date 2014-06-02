@@ -23,4 +23,9 @@ public class Probability {
 	public int getTotals() {
 		return totals;
 	}
+	
+	@Override
+	public String toString(){
+		return "p("+getOutcomes()+"/"+getTotals()+")";
+	}
 }

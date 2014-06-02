@@ -28,18 +28,18 @@ public class NaiveBayesService {
 	public Iterable<Classification> getMaximumLikelihoodClassifications(Iterable<? extends Feature> features, int numClassifications){
 		
 		Map<Double, Classification> sortedClassifications = new TreeMap<Double, Classification>(INVERSE_NUMBER_COMPARATOR);
-		sortedClassifications.put(0D, Classification.UNKNOWN);
+		sortedClassifications.put(Double.NEGATIVE_INFINITY, Classification.UNKNOWN);
 		
 		for (Classification possibleClassification: probabilities.getAllClassifications()){
-			double likelihoodProbability = 1;
+			double logLikelihoodProbability = 1;
 			for (Feature feature: features){
-				likelihoodProbability *= probabilities.getPosteriorProbability(feature, possibleClassification);
+				logLikelihoodProbability += Math.log(probabilities.getPosteriorProbability(feature, possibleClassification));
 			}
-			likelihoodProbability *= probabilities.getPriorProbability(possibleClassification);
+			logLikelihoodProbability += Math.log(probabilities.getPriorProbability(possibleClassification));
 			
 			// now add to the sorted map where sortedClassifications.values[0] is the maximum a posteriori
 			
-			sortedClassifications.put(likelihoodProbability, possibleClassification);
+			sortedClassifications.put(logLikelihoodProbability, possibleClassification);
 		}
 		
 		return Iterables.limit(sortedClassifications.values(), numClassifications);

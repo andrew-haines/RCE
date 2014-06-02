@@ -8,6 +8,7 @@ import com.google.common.base.Function;
 import com.google.common.collect.Iterables;
 import com.haines.ml.rce.model.Classification;
 import com.haines.ml.rce.model.Feature;
+import com.haines.ml.rce.naivebayes.NaiveBayesAccumulatorBackedCountsProvider;
 import com.haines.ml.rce.naivebayes.NaiveBayesCountsProvider;
 import com.haines.ml.rce.naivebayes.model.NaiveBayesCounts.MutableNaiveBayesCounts;
 import com.haines.ml.rce.naivebayes.model.NaiveBayesProperty;
@@ -16,6 +17,13 @@ import com.haines.ml.rce.naivebayes.model.NaiveBayesProperty.NaiveBayesPosterior
 import com.haines.ml.rce.naivebayes.model.NaiveBayesProperty.NaiveBayesPriorProperty;
 import com.haines.ml.rce.naivebayes.model.NaiveBayesProperty.PropertyType;
 
+/**
+ * This class combines a number of different count features and acts as a {@link NaiveBayesCountsProvider} that returns an aggregated
+ * view of the supplied feature counts. The idea is that the feature counts will come from a mulitple cpu accumulators, implemented using instances of
+ * {@link NaiveBayesAccumulatorBackedCountsProvider}. The results of which can then be fed into the 
+ * @author haines
+ *
+ */
 public class Aggregator implements NaiveBayesCountsProvider{
 
 	private static final Function<Map<Feature, MutableNaiveBayesCounts<NaiveBayesPosteriorProperty>>, Iterable<? extends NaiveBayesCounts<NaiveBayesPosteriorProperty>>> FLATTEN_POSTERIOR_MAP_FUNC = new Function<Map<Feature, MutableNaiveBayesCounts<NaiveBayesPosteriorProperty>>, Iterable<? extends NaiveBayesCounts<NaiveBayesPosteriorProperty>>>(){

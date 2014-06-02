@@ -9,7 +9,6 @@ import com.haines.ml.rce.accumulator.AccumulatorEventConsumer;
 import com.haines.ml.rce.accumulator.lookups.RONaiveBayesMapBasedLookupStrategy;
 import com.haines.ml.rce.model.Classification;
 import com.haines.ml.rce.model.Feature;
-import com.haines.ml.rce.naivebayes.NaiveBayesAccumulatorBackedCountsProvider.NaiveBayesAccumulatorBackedProbabilities;
 import com.haines.ml.rce.test.TestClassification;
 import com.haines.ml.rce.test.TestEvent;
 import com.haines.ml.rce.test.TestFeature;
@@ -49,7 +48,7 @@ public class NaiveBayesServiceUnitTest {
 		
 		NaiveBayesAccumulatorBackedCountsProvider provider = new NaiveBayesAccumulatorBackedCountsProvider(eventConsumer.getAccumulatorProvider(), indexes);
 		
-		this.candidate = new NaiveBayesService(new NaiveBayesAccumulatorBackedProbabilities(provider));
+		this.candidate = new NaiveBayesService(new CountsProviderNaiveBayesProbabilities(provider));
 	}
 
 	private void consumeTestEvents(AccumulatorEventConsumer<TestEvent> eventConsumer) {

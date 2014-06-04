@@ -12,7 +12,7 @@ import com.haines.ml.rce.naivebayes.model.NaiveBayesProperty.NaiveBayesPriorProp
 
 public class CountsProviderNaiveBayesProbabilities implements NaiveBayesProbabilities{
 
-	private static final double NOMINAL_PROBABILITY = 0.00001;
+	static final double NOMINAL_PROBABILITY = 0.00001;
 	
 	private final Map<Classification, Map<Feature, Probability>> posteriorProbabilities;
 	private final Map<Classification, Probability> priorProbabilities;
@@ -32,6 +32,10 @@ public class CountsProviderNaiveBayesProbabilities implements NaiveBayesProbabil
 			if (features == null){
 				features = new HashMap<Feature, Probability>();
 				posteriorProbabilities.put(posteriors.getProperty().getClassification(), features);
+			}
+			
+			if (features.containsKey(posteriors.getProperty().getFeature())){
+				throw new IllegalStateException("posterior feature/class pairing should be unique. Multiple counts supplied for: "+posteriors.getProperty());
 			}
 			
 			features.put(posteriors.getProperty().getFeature(), new Probability(posteriors.getCounts(), postertiorTotals.get(posteriors.getProperty().getClassification())));
@@ -72,7 +76,14 @@ public class CountsProviderNaiveBayesProbabilities implements NaiveBayesProbabil
 
 	@Override
 	public double getPosteriorProbability(Feature feature, Classification classification) {
-		Probability probability = posteriorProbabilities.get(classification).get(feature);
+		Map<Feature, Probability>  classProbabilities = posteriorProbabilities.get(classification);
+		
+		Probability probability = null;
+		
+		if (classProbabilities != null){ // TODO if we insist on classification being driven from getAllClassifications, this check is unneeded.
+			
+			probability = classProbabilities.get(feature);
+		}
 		
 		if (probability == null){
 			return NOMINAL_PROBABILITY;
@@ -85,7 +96,7 @@ public class CountsProviderNaiveBayesProbabilities implements NaiveBayesProbabil
 	public double getPriorProbability(Classification classification) {
 		Probability probability = priorProbabilities.get(classification);
 		
-		if (probability == null){
+		if (probability == null){ // TODO if we insist on classification being driven from getAllClassifications, this check is unneeded.
 			return NOMINAL_PROBABILITY;
 		}
 		

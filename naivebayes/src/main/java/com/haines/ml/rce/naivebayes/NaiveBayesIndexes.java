@@ -60,7 +60,7 @@ public abstract class NaiveBayesIndexes {
 		return maxIndex;
 	}
 	
-	private <K, V> Map<K, V> checkIsEmpty(Map<K, V> map) {
+	protected <K, V> Map<K, V> checkIsEmpty(Map<K, V> map) {
 		if (!map.isEmpty()){
 			throw new IllegalArgumentException("Map passed into global index must be empty");
 		}

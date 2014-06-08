@@ -38,5 +38,10 @@
 			<artifactId>rce-naivebayes</artifactId>
 			<version>${project.version}</version>
 		</dependency>
+		<dependency>
+			<groupId>${project.groupId}</groupId>
+			<artifactId>rce-aggregator</artifactId>
+			<version>${project.version}</version>
+		</dependency>
     </dependencies>
 </project>

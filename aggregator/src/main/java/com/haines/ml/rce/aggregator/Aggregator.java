@@ -10,6 +10,7 @@ import com.haines.ml.rce.model.Classification;
 import com.haines.ml.rce.model.Feature;
 import com.haines.ml.rce.naivebayes.NaiveBayesAccumulatorBackedCountsProvider;
 import com.haines.ml.rce.naivebayes.NaiveBayesCountsProvider;
+import com.haines.ml.rce.naivebayes.NaiveBayesService;
 import com.haines.ml.rce.naivebayes.model.NaiveBayesCounts.MutableNaiveBayesCounts;
 import com.haines.ml.rce.naivebayes.model.NaiveBayesProperty;
 import com.haines.ml.rce.naivebayes.model.NaiveBayesCounts;
@@ -20,7 +21,8 @@ import com.haines.ml.rce.naivebayes.model.NaiveBayesProperty.PropertyType;
 /**
  * This class combines a number of different count features and acts as a {@link NaiveBayesCountsProvider} that returns an aggregated
  * view of the supplied feature counts. The idea is that the feature counts will come from a mulitple cpu accumulators, implemented using instances of
- * {@link NaiveBayesAccumulatorBackedCountsProvider}. The results of which can then be fed into the 
+ * {@link NaiveBayesAccumulatorBackedCountsProvider}. The results of which can then be fed into the WindowManager to aggregater further
+ * based on time windows or directly into the {@link NaiveBayesService} for use in classification
  * @author haines
  *
  */
@@ -43,26 +45,30 @@ public class Aggregator implements NaiveBayesCountsProvider{
 	}
 	
 	public void aggregate(Iterable<? extends NaiveBayesCounts<? extends NaiveBayesProperty>> counts){
+		aggregate(counts, false);
+	}
+	
+	protected void aggregate(Iterable<? extends NaiveBayesCounts<? extends NaiveBayesProperty>> counts, boolean subtract){
 		
 		for (NaiveBayesCounts<? extends NaiveBayesProperty> count: counts){
 			if (count.getProperty().getType() == PropertyType.POSTERIOR_TYPE){
 				NaiveBayesPosteriorProperty posterior = PropertyType.POSTERIOR_TYPE.cast(count.getProperty());
 				
-				updatePosterior(posterior, PropertyType.POSTERIOR_TYPE.cast(count));
+				updatePosterior(posterior, PropertyType.POSTERIOR_TYPE.cast(count), subtract);
 				
 			} else if (count.getProperty().getType() == PropertyType.PRIOR_TYPE){
 				NaiveBayesPriorProperty prior = PropertyType.PRIOR_TYPE.cast(count.getProperty());
 				
-				updatePrior(prior, PropertyType.PRIOR_TYPE.cast(count));
+				updatePrior(prior, PropertyType.PRIOR_TYPE.cast(count), subtract);
 			}
 		}
 	}
 
-	private void updatePrior(NaiveBayesPriorProperty prior, NaiveBayesCounts<NaiveBayesPriorProperty> counts) {
-		createOrIncrement(priorCounts, prior.getClassification(), counts);
+	private void updatePrior(NaiveBayesPriorProperty prior, NaiveBayesCounts<NaiveBayesPriorProperty> counts, boolean subtract) {
+		createOrIncrement(priorCounts, prior.getClassification(), counts, subtract);
 	}
 	
-	private <T, I extends NaiveBayesProperty> void createOrIncrement(Map<T, MutableNaiveBayesCounts<I>> countMap, T key, NaiveBayesCounts<I> counts){
+	private <T, I extends NaiveBayesProperty> void createOrIncrement(Map<T, MutableNaiveBayesCounts<I>> countMap, T key, NaiveBayesCounts<I> counts, boolean subtract){
 		MutableNaiveBayesCounts<I> currentCounts = countMap.get(key);
 		
 		if (currentCounts == null){
@@ -73,7 +79,7 @@ public class Aggregator implements NaiveBayesCountsProvider{
 		}
 	}
 
-	private void updatePosterior(NaiveBayesPosteriorProperty posterior, NaiveBayesCounts<NaiveBayesPosteriorProperty> counts) {
+	private void updatePosterior(NaiveBayesPosteriorProperty posterior, NaiveBayesCounts<NaiveBayesPosteriorProperty> counts, boolean subtract) {
 		Map<Feature, MutableNaiveBayesCounts<NaiveBayesPosteriorProperty>> conditionalFeatureCounts = posteriorCounts.get(posterior.getClassification());
 		
 		if (conditionalFeatureCounts == null){
@@ -81,7 +87,7 @@ public class Aggregator implements NaiveBayesCountsProvider{
 			posteriorCounts.put(posterior.getClassification(), conditionalFeatureCounts);
 		}
 		
-		createOrIncrement(conditionalFeatureCounts, posterior.getFeature(), counts);
+		createOrIncrement(conditionalFeatureCounts, posterior.getFeature(), counts, subtract);
 	}
 	
 	public Iterable<NaiveBayesCounts<NaiveBayesPosteriorProperty>> getAccumulatedPosteriorCounts(){
@@ -101,5 +107,10 @@ public class Aggregator implements NaiveBayesCountsProvider{
 	@Override
 	public Iterable<NaiveBayesCounts<NaiveBayesPriorProperty>> getPriorCounts() {
 		return getAccumulatedPriorCounts();
+	}
+	
+	public static Aggregator newInstance(){
+		return new Aggregator(new THashMap<Classification, Map<Feature, MutableNaiveBayesCounts<NaiveBayesPosteriorProperty>>>(),
+				new THashMap<Classification, MutableNaiveBayesCounts<NaiveBayesPriorProperty>>());
 	}
 }

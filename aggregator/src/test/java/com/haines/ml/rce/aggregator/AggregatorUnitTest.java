@@ -2,17 +2,14 @@ package com.haines.ml.rce.aggregator;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Map;
 
 import org.junit.Before;
 import org.junit.Test;
 
 import com.google.common.collect.Iterables;
-import com.google.common.collect.Maps;
 import com.haines.ml.rce.model.Classification;
 import com.haines.ml.rce.model.Feature;
 import com.haines.ml.rce.naivebayes.model.NaiveBayesCounts;
-import com.haines.ml.rce.naivebayes.model.NaiveBayesCounts.MutableNaiveBayesCounts;
 import com.haines.ml.rce.naivebayes.model.NaiveBayesProperty;
 import com.haines.ml.rce.naivebayes.model.NaiveBayesProperty.NaiveBayesPosteriorProperty;
 import com.haines.ml.rce.naivebayes.model.NaiveBayesProperty.NaiveBayesPriorProperty;
@@ -37,7 +34,7 @@ public class AggregatorUnitTest {
 	
 	@Before
 	public void before(){
-		candidate = new Aggregator(Maps.<Classification, Map<Feature, MutableNaiveBayesCounts<NaiveBayesPosteriorProperty>>>newHashMap(), Maps.<Classification, MutableNaiveBayesCounts<NaiveBayesPriorProperty>>newHashMap());
+		candidate = Aggregator.newInstance();
 	}
 	
 	@Test

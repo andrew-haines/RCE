@@ -48,7 +48,15 @@ public class NaiveBayesServiceUnitTest {
 		
 		NaiveBayesAccumulatorBackedCountsProvider provider = new NaiveBayesAccumulatorBackedCountsProvider(eventConsumer.getAccumulatorProvider(), indexes);
 		
-		this.candidate = new NaiveBayesService(new CountsProviderNaiveBayesProbabilities(provider));
+		final NaiveBayesProbabilities probabilities = new CountsProviderNaiveBayesProbabilities(provider);
+		
+		this.candidate = new NaiveBayesService(new NaiveBayesProbabilitiesProvider() {
+			
+			@Override
+			public NaiveBayesProbabilities getProbabilities() {
+				return probabilities;
+			}
+		});
 	}
 
 	private void consumeTestEvents(AccumulatorEventConsumer<TestEvent> eventConsumer) {

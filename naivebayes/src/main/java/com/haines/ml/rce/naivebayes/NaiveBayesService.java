@@ -19,16 +19,18 @@ public class NaiveBayesService {
 		
 	};
 
-	private final NaiveBayesProbabilities probabilities;
+	private final NaiveBayesProbabilitiesProvider probabilitiesProvider;
 	
-	public NaiveBayesService(NaiveBayesProbabilities probabilities){
-		this.probabilities = probabilities;
+	public NaiveBayesService(NaiveBayesProbabilitiesProvider probabilitiesProvider){
+		this.probabilitiesProvider = probabilitiesProvider;
 	}
 	
 	public Iterable<Classification> getMaximumLikelihoodClassifications(Iterable<? extends Feature> features, int numClassifications){
 		
 		Map<Double, Classification> sortedClassifications = new TreeMap<Double, Classification>(INVERSE_NUMBER_COMPARATOR);
 		sortedClassifications.put(Double.NEGATIVE_INFINITY, Classification.UNKNOWN);
+		
+		NaiveBayesProbabilities probabilities = probabilitiesProvider.getProbabilities();
 		
 		for (Classification possibleClassification: probabilities.getAllClassifications()){
 			double logLikelihoodProbability = 1;

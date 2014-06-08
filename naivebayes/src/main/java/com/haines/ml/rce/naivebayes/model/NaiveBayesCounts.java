@@ -64,5 +64,14 @@ public class NaiveBayesCounts<T extends NaiveBayesProperty> {
 		public void addCounts(int counts){
 			super.counts += counts;
 		}
+
+		public void subCounts(int counts) {
+			int newCounts = super.counts - counts;
+			
+			if (newCounts < 0){
+				throw new IllegalArgumentException("Unable to subtract counts if the results is < 0 (Ie you can only subtract if you have enough values to subtract from. Negative values are not allowed)");
+			}
+			super.counts = newCounts;
+		}
 	}
 }

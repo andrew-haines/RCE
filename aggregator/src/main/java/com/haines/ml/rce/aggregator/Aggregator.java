@@ -71,11 +71,19 @@ public class Aggregator implements NaiveBayesCountsProvider{
 	private <T, I extends NaiveBayesProperty> void createOrIncrement(Map<T, MutableNaiveBayesCounts<I>> countMap, T key, NaiveBayesCounts<I> counts, boolean subtract){
 		MutableNaiveBayesCounts<I> currentCounts = countMap.get(key);
 		
-		if (currentCounts == null){
-			currentCounts = counts.toMutable();
-			countMap.put(key, currentCounts);
+		if (currentCounts == null){ // if you are subtracting, there has to be an existing record to subtract from
+			if (!subtract){
+				currentCounts = counts.toMutable();
+				countMap.put(key, currentCounts);
+			} else{
+				throw new IllegalArgumentException("subtraction cannot occur unless there is already a record to subtract from");
+			}
 		} else{
-			currentCounts.addCounts(counts.getCounts());
+			if (subtract){
+				currentCounts.subCounts(counts.getCounts());
+			} else{
+				currentCounts.addCounts(counts.getCounts());
+			}
 		}
 	}
 

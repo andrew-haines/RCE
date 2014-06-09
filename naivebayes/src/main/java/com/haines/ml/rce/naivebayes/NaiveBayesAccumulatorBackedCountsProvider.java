@@ -1,17 +1,11 @@
 package com.haines.ml.rce.naivebayes;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import com.google.common.base.Function;
 import com.google.common.collect.Iterables;
 import com.haines.ml.rce.accumulator.AccumulatorProvider;
-import com.haines.ml.rce.model.Classification;
-import com.haines.ml.rce.model.Feature;
 import com.haines.ml.rce.naivebayes.model.NaiveBayesCounts;
 import com.haines.ml.rce.naivebayes.model.NaiveBayesProperty.NaiveBayesPosteriorProperty;
 import com.haines.ml.rce.naivebayes.model.NaiveBayesProperty.NaiveBayesPriorProperty;
-import com.haines.ml.rce.naivebayes.model.Probability;
 
 public class NaiveBayesAccumulatorBackedCountsProvider implements NaiveBayesCountsProvider{
 

@@ -25,8 +25,8 @@ public class WindowManager implements NaiveBayesProbabilitiesProvider{
 	private final WindowProbabilities windowProbabilities;
 	
 	private final Window[] cyclicWindowBuffer;
-	private int currentMaxIdx; // we can remove the need for volatile modifiers here as long as we can ensure that the single writer paradigm is enforced.
-	private int currentMinIdx;
+	private int currentMaxIdx = -1; // we can remove the need for volatile modifiers here as long as we can ensure that the single writer paradigm is enforced.
+	private int currentMinIdx = -1;
 	private final Clock clock;
 	
 	public WindowManager(WindowConfig config, Clock clock){
@@ -51,13 +51,20 @@ public class WindowManager implements NaiveBayesProbabilitiesProvider{
 	public void addNewProvider(NaiveBayesCountsProvider provider){
 		long currentTime = clock.getCurrentTime();
 		
-		int currentMaxIdx = this.currentMaxIdx; // cache friendly version
+		int currentMaxIdx = this.currentMaxIdx; // cache friendly version. NOTE that this is needed anymore as these variables are no longer volatile
 		int currentMinIdx = this.currentMinIdx; 
 		
-		if (currentTime > cyclicWindowBuffer[currentMaxIdx].getExpires()){
+		if (currentMaxIdx == -1 || currentTime > cyclicWindowBuffer[currentMaxIdx].getExpires()){
 			// shift to new window
 			
-			Window newWindow = new Window(cyclicWindowBuffer[currentMaxIdx].getExpires() + config.getWindowPeriod(), provider);
+			Window newWindow = null;
+			
+			if (currentMaxIdx != -1){
+				newWindow = new Window(cyclicWindowBuffer[currentMaxIdx].getExpires() + config.getWindowPeriod(), provider);
+			} else{
+				newWindow = new Window(currentTime + config.getWindowPeriod(), provider);
+			}
+			
 			Window oldWindow = null;
 			if (getNextIdxInBuffer(currentMaxIdx) == currentMinIdx){ // the buffer is full
 				oldWindow = cyclicWindowBuffer[currentMinIdx];
@@ -66,9 +73,11 @@ public class WindowManager implements NaiveBayesProbabilitiesProvider{
 				this.currentMinIdx = getNextIdxInBuffer(currentMinIdx);
 			}
 			
-			this.currentMaxIdx = getNextIdxInBuffer(currentMaxIdx);
+			currentMaxIdx = getNextIdxInBuffer(currentMaxIdx);
+			this.currentMaxIdx = currentMaxIdx;
+			cyclicWindowBuffer[currentMaxIdx] = newWindow;
 			
-			windowProbabilities.processWindows(newWindow.getProvider(), oldWindow.getProvider());
+			windowProbabilities.processWindows(newWindow.getProvider(), (oldWindow != null)? oldWindow.getProvider(): null);
 			
 		} else { // add to existing window
 			Window currentWindow = cyclicWindowBuffer[currentMaxIdx];

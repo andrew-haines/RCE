@@ -8,6 +8,7 @@ import static org.hamcrest.CoreMatchers.equalTo;
 import java.util.Arrays;
 
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.haines.ml.rce.model.system.Clock.StaticClock;
@@ -95,12 +96,12 @@ public class WindowManagerUnitTest {
 	);
 
 	private WindowManager candidate;
-	private StaticClock TEST_CLOCK;
+	private StaticClock testClock;
 	
 	@Before
 	public void before(){
 		
-		TEST_CLOCK = new StaticClock(TEST_START_TIME);
+		testClock = new StaticClock(TEST_START_TIME);
 		
 		candidate = new WindowManager(new WindowConfig(){
 
@@ -114,14 +115,110 @@ public class WindowManagerUnitTest {
 				return TEST_NUM_WINDOWS;
 			}
 			
-		}, TEST_CLOCK);
+		}, testClock);
 	}
 	
 	@Test
-	public void givenCandidate_whenAddingMultipleEventsOfSameTimeWindow_thenEventsAddedToSameWindow(){
+	public void givenCandidate_whenAddingSingleEvent_thenEventsAddedToWindow(){
 		candidate.addNewProvider(getTestEvents(TEST_POSTERIOR_EVENTS_1, TEST_PRIOR_EVENTS_1));
 		
 		assertThat(candidate.getProbabilities().getPosteriorProbability(new TestFeature("feature1"), new TestClassification("class1")), is(equalTo(0.25)));
+		assertThat(candidate.getProbabilities().getPosteriorProbability(new TestFeature("feature2"), new TestClassification("class1")), is(equalTo(0.75)));
+		assertThat(candidate.getProbabilities().getPosteriorProbability(new TestFeature("feature2"), new TestClassification("class2")), is(equalTo(0.5)));
+		assertThat(candidate.getProbabilities().getPosteriorProbability(new TestFeature("feature2"), new TestClassification("class2")), is(equalTo(0.5)));
+		
+		assertThat(candidate.getProbabilities().getPriorProbability(new TestClassification("class1")), is(equalTo(0.371900826446281)));
+		assertThat(candidate.getProbabilities().getPriorProbability(new TestClassification("class2")), is(equalTo(0.628099173553719)));
+	}
+	
+	@Test
+	@Ignore
+	public void givenCandidate_whenAddingMultipleEventsInSameWindowPeriod_thenEventsAddedToSameWindow(){
+		candidate.addNewProvider(getTestEvents(TEST_POSTERIOR_EVENTS_1, TEST_PRIOR_EVENTS_1));
+		
+		testClock.setCurrentTime(TEST_START_TIME + 1000);
+		
+		candidate.addNewProvider(getTestEvents(TEST_POSTERIOR_EVENTS_2, TEST_PRIOR_EVENTS_2));
+		
+		testClock.setCurrentTime(TEST_START_TIME + 2000);
+		
+		candidate.addNewProvider(getTestEvents(TEST_POSTERIOR_EVENTS_3, TEST_PRIOR_EVENTS_3));
+		
+		testClock.setCurrentTime(TEST_START_TIME + 3000);
+		
+		candidate.addNewProvider(getTestEvents(TEST_POSTERIOR_EVENTS_4, TEST_PRIOR_EVENTS_4));
+		
+		testClock.setCurrentTime(TEST_START_TIME + 4000);
+		
+		candidate.addNewProvider(getTestEvents(TEST_POSTERIOR_EVENTS_5, TEST_PRIOR_EVENTS_5));
+		
+		testClock.setCurrentTime(TEST_START_TIME + 5000);
+		
+		candidate.addNewProvider(getTestEvents(TEST_POSTERIOR_EVENTS_6, TEST_PRIOR_EVENTS_6)); // should not pop events1 off the buffer
+		
+		assertThat(candidate.getProbabilities().getPosteriorProbability(new TestFeature("feature1"), new TestClassification("class1")), is(equalTo(0.2)));
+		assertThat(candidate.getProbabilities().getPosteriorProbability(new TestFeature("feature2"), new TestClassification("class1")), is(equalTo(0.75)));
+		assertThat(candidate.getProbabilities().getPosteriorProbability(new TestFeature("feature2"), new TestClassification("class2")), is(equalTo(0.5)));
+		assertThat(candidate.getProbabilities().getPosteriorProbability(new TestFeature("feature2"), new TestClassification("class2")), is(equalTo(0.5)));
+	}
+	
+	@Test
+	@Ignore
+	public void givenCandidate_whenAddingMultipleEventsInDifferntWindowPeriodsWithinBuffer_thenEventsNotTruncated(){
+		candidate.addNewProvider(getTestEvents(TEST_POSTERIOR_EVENTS_1, TEST_PRIOR_EVENTS_1));
+		
+		testClock.setCurrentTime(TEST_START_TIME + 1000);
+		
+		candidate.addNewProvider(getTestEvents(TEST_POSTERIOR_EVENTS_2, TEST_PRIOR_EVENTS_2));
+		
+		testClock.setCurrentTime(TEST_START_TIME + TEST_WINDOW_PERIOD);
+		
+		candidate.addNewProvider(getTestEvents(TEST_POSTERIOR_EVENTS_3, TEST_PRIOR_EVENTS_3));
+		
+		testClock.setCurrentTime(TEST_START_TIME + 2 * TEST_WINDOW_PERIOD);
+		
+		candidate.addNewProvider(getTestEvents(TEST_POSTERIOR_EVENTS_4, TEST_PRIOR_EVENTS_4));
+		
+		testClock.setCurrentTime(TEST_START_TIME + 3 * TEST_WINDOW_PERIOD);
+		
+		candidate.addNewProvider(getTestEvents(TEST_POSTERIOR_EVENTS_5, TEST_PRIOR_EVENTS_5));
+		
+		testClock.setCurrentTime(TEST_START_TIME + 4 * TEST_WINDOW_PERIOD);
+		
+		candidate.addNewProvider(getTestEvents(TEST_POSTERIOR_EVENTS_6, TEST_PRIOR_EVENTS_6)); // should not pop events1 off the buffer
+		
+		assertThat(candidate.getProbabilities().getPosteriorProbability(new TestFeature("feature1"), new TestClassification("class1")), is(equalTo(0.2)));
+		assertThat(candidate.getProbabilities().getPosteriorProbability(new TestFeature("feature2"), new TestClassification("class1")), is(equalTo(0.75)));
+		assertThat(candidate.getProbabilities().getPosteriorProbability(new TestFeature("feature2"), new TestClassification("class2")), is(equalTo(0.5)));
+		assertThat(candidate.getProbabilities().getPosteriorProbability(new TestFeature("feature2"), new TestClassification("class2")), is(equalTo(0.5)));
+	}
+	
+	@Test
+	@Ignore
+	public void givenCandidate_whenAddingMultipleEventsInDifferntWindowPeriodsOutsideOfBuffer_thenEventsTruncated(){
+		candidate.addNewProvider(getTestEvents(TEST_POSTERIOR_EVENTS_1, TEST_PRIOR_EVENTS_1));
+		
+		testClock.setCurrentTime(TEST_START_TIME + TEST_WINDOW_PERIOD);
+		
+		candidate.addNewProvider(getTestEvents(TEST_POSTERIOR_EVENTS_2, TEST_PRIOR_EVENTS_2));
+		
+		testClock.setCurrentTime(TEST_START_TIME + 2 *TEST_WINDOW_PERIOD);
+		
+		candidate.addNewProvider(getTestEvents(TEST_POSTERIOR_EVENTS_3, TEST_PRIOR_EVENTS_3));
+		
+		testClock.setCurrentTime(TEST_START_TIME + 3 * TEST_WINDOW_PERIOD);
+		
+		candidate.addNewProvider(getTestEvents(TEST_POSTERIOR_EVENTS_4, TEST_PRIOR_EVENTS_4));
+		
+		testClock.setCurrentTime(TEST_START_TIME + 4 * TEST_WINDOW_PERIOD);
+		
+		candidate.addNewProvider(getTestEvents(TEST_POSTERIOR_EVENTS_5, TEST_PRIOR_EVENTS_5));
+		
+		testClock.setCurrentTime(TEST_START_TIME + 6 * TEST_WINDOW_PERIOD);
+		
+		candidate.addNewProvider(getTestEvents(TEST_POSTERIOR_EVENTS_6, TEST_PRIOR_EVENTS_6)); // should not pop events1 off the buffer
+		
+		assertThat(candidate.getProbabilities().getPosteriorProbability(new TestFeature("feature1"), new TestClassification("class1")), is(equalTo(0.2)));
 		assertThat(candidate.getProbabilities().getPosteriorProbability(new TestFeature("feature2"), new TestClassification("class1")), is(equalTo(0.75)));
 		assertThat(candidate.getProbabilities().getPosteriorProbability(new TestFeature("feature2"), new TestClassification("class2")), is(equalTo(0.5)));
 		assertThat(candidate.getProbabilities().getPosteriorProbability(new TestFeature("feature2"), new TestClassification("class2")), is(equalTo(0.5)));

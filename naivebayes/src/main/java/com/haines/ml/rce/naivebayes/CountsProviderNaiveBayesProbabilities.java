@@ -84,7 +84,10 @@ public class CountsProviderNaiveBayesProbabilities implements NaiveBayesProbabil
 		}
 		
 		if (probability == null){
-			return NOMINAL_PROBABILITY;
+			// note that we cant use +1 smoothing or other scheme as we dont know what the complete feature space is. 
+			// Use a nominal probability instead to avoid multipling by zero. The value of this norminal probability
+			// might need to be tuned
+			return NOMINAL_PROBABILITY; 
 		}
 		
 		return probability.getProbability();

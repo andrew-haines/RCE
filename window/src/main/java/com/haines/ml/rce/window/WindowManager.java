@@ -26,7 +26,7 @@ public class WindowManager implements NaiveBayesProbabilitiesProvider{
 	
 	private final Window[] cyclicWindowBuffer;
 	private int currentMaxIdx = -1; // we can remove the need for volatile modifiers here as long as we can ensure that the single writer paradigm is enforced.
-	private int currentMinIdx = -1;
+	private int currentMinIdx = 0;
 	private final Clock clock;
 	
 	public WindowManager(WindowConfig config, Clock clock){

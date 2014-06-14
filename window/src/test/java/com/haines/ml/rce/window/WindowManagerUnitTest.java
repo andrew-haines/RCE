@@ -1,6 +1,5 @@
 package com.haines.ml.rce.window;
 
-
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.equalTo;
@@ -8,11 +7,11 @@ import static org.hamcrest.CoreMatchers.equalTo;
 import java.util.Arrays;
 
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import com.haines.ml.rce.model.system.Clock.StaticClock;
 import com.haines.ml.rce.naivebayes.NaiveBayesCountsProvider;
+import com.haines.ml.rce.naivebayes.NaiveBayesProbabilities;
 import com.haines.ml.rce.naivebayes.model.NaiveBayesCounts;
 import com.haines.ml.rce.naivebayes.model.NaiveBayesProperty.NaiveBayesPosteriorProperty;
 import com.haines.ml.rce.naivebayes.model.NaiveBayesProperty.NaiveBayesPriorProperty;
@@ -85,7 +84,7 @@ public class WindowManagerUnitTest {
 	
 	private static final Iterable<NaiveBayesCounts<NaiveBayesPriorProperty>> TEST_PRIOR_EVENTS_5 = Arrays.asList(
 			new NaiveBayesCounts<NaiveBayesPriorProperty>(new NaiveBayesPriorProperty(new TestClassification("class1")), 13),
-			new NaiveBayesCounts<NaiveBayesPriorProperty>(new NaiveBayesPriorProperty(new TestClassification("class4")), 96),
+			new NaiveBayesCounts<NaiveBayesPriorProperty>(new NaiveBayesPriorProperty(new TestClassification("class4")), 96),//723
 			new NaiveBayesCounts<NaiveBayesPriorProperty>(new NaiveBayesPriorProperty(new TestClassification("class2")), 25),
 			new NaiveBayesCounts<NaiveBayesPriorProperty>(new NaiveBayesPriorProperty(new TestClassification("class6")), 39)
 	);
@@ -94,6 +93,16 @@ public class WindowManagerUnitTest {
 			new NaiveBayesCounts<NaiveBayesPriorProperty>(new NaiveBayesPriorProperty(new TestClassification("class3")), 62),
 			new NaiveBayesCounts<NaiveBayesPriorProperty>(new NaiveBayesPriorProperty(new TestClassification("class4")), 74)
 	);
+	
+	@SuppressWarnings("unchecked")
+	private static final Iterable<NaiveBayesCounts<NaiveBayesPosteriorProperty>>[] ALL_POSTERIOR_EVENTS = new Iterable[]{
+		TEST_POSTERIOR_EVENTS_1, TEST_POSTERIOR_EVENTS_2, TEST_POSTERIOR_EVENTS_3, TEST_POSTERIOR_EVENTS_4, TEST_POSTERIOR_EVENTS_5, TEST_POSTERIOR_EVENTS_6
+	};
+	
+	@SuppressWarnings("unchecked")
+	private static final Iterable<NaiveBayesCounts<NaiveBayesPriorProperty>>[] ALL_PRIOR_EVENTS = new Iterable[]{
+		TEST_PRIOR_EVENTS_1, TEST_PRIOR_EVENTS_2, TEST_PRIOR_EVENTS_3, TEST_PRIOR_EVENTS_4, TEST_PRIOR_EVENTS_5, TEST_PRIOR_EVENTS_6
+	};
 
 	private WindowManager candidate;
 	private StaticClock testClock;
@@ -119,20 +128,88 @@ public class WindowManagerUnitTest {
 	}
 	
 	@Test
-	public void givenCandidate_whenAddingSingleEvent_thenEventsAddedToWindow(){
+	public void givenCandidate_whenAddingSingleEventSet_thenEventsAddedToWindow(){
 		candidate.addNewProvider(getTestEvents(TEST_POSTERIOR_EVENTS_1, TEST_PRIOR_EVENTS_1));
 		
 		assertThat(candidate.getProbabilities().getPosteriorProbability(new TestFeature("feature1"), new TestClassification("class1")), is(equalTo(0.25)));
 		assertThat(candidate.getProbabilities().getPosteriorProbability(new TestFeature("feature2"), new TestClassification("class1")), is(equalTo(0.75)));
+		assertThat(candidate.getProbabilities().getPosteriorProbability(new TestFeature("feature3"), new TestClassification("class1")), is(equalTo(NaiveBayesProbabilities.NOMINAL_PROBABILITY)));
+		assertThat(candidate.getProbabilities().getPosteriorProbability(new TestFeature("feature1"), new TestClassification("class2")), is(equalTo(0.5)));
 		assertThat(candidate.getProbabilities().getPosteriorProbability(new TestFeature("feature2"), new TestClassification("class2")), is(equalTo(0.5)));
-		assertThat(candidate.getProbabilities().getPosteriorProbability(new TestFeature("feature2"), new TestClassification("class2")), is(equalTo(0.5)));
+		assertThat(candidate.getProbabilities().getPosteriorProbability(new TestFeature("feature1"), new TestClassification("class4")), is(equalTo(NaiveBayesProbabilities.NOMINAL_PROBABILITY)));
+		assertThat(candidate.getProbabilities().getPosteriorProbability(new TestFeature("feature2"), new TestClassification("class4")), is(equalTo(NaiveBayesProbabilities.NOMINAL_PROBABILITY)));
+		assertThat(candidate.getProbabilities().getPosteriorProbability(new TestFeature("feature2"), new TestClassification("class8")), is(equalTo(NaiveBayesProbabilities.NOMINAL_PROBABILITY)));
+		assertThat(candidate.getProbabilities().getPosteriorProbability(new TestFeature("feature5"), new TestClassification("class3")), is(equalTo(NaiveBayesProbabilities.NOMINAL_PROBABILITY)));
+		assertThat(candidate.getProbabilities().getPosteriorProbability(new TestFeature("feature8"), new TestClassification("class6")), is(equalTo(NaiveBayesProbabilities.NOMINAL_PROBABILITY)));
+
 		
 		assertThat(candidate.getProbabilities().getPriorProbability(new TestClassification("class1")), is(equalTo(0.371900826446281)));
 		assertThat(candidate.getProbabilities().getPriorProbability(new TestClassification("class2")), is(equalTo(0.628099173553719)));
+		assertThat(candidate.getProbabilities().getPriorProbability(new TestClassification("class3")), is(equalTo(NaiveBayesProbabilities.NOMINAL_PROBABILITY)));
+		assertThat(candidate.getProbabilities().getPriorProbability(new TestClassification("class4")), is(equalTo(NaiveBayesProbabilities.NOMINAL_PROBABILITY)));
+		assertThat(candidate.getProbabilities().getPriorProbability(new TestClassification("class5")), is(equalTo(NaiveBayesProbabilities.NOMINAL_PROBABILITY)));
+		assertThat(candidate.getProbabilities().getPriorProbability(new TestClassification("class8")), is(equalTo(NaiveBayesProbabilities.NOMINAL_PROBABILITY)));
 	}
 	
 	@Test
-	@Ignore
+	public void givenCandidate_whenAddingTwoEventSets_thenCorrectProbabilitiesCalculated(){
+		candidate.addNewProvider(getTestEvents(TEST_POSTERIOR_EVENTS_1, TEST_PRIOR_EVENTS_1));
+		
+		testClock.setCurrentTime(TEST_START_TIME + 1000);
+		
+		candidate.addNewProvider(getTestEvents(TEST_POSTERIOR_EVENTS_2, TEST_PRIOR_EVENTS_2));
+		
+		assertThat(candidate.getProbabilities().getPosteriorProbability(new TestFeature("feature1"), new TestClassification("class1")), is(equalTo(0.2)));
+		assertThat(candidate.getProbabilities().getPosteriorProbability(new TestFeature("feature2"), new TestClassification("class1")), is(equalTo(0.60)));
+		assertThat(candidate.getProbabilities().getPosteriorProbability(new TestFeature("feature3"), new TestClassification("class1")), is(equalTo(0.2)));
+		assertThat(candidate.getProbabilities().getPosteriorProbability(new TestFeature("feature2"), new TestClassification("class2")), is(equalTo(0.9583333333333334)));
+		assertThat(candidate.getProbabilities().getPosteriorProbability(new TestFeature("feature1"), new TestClassification("class2")), is(equalTo(0.041666666666666664)));
+		assertThat(candidate.getProbabilities().getPosteriorProbability(new TestFeature("feature1"), new TestClassification("class4")), is(equalTo(1.0)));
+		assertThat(candidate.getProbabilities().getPosteriorProbability(new TestFeature("feature2"), new TestClassification("class4")), is(equalTo(NaiveBayesProbabilities.NOMINAL_PROBABILITY)));
+		assertThat(candidate.getProbabilities().getPosteriorProbability(new TestFeature("feature2"), new TestClassification("class8")), is(equalTo(1.0)));
+		assertThat(candidate.getProbabilities().getPosteriorProbability(new TestFeature("feature5"), new TestClassification("class3")), is(equalTo(NaiveBayesProbabilities.NOMINAL_PROBABILITY)));
+		assertThat(candidate.getProbabilities().getPosteriorProbability(new TestFeature("feature8"), new TestClassification("class6")), is(equalTo(NaiveBayesProbabilities.NOMINAL_PROBABILITY)));
+
+		assertThat(candidate.getProbabilities().getPriorProbability(new TestClassification("class1")), is(equalTo(0.29004329004329005)));
+		assertThat(candidate.getProbabilities().getPriorProbability(new TestClassification("class2")), is(equalTo(0.645021645021645)));
+		assertThat(candidate.getProbabilities().getPriorProbability(new TestClassification("class3")), is(equalTo(NaiveBayesProbabilities.NOMINAL_PROBABILITY)));
+		assertThat(candidate.getProbabilities().getPriorProbability(new TestClassification("class4")), is(equalTo(0.047619047619047616)));
+		assertThat(candidate.getProbabilities().getPriorProbability(new TestClassification("class5")), is(equalTo(NaiveBayesProbabilities.NOMINAL_PROBABILITY)));
+		assertThat(candidate.getProbabilities().getPriorProbability(new TestClassification("class8")), is(equalTo(0.017316017316017316)));
+	}
+	
+	@Test
+	public void givenCandidate_whenAddingThreeEventSets_thenCorrectProbabilitiesCalculated(){
+		candidate.addNewProvider(getTestEvents(TEST_POSTERIOR_EVENTS_1, TEST_PRIOR_EVENTS_1));
+		
+		testClock.setCurrentTime(TEST_START_TIME + 1000);
+		
+		candidate.addNewProvider(getTestEvents(TEST_POSTERIOR_EVENTS_2, TEST_PRIOR_EVENTS_2));
+		
+		testClock.setCurrentTime(TEST_START_TIME + 2000);
+		
+		candidate.addNewProvider(getTestEvents(TEST_POSTERIOR_EVENTS_3, TEST_PRIOR_EVENTS_3));
+		
+		assertThat(candidate.getProbabilities().getPosteriorProbability(new TestFeature("feature1"), new TestClassification("class1")), is(equalTo(0.10714285714285714)));
+		assertThat(candidate.getProbabilities().getPosteriorProbability(new TestFeature("feature2"), new TestClassification("class1")), is(equalTo(0.8333333333333334)));
+		assertThat(candidate.getProbabilities().getPosteriorProbability(new TestFeature("feature3"), new TestClassification("class1")), is(equalTo(0.05952380952380952)));
+		assertThat(candidate.getProbabilities().getPosteriorProbability(new TestFeature("feature2"), new TestClassification("class2")), is(equalTo(0.9583333333333334)));
+		assertThat(candidate.getProbabilities().getPosteriorProbability(new TestFeature("feature1"), new TestClassification("class2")), is(equalTo(0.041666666666666664)));
+		assertThat(candidate.getProbabilities().getPosteriorProbability(new TestFeature("feature1"), new TestClassification("class4")), is(equalTo(0.8)));
+		assertThat(candidate.getProbabilities().getPosteriorProbability(new TestFeature("feature2"), new TestClassification("class4")), is(equalTo(0.2)));
+		assertThat(candidate.getProbabilities().getPosteriorProbability(new TestFeature("feature2"), new TestClassification("class8")), is(equalTo(1.0)));
+		assertThat(candidate.getProbabilities().getPosteriorProbability(new TestFeature("feature5"), new TestClassification("class3")), is(equalTo(1.0)));
+		assertThat(candidate.getProbabilities().getPosteriorProbability(new TestFeature("feature8"), new TestClassification("class6")), is(equalTo(NaiveBayesProbabilities.NOMINAL_PROBABILITY)));
+		
+		assertThat(candidate.getProbabilities().getPriorProbability(new TestClassification("class1")), is(equalTo(0.2597402597402597)));
+		assertThat(candidate.getProbabilities().getPriorProbability(new TestClassification("class2")), is(equalTo(0.38701298701298705)));
+		assertThat(candidate.getProbabilities().getPriorProbability(new TestClassification("class3")), is(equalTo(0.17402597402597403)));
+		assertThat(candidate.getProbabilities().getPriorProbability(new TestClassification("class5")), is(equalTo(NaiveBayesProbabilities.NOMINAL_PROBABILITY)));
+		assertThat(candidate.getProbabilities().getPriorProbability(new TestClassification("class4")), is(equalTo(0.16883116883116883)));
+		assertThat(candidate.getProbabilities().getPriorProbability(new TestClassification("class8")), is(equalTo(0.01038961038961039)));
+	}
+	
+	@Test
 	public void givenCandidate_whenAddingMultipleEventsInSameWindowPeriod_thenEventsAddedToSameWindow(){
 		candidate.addNewProvider(getTestEvents(TEST_POSTERIOR_EVENTS_1, TEST_PRIOR_EVENTS_1));
 		
@@ -156,14 +233,28 @@ public class WindowManagerUnitTest {
 		
 		candidate.addNewProvider(getTestEvents(TEST_POSTERIOR_EVENTS_6, TEST_PRIOR_EVENTS_6)); // should not pop events1 off the buffer
 		
-		assertThat(candidate.getProbabilities().getPosteriorProbability(new TestFeature("feature1"), new TestClassification("class1")), is(equalTo(0.2)));
-		assertThat(candidate.getProbabilities().getPosteriorProbability(new TestFeature("feature2"), new TestClassification("class1")), is(equalTo(0.75)));
-		assertThat(candidate.getProbabilities().getPosteriorProbability(new TestFeature("feature2"), new TestClassification("class2")), is(equalTo(0.5)));
-		assertThat(candidate.getProbabilities().getPosteriorProbability(new TestFeature("feature2"), new TestClassification("class2")), is(equalTo(0.5)));
+		assertThat(candidate.getProbabilities().getPosteriorProbability(new TestFeature("feature1"), new TestClassification("class1")), is(equalTo(0.06040268456375839)));
+		assertThat(candidate.getProbabilities().getPosteriorProbability(new TestFeature("feature2"), new TestClassification("class1")), is(equalTo(0.4697986577181208)));
+		assertThat(candidate.getProbabilities().getPosteriorProbability(new TestFeature("feature3"), new TestClassification("class1")), is(equalTo(0.0738255033557047)));
+		assertThat(candidate.getProbabilities().getPosteriorProbability(new TestFeature("feature2"), new TestClassification("class2")), is(equalTo(0.9712230215827338)));
+		assertThat(candidate.getProbabilities().getPosteriorProbability(new TestFeature("feature1"), new TestClassification("class2")), is(equalTo(0.02877697841726619)));
+		assertThat(candidate.getProbabilities().getPosteriorProbability(new TestFeature("feature1"), new TestClassification("class4")), is(equalTo(0.2206896551724138)));
+		assertThat(candidate.getProbabilities().getPosteriorProbability(new TestFeature("feature2"), new TestClassification("class4")), is(equalTo(0.16551724137931034)));
+		assertThat(candidate.getProbabilities().getPosteriorProbability(new TestFeature("feature2"), new TestClassification("class8")), is(equalTo(1.0)));
+		assertThat(candidate.getProbabilities().getPosteriorProbability(new TestFeature("feature5"), new TestClassification("class3")), is(equalTo(0.6140350877192983)));
+		assertThat(candidate.getProbabilities().getPosteriorProbability(new TestFeature("feature8"), new TestClassification("class6")), is(equalTo(1.0)));
+
+		assertThat(candidate.getProbabilities().getPriorProbability(new TestClassification("class1")), is(equalTo(0.1362559241706161)));
+		assertThat(candidate.getProbabilities().getPriorProbability(new TestClassification("class2")), is(equalTo(0.20616113744075829)));
+		assertThat(candidate.getProbabilities().getPriorProbability(new TestClassification("class3")), is(equalTo(0.26540284360189575)));
+		assertThat(candidate.getProbabilities().getPriorProbability(new TestClassification("class4")), is(equalTo(0.3412322274881517)));
+		assertThat(candidate.getProbabilities().getPriorProbability(new TestClassification("class5")), is(equalTo(NaiveBayesProbabilities.NOMINAL_PROBABILITY)));
+		assertThat(candidate.getProbabilities().getPriorProbability(new TestClassification("class6")), is(equalTo(0.0462085308056872)));
+		assertThat(candidate.getProbabilities().getPriorProbability(new TestClassification("class7")), is(equalTo(NaiveBayesProbabilities.NOMINAL_PROBABILITY)));
+		assertThat(candidate.getProbabilities().getPriorProbability(new TestClassification("class8")), is(equalTo(0.004739336492890996)));
 	}
 	
 	@Test
-	@Ignore
 	public void givenCandidate_whenAddingMultipleEventsInDifferntWindowPeriodsWithinBuffer_thenEventsNotTruncated(){
 		candidate.addNewProvider(getTestEvents(TEST_POSTERIOR_EVENTS_1, TEST_PRIOR_EVENTS_1));
 		
@@ -187,41 +278,104 @@ public class WindowManagerUnitTest {
 		
 		candidate.addNewProvider(getTestEvents(TEST_POSTERIOR_EVENTS_6, TEST_PRIOR_EVENTS_6)); // should not pop events1 off the buffer
 		
-		assertThat(candidate.getProbabilities().getPosteriorProbability(new TestFeature("feature1"), new TestClassification("class1")), is(equalTo(0.2)));
-		assertThat(candidate.getProbabilities().getPosteriorProbability(new TestFeature("feature2"), new TestClassification("class1")), is(equalTo(0.75)));
-		assertThat(candidate.getProbabilities().getPosteriorProbability(new TestFeature("feature2"), new TestClassification("class2")), is(equalTo(0.5)));
-		assertThat(candidate.getProbabilities().getPosteriorProbability(new TestFeature("feature2"), new TestClassification("class2")), is(equalTo(0.5)));
+		assertThat(candidate.getProbabilities().getPosteriorProbability(new TestFeature("feature1"), new TestClassification("class1")), is(equalTo(0.06040268456375839)));
+		assertThat(candidate.getProbabilities().getPosteriorProbability(new TestFeature("feature2"), new TestClassification("class1")), is(equalTo(0.4697986577181208)));
+		assertThat(candidate.getProbabilities().getPosteriorProbability(new TestFeature("feature3"), new TestClassification("class1")), is(equalTo(0.0738255033557047)));
+		assertThat(candidate.getProbabilities().getPosteriorProbability(new TestFeature("feature2"), new TestClassification("class2")), is(equalTo(0.9712230215827338)));
+		assertThat(candidate.getProbabilities().getPosteriorProbability(new TestFeature("feature1"), new TestClassification("class2")), is(equalTo(0.02877697841726619)));
+		assertThat(candidate.getProbabilities().getPosteriorProbability(new TestFeature("feature1"), new TestClassification("class4")), is(equalTo(0.2206896551724138)));
+		assertThat(candidate.getProbabilities().getPosteriorProbability(new TestFeature("feature2"), new TestClassification("class4")), is(equalTo(0.16551724137931034)));
+		assertThat(candidate.getProbabilities().getPosteriorProbability(new TestFeature("feature2"), new TestClassification("class8")), is(equalTo(1.0)));
+		assertThat(candidate.getProbabilities().getPosteriorProbability(new TestFeature("feature5"), new TestClassification("class3")), is(equalTo(0.6140350877192983)));
+		assertThat(candidate.getProbabilities().getPosteriorProbability(new TestFeature("feature8"), new TestClassification("class6")), is(equalTo(1.0)));
+
+		assertThat(candidate.getProbabilities().getPriorProbability(new TestClassification("class1")), is(equalTo(0.1362559241706161)));
+		assertThat(candidate.getProbabilities().getPriorProbability(new TestClassification("class2")), is(equalTo(0.20616113744075829)));
+		assertThat(candidate.getProbabilities().getPriorProbability(new TestClassification("class3")), is(equalTo(0.26540284360189575)));
+		assertThat(candidate.getProbabilities().getPriorProbability(new TestClassification("class4")), is(equalTo(0.3412322274881517)));
+		assertThat(candidate.getProbabilities().getPriorProbability(new TestClassification("class5")), is(equalTo(NaiveBayesProbabilities.NOMINAL_PROBABILITY)));
+		assertThat(candidate.getProbabilities().getPriorProbability(new TestClassification("class6")), is(equalTo(0.0462085308056872)));
+		assertThat(candidate.getProbabilities().getPriorProbability(new TestClassification("class7")), is(equalTo(NaiveBayesProbabilities.NOMINAL_PROBABILITY)));
+		assertThat(candidate.getProbabilities().getPriorProbability(new TestClassification("class8")), is(equalTo(0.004739336492890996)));
 	}
 	
 	@Test
-	@Ignore
 	public void givenCandidate_whenAddingMultipleEventsInDifferntWindowPeriodsOutsideOfBuffer_thenEventsTruncated(){
 		candidate.addNewProvider(getTestEvents(TEST_POSTERIOR_EVENTS_1, TEST_PRIOR_EVENTS_1));
 		
-		testClock.setCurrentTime(TEST_START_TIME + TEST_WINDOW_PERIOD);
+		testClock.setCurrentTime(TEST_START_TIME + (TEST_WINDOW_PERIOD)+1);
 		
 		candidate.addNewProvider(getTestEvents(TEST_POSTERIOR_EVENTS_2, TEST_PRIOR_EVENTS_2));
 		
-		testClock.setCurrentTime(TEST_START_TIME + 2 *TEST_WINDOW_PERIOD);
+		testClock.setCurrentTime(TEST_START_TIME + (2 *TEST_WINDOW_PERIOD)+1);
 		
 		candidate.addNewProvider(getTestEvents(TEST_POSTERIOR_EVENTS_3, TEST_PRIOR_EVENTS_3));
 		
-		testClock.setCurrentTime(TEST_START_TIME + 3 * TEST_WINDOW_PERIOD);
+		testClock.setCurrentTime(TEST_START_TIME + (3 * TEST_WINDOW_PERIOD)+1);
 		
 		candidate.addNewProvider(getTestEvents(TEST_POSTERIOR_EVENTS_4, TEST_PRIOR_EVENTS_4));
 		
-		testClock.setCurrentTime(TEST_START_TIME + 4 * TEST_WINDOW_PERIOD);
+		testClock.setCurrentTime(TEST_START_TIME + (4 * TEST_WINDOW_PERIOD)+1);
 		
 		candidate.addNewProvider(getTestEvents(TEST_POSTERIOR_EVENTS_5, TEST_PRIOR_EVENTS_5));
 		
-		testClock.setCurrentTime(TEST_START_TIME + 6 * TEST_WINDOW_PERIOD);
+		testClock.setCurrentTime(TEST_START_TIME + (5 * TEST_WINDOW_PERIOD)+1);
 		
 		candidate.addNewProvider(getTestEvents(TEST_POSTERIOR_EVENTS_6, TEST_PRIOR_EVENTS_6)); // should not pop events1 off the buffer
 		
-		assertThat(candidate.getProbabilities().getPosteriorProbability(new TestFeature("feature1"), new TestClassification("class1")), is(equalTo(0.2)));
-		assertThat(candidate.getProbabilities().getPosteriorProbability(new TestFeature("feature2"), new TestClassification("class1")), is(equalTo(0.75)));
-		assertThat(candidate.getProbabilities().getPosteriorProbability(new TestFeature("feature2"), new TestClassification("class2")), is(equalTo(0.5)));
-		assertThat(candidate.getProbabilities().getPosteriorProbability(new TestFeature("feature2"), new TestClassification("class2")), is(equalTo(0.5)));
+		assertThat(candidate.getProbabilities().getPosteriorProbability(new TestFeature("feature1"), new TestClassification("class1")), is(equalTo(0.031007751937984496)));
+		assertThat(candidate.getProbabilities().getPosteriorProbability(new TestFeature("feature2"), new TestClassification("class1")), is(equalTo(0.4263565891472868)));
+		assertThat(candidate.getProbabilities().getPosteriorProbability(new TestFeature("feature3"), new TestClassification("class1")), is(equalTo(0.08527131782945736)));
+		assertThat(candidate.getProbabilities().getPosteriorProbability(new TestFeature("feature2"), new TestClassification("class2")), is(equalTo(1.0)));
+		assertThat(candidate.getProbabilities().getPosteriorProbability(new TestFeature("feature1"), new TestClassification("class2")), is(equalTo(NaiveBayesProbabilities.NOMINAL_PROBABILITY)));
+		assertThat(candidate.getProbabilities().getPosteriorProbability(new TestFeature("feature1"), new TestClassification("class4")), is(equalTo(0.2206896551724138)));
+		assertThat(candidate.getProbabilities().getPosteriorProbability(new TestFeature("feature2"), new TestClassification("class4")), is(equalTo(0.16551724137931034)));
+		assertThat(candidate.getProbabilities().getPosteriorProbability(new TestFeature("feature2"), new TestClassification("class8")), is(equalTo(1.0)));
+		assertThat(candidate.getProbabilities().getPosteriorProbability(new TestFeature("feature5"), new TestClassification("class3")), is(equalTo(0.6140350877192983)));
+		assertThat(candidate.getProbabilities().getPosteriorProbability(new TestFeature("feature8"), new TestClassification("class6")), is(equalTo(1.0)));
+
+		assertThat(candidate.getProbabilities().getPriorProbability(new TestClassification("class1")), is(equalTo(0.09681881051175657)));
+		assertThat(candidate.getProbabilities().getPriorProbability(new TestClassification("class2")), is(equalTo(0.1355463347164592)));
+		assertThat(candidate.getProbabilities().getPriorProbability(new TestClassification("class3")), is(equalTo(0.30982019363762103)));
+		assertThat(candidate.getProbabilities().getPriorProbability(new TestClassification("class4")), is(equalTo(0.3983402489626556)));
+		assertThat(candidate.getProbabilities().getPriorProbability(new TestClassification("class5")), is(equalTo(NaiveBayesProbabilities.NOMINAL_PROBABILITY)));
+		assertThat(candidate.getProbabilities().getPriorProbability(new TestClassification("class6")), is(equalTo(0.05394190871369295)));
+		assertThat(candidate.getProbabilities().getPriorProbability(new TestClassification("class7")), is(equalTo(NaiveBayesProbabilities.NOMINAL_PROBABILITY)));
+		assertThat(candidate.getProbabilities().getPriorProbability(new TestClassification("class8")), is(equalTo(0.005532503457814661)));
+	}
+	
+	@Test
+	public void givenCandidate_whenAddingMultipleEventsMultipleTimesThroughBuffer_thenEventsReturned(){
+		
+		long time = TEST_START_TIME+1;
+		
+		for (int i = 0; i < 11; i++){
+			candidate.addNewProvider(getTestEvents(ALL_POSTERIOR_EVENTS[i%ALL_POSTERIOR_EVENTS.length], ALL_PRIOR_EVENTS[i%ALL_PRIOR_EVENTS.length]));
+			
+			time += (TEST_WINDOW_PERIOD);
+			
+			testClock.setCurrentTime(time);
+		}
+		
+		assertThat(candidate.getProbabilities().getPosteriorProbability(new TestFeature("feature1"), new TestClassification("class1")), is(equalTo(0.031007751937984496)));
+		assertThat(candidate.getProbabilities().getPosteriorProbability(new TestFeature("feature2"), new TestClassification("class1")), is(equalTo(0.4263565891472868)));
+		assertThat(candidate.getProbabilities().getPosteriorProbability(new TestFeature("feature3"), new TestClassification("class1")), is(equalTo(0.08527131782945736)));
+		assertThat(candidate.getProbabilities().getPosteriorProbability(new TestFeature("feature2"), new TestClassification("class2")), is(equalTo(1.0)));
+		assertThat(candidate.getProbabilities().getPosteriorProbability(new TestFeature("feature1"), new TestClassification("class2")), is(equalTo(NaiveBayesProbabilities.NOMINAL_PROBABILITY)));
+		assertThat(candidate.getProbabilities().getPosteriorProbability(new TestFeature("feature1"), new TestClassification("class4")), is(equalTo(0.2206896551724138)));
+		assertThat(candidate.getProbabilities().getPosteriorProbability(new TestFeature("feature2"), new TestClassification("class4")), is(equalTo(0.16551724137931034)));
+		assertThat(candidate.getProbabilities().getPosteriorProbability(new TestFeature("feature2"), new TestClassification("class8")), is(equalTo(1.0)));
+		assertThat(candidate.getProbabilities().getPosteriorProbability(new TestFeature("feature5"), new TestClassification("class3")), is(equalTo(0.6140350877192983)));
+		assertThat(candidate.getProbabilities().getPosteriorProbability(new TestFeature("feature8"), new TestClassification("class6")), is(equalTo(1.0)));
+
+		assertThat(candidate.getProbabilities().getPriorProbability(new TestClassification("class1")), is(equalTo(0.09681881051175657)));
+		assertThat(candidate.getProbabilities().getPriorProbability(new TestClassification("class2")), is(equalTo(0.1355463347164592)));
+		assertThat(candidate.getProbabilities().getPriorProbability(new TestClassification("class3")), is(equalTo(0.30982019363762103)));
+		assertThat(candidate.getProbabilities().getPriorProbability(new TestClassification("class4")), is(equalTo(0.3983402489626556)));
+		assertThat(candidate.getProbabilities().getPriorProbability(new TestClassification("class5")), is(equalTo(NaiveBayesProbabilities.NOMINAL_PROBABILITY)));
+		assertThat(candidate.getProbabilities().getPriorProbability(new TestClassification("class6")), is(equalTo(0.05394190871369295)));
+		assertThat(candidate.getProbabilities().getPriorProbability(new TestClassification("class7")), is(equalTo(NaiveBayesProbabilities.NOMINAL_PROBABILITY)));
+		assertThat(candidate.getProbabilities().getPriorProbability(new TestClassification("class8")), is(equalTo(0.005532503457814661)));
 	}
 
 	private NaiveBayesCountsProvider getTestEvents(final Iterable<NaiveBayesCounts<NaiveBayesPosteriorProperty>> posteriorEvents, final Iterable<NaiveBayesCounts<NaiveBayesPriorProperty>> priorEvents) {

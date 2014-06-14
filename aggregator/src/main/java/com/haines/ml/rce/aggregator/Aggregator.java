@@ -81,6 +81,9 @@ public class Aggregator implements NaiveBayesCountsProvider{
 		} else{
 			if (subtract){
 				currentCounts.subCounts(counts.getCounts());
+				if (currentCounts.getCounts() == 0){ // remove reference to count object if its 0
+					countMap.remove(key);
+				}
 			} else{
 				currentCounts.addCounts(counts.getCounts());
 			}

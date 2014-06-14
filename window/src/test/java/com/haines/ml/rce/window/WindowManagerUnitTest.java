@@ -349,7 +349,7 @@ public class WindowManagerUnitTest {
 		
 		long time = TEST_START_TIME+1;
 		
-		for (int i = 0; i < 11; i++){
+		for (int i = 0; i < 12; i++){
 			candidate.addNewProvider(getTestEvents(ALL_POSTERIOR_EVENTS[i%ALL_POSTERIOR_EVENTS.length], ALL_PRIOR_EVENTS[i%ALL_PRIOR_EVENTS.length]));
 			
 			time += (TEST_WINDOW_PERIOD);

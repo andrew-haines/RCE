@@ -352,6 +352,9 @@ public class WindowManagerUnitTest {
 		for (int i = 0; i < 12; i++){
 			candidate.addNewProvider(getTestEvents(ALL_POSTERIOR_EVENTS[i%ALL_POSTERIOR_EVENTS.length], ALL_PRIOR_EVENTS[i%ALL_PRIOR_EVENTS.length]));
 			
+			System.out.println("current time: "+time);
+			System.out.println(candidate);
+			
 			time += (TEST_WINDOW_PERIOD);
 			
 			testClock.setCurrentTime(time);
@@ -376,6 +379,27 @@ public class WindowManagerUnitTest {
 		assertThat(candidate.getProbabilities().getPriorProbability(new TestClassification("class6")), is(equalTo(0.05394190871369295)));
 		assertThat(candidate.getProbabilities().getPriorProbability(new TestClassification("class7")), is(equalTo(NaiveBayesProbabilities.NOMINAL_PROBABILITY)));
 		assertThat(candidate.getProbabilities().getPriorProbability(new TestClassification("class8")), is(equalTo(0.005532503457814661)));
+	}
+	
+	@Test
+	public void givenCandidate_whenAddingMultipleEventsOverWindowPeriod_thenAllExpiredWindowsRemoved(){
+		long time = TEST_START_TIME+1;
+		
+		// fill buffer
+		for (int i = 0; i < 12; i++){
+			candidate.addNewProvider(getTestEvents(ALL_POSTERIOR_EVENTS[i%ALL_POSTERIOR_EVENTS.length], ALL_PRIOR_EVENTS[i%ALL_PRIOR_EVENTS.length]));
+			
+			time += (TEST_WINDOW_PERIOD);
+			
+			testClock.setCurrentTime(time);
+		}
+		
+		// now add event after *5 the window period (basically empty the buffer)
+		
+		testClock.setCurrentTime(time + (5 * TEST_WINDOW_PERIOD));
+		
+		candidate.addNewProvider(getTestEvents(TEST_POSTERIOR_EVENTS_2, TEST_PRIOR_EVENTS_2));
+		
 	}
 
 	private NaiveBayesCountsProvider getTestEvents(final Iterable<NaiveBayesCounts<NaiveBayesPosteriorProperty>> posteriorEvents, final Iterable<NaiveBayesCounts<NaiveBayesPriorProperty>> priorEvents) {

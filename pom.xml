@@ -15,5 +15,6 @@
 		<module>window</module>
 		<module>dispatcher</module>
 		<module>eventstream</module>
+		<module>main</module>
 	</modules>
 </project>

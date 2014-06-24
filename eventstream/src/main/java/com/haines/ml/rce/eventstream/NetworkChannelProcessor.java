@@ -17,6 +17,23 @@ import java.nio.channels.spi.SelectorProvider;
 public interface NetworkChannelProcessor<T extends SelectableChannel & NetworkChannel> {
 	
 	public static final Util UTIL = new Util();
+	public static final NetworkChannelProcessorProvider<ServerSocketChannel> TCP_PROVIDER = new NetworkChannelProcessorProvider<ServerSocketChannel>(){
+
+		@Override
+		public NetworkChannelProcessor<ServerSocketChannel> get() {
+			return UTIL.getServerChannelProcessor();
+		}
+		
+	};
+	
+	public static final NetworkChannelProcessorProvider<DatagramChannel> UDP_PROVIDER = new NetworkChannelProcessorProvider<DatagramChannel>(){
+
+		@Override
+		public NetworkChannelProcessor<DatagramChannel> get() {
+			return UTIL.getDatagramChannelProcessor();
+		}
+		
+	};
 
 	T createChannel(SelectorProvider provider) throws IOException;
 	
@@ -135,5 +152,10 @@ public interface NetworkChannelProcessor<T extends SelectableChannel & NetworkCh
 		public NetworkChannelProcessor<DatagramChannel> getDatagramChannelProcessor(){
 			return datagramChannelProcessor;
 		}
+	}
+	
+	public static interface NetworkChannelProcessorProvider<T extends SelectableChannel & NetworkChannel>{
+		
+		NetworkChannelProcessor<T> get();
 	}
 }

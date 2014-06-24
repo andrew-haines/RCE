@@ -15,7 +15,7 @@ import org.slf4j.LoggerFactory;
 
 import com.haines.ml.rce.dispatcher.Dispatcher;
 import com.haines.ml.rce.model.Event;
-import com.haines.ml.rce.model.EventBuffer;
+import com.haines.ml.rce.model.EventMarshalBuffer;
 
 /**
  * A nio selector event stream for processing io events to the dispatcher. This selector is
@@ -24,7 +24,7 @@ import com.haines.ml.rce.model.EventBuffer;
  * @author haines
  *
  */
-class SelectorEventStream<T extends SelectableChannel & NetworkChannel> implements EventStream{
+public class SelectorEventStream<T extends SelectableChannel & NetworkChannel> implements EventStream{
 
 	private static final Logger LOG = LoggerFactory.getLogger(SelectorEventStream.class);
 	
@@ -32,11 +32,11 @@ class SelectorEventStream<T extends SelectableChannel & NetworkChannel> implemen
 	private final SelectorEventStreamConfig config;
 	private final Dispatcher<?> dispatcher;
 	private final NetworkChannelProcessor<T> processor;
-	private final EventBuffer<?> eventBuffer;
+	private final EventMarshalBuffer<?> eventBuffer;
 	private final EventStreamListener listener;
 	private volatile Thread executingThread;
 	
-	<E extends Event> SelectorEventStream(Dispatcher<E> dispatcher, SelectorEventStreamConfig config, NetworkChannelProcessor<T> processor, EventBuffer<E> eventBuffer, EventStreamListener listener){
+	<E extends Event> SelectorEventStream(Dispatcher<E> dispatcher, SelectorEventStreamConfig config, NetworkChannelProcessor<T> processor, EventMarshalBuffer<E> eventBuffer, EventStreamListener listener){
 		this.isAlive = false;
 		this.dispatcher = dispatcher;
 		this.config = config;

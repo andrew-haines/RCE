@@ -12,7 +12,7 @@ import java.nio.ByteBuffer;
  *
  * @param <E>
  */
-public interface EventBuffer<E extends Event> {
+public interface EventMarshalBuffer<E extends Event> {
 
 	/**
 	 * marshals this buffer of content. Expect this to be called possibly more then once before {@link #buildEventAndResetBuffer()} is invoked.

@@ -27,7 +27,7 @@ import com.haines.ml.rce.dispatcher.Dispatcher;
 import com.haines.ml.rce.dispatcher.DispatcherConsumer;
 import com.haines.ml.rce.eventstream.SelectorEventStreamConfig.BufferType;
 import com.haines.ml.rce.model.Event;
-import com.haines.ml.rce.model.EventBuffer;
+import com.haines.ml.rce.model.EventMarshalBuffer;
 import com.haines.ml.rce.model.UnMarshalableException;
 
 import static org.junit.Assert.assertThat;
@@ -226,7 +226,7 @@ public abstract class AbstractSelectorEventStreamIT<T extends SelectableChannel 
 		}
 	}
 	
-	private static class TestEventBuffer implements EventBuffer<TestEvent>{
+	private static class TestEventBuffer implements EventMarshalBuffer<TestEvent>{
 
 		private static enum TestEventProperty{
 			TEST_STRING1,

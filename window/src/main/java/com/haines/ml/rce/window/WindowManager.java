@@ -21,11 +21,13 @@ import com.haines.ml.rce.naivebayes.model.NaiveBayesProperty.NaiveBayesPriorProp
 
 public class WindowManager implements NaiveBayesProbabilitiesProvider{
 
+	private static final int NO_WINDOW_IDX = -1;
+	private static final Window NULL_WINDOW = null;
 	private final WindowConfig config;
 	private final WindowProbabilities windowProbabilities;
 	
 	private final Window[] cyclicWindowBuffer;
-	private int currentMaxIdx = -1; // we can remove the need for volatile modifiers here as long as we can ensure that the single writer paradigm is enforced.
+	private int currentMaxIdx = NO_WINDOW_IDX; // we can remove the need for volatile modifiers here as long as we can ensure that the single writer paradigm is enforced.
 	private int currentMinIdx = 0;
 	private final Clock clock;
 	
@@ -51,15 +53,18 @@ public class WindowManager implements NaiveBayesProbabilitiesProvider{
 	public void addNewProvider(NaiveBayesCountsProvider provider){
 		long currentTime = clock.getCurrentTime();
 		
-		int currentMaxIdx = this.currentMaxIdx; // cache friendly version. NOTE that this is needed anymore as these variables are no longer volatile
+		int currentMaxIdx = this.currentMaxIdx; // cache friendly version. NOTE that this is not needed anymore as these variables are no longer volatile
 		int currentMinIdx = this.currentMinIdx; 
 		
-		if (currentMaxIdx == -1 || currentTime > cyclicWindowBuffer[currentMaxIdx].getExpires()){
+		if (currentMaxIdx == NO_WINDOW_IDX || currentTime > cyclicWindowBuffer[currentMaxIdx].getExpires()){
+			
+			// TODO flush any windows that this new event skips past
+			
 			// shift to new window
 			
 			Window newWindow = null;
 			
-			if (currentMaxIdx != -1){
+			if (currentMaxIdx != NO_WINDOW_IDX){
 				newWindow = new Window(cyclicWindowBuffer[currentMaxIdx].getExpires() + config.getWindowPeriod(), provider);
 			} else{
 				newWindow = new Window(currentTime + config.getWindowPeriod(), provider);
@@ -93,14 +98,41 @@ public class WindowManager implements NaiveBayesProbabilitiesProvider{
 			
 			Window newAggregatedWindow = new Window(cyclicWindowBuffer[currentMaxIdx].getExpires(), aggregatedWindow);
 			
-			cyclicWindowBuffer[currentMaxIdx] = currentWindow;
+			cyclicWindowBuffer[currentMaxIdx] = newAggregatedWindow;
 			
 			windowProbabilities.processWindows(newAggregatedWindow.getProvider(), currentWindow.getProvider());
 		}
 	}
 	
+	@Override
+	public String toString(){
+		StringBuilder builder = new StringBuilder();
+		
+		builder.append("Windows: \n");
+		int idx = 0;
+		for (int i = currentMaxIdx; i != currentMinIdx; i = getPreviousIdxInBuffer(i)){
+			builder.append("\tw[").append(idx++).append("] - ");
+			if (cyclicWindowBuffer[i] != null){
+				builder.append(Iterables.size(cyclicWindowBuffer[i].getProvider().getPosteriorCounts()));
+				builder.append(":");
+				builder.append(Iterables.size(cyclicWindowBuffer[i].getProvider().getPriorCounts()));
+				builder.append(" e=");
+				builder.append(cyclicWindowBuffer[i].getExpires());
+			} else{
+				builder.append("null");
+			}
+			builder.append("\n");
+		}
+		
+		return builder.toString();
+	}
+
 	private int getNextIdxInBuffer(int idx){
 		return (idx + 1) % cyclicWindowBuffer.length;
+	}
+	
+	private int getPreviousIdxInBuffer(int idx){
+		return (idx == 0)?cyclicWindowBuffer.length-1:(idx - 1);
 	}
 	
 	private static class Window{

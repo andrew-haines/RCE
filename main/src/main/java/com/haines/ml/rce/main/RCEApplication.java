@@ -3,6 +3,7 @@ package com.haines.ml.rce.main;
 import java.io.IOException;
 import java.util.ServiceLoader;
 
+import javax.inject.Inject;
 import javax.xml.bind.JAXBException;
 
 import org.apache.commons.cli.CommandLine;
@@ -16,12 +17,15 @@ import com.haines.ml.rce.eventstream.EventStreamException;
 import com.haines.ml.rce.eventstream.SelectorEventStream;
 import com.haines.ml.rce.main.factory.GuiceRCEApplicationFactory;
 import com.haines.ml.rce.main.factory.RCEApplicationFactory;
+import com.haines.ml.rce.main.guice.PipelineRCEConfigConfiguredInitiationModule;
 import com.haines.ml.rce.main.guice.RCEConfigConfiguredInitiationModule;
+import com.haines.ml.rce.model.Event;
 
 public class RCEApplication {
 	
 	private final SelectorEventStream<?> eventStream;
 	
+	@Inject
 	public RCEApplication(SelectorEventStream<?> eventStream){
 		this.eventStream = eventStream;
 	}
@@ -66,7 +70,7 @@ public class RCEApplication {
 				return factory.createApplication();
 			}
 
-			return new GuiceRCEApplicationFactory(new RCEConfigConfiguredInitiationModule(configOverrideLocation)).createApplication();
+			return new GuiceRCEApplicationFactory(new PipelineRCEConfigConfiguredInitiationModule<Event>(configOverrideLocation)).createApplication();
 		}
 	}
 }

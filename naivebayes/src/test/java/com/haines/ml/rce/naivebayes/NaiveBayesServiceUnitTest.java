@@ -8,6 +8,7 @@ import org.junit.Test;
 import com.haines.ml.rce.accumulator.AccumulatorEventConsumer;
 import com.haines.ml.rce.accumulator.lookups.RONaiveBayesMapBasedLookupStrategy;
 import com.haines.ml.rce.model.Classification;
+import com.haines.ml.rce.model.ClassifiedEvent;
 import com.haines.ml.rce.model.Feature;
 import com.haines.ml.rce.test.TestClassification;
 import com.haines.ml.rce.test.TestEvent;
@@ -42,7 +43,7 @@ public class NaiveBayesServiceUnitTest {
 		
 		NaiveBayesIndexes indexes = new NaiveBayesLocalIndexes(new NaiveBayesGlobalIndexes());
 		
-		AccumulatorEventConsumer<TestEvent> eventConsumer = new AccumulatorEventConsumer<TestEvent>(new RONaiveBayesMapBasedLookupStrategy<TestEvent>(indexes));
+		AccumulatorEventConsumer<ClassifiedEvent> eventConsumer = new AccumulatorEventConsumer<ClassifiedEvent>(new RONaiveBayesMapBasedLookupStrategy(indexes));
 
 		consumeTestEvents(eventConsumer);
 		
@@ -59,7 +60,7 @@ public class NaiveBayesServiceUnitTest {
 		});
 	}
 
-	private void consumeTestEvents(AccumulatorEventConsumer<TestEvent> eventConsumer) {
+	private void consumeTestEvents(AccumulatorEventConsumer<ClassifiedEvent> eventConsumer) {
 		eventConsumer.consume(TEST_EVENT_1);
 		eventConsumer.consume(TEST_EVENT_2);
 		eventConsumer.consume(TEST_EVENT_3);

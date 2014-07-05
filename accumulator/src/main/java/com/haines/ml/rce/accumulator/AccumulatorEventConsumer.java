@@ -50,7 +50,7 @@ public class AccumulatorEventConsumer<T extends Event> implements EventConsumer<
 	private static final Logger LOG = LoggerFactory.getLogger(AccumulatorEventConsumer.class);
 	
 	private final int[][][] accumulators;
-	private final AccumulatorLookupStrategy<T> lookup;
+	private final AccumulatorLookupStrategy<? super T> lookup;
 	private final int finalAccumulatorLineSize;
 	private final int finalAccumulatorBitSize;
 	private final int finalAccumulatorMask;
@@ -59,7 +59,7 @@ public class AccumulatorEventConsumer<T extends Event> implements EventConsumer<
 	private final int firstAccumulatorShift;
 	private final int phyisicalLimitOfAccumulator;
 	
-	public AccumulatorEventConsumer(AccumulatorConfig config, AccumulatorLookupStrategy<T> lookup){
+	public AccumulatorEventConsumer(AccumulatorConfig config, AccumulatorLookupStrategy<? super T> lookup){
 		
 		int firstLineLength = getFirstLineMaxIndex(config);
 		int secondLineLength = getSecondLineMaxIndex(config);

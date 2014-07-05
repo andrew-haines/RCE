@@ -4,19 +4,25 @@ import gnu.trove.map.hash.THashMap;
 
 import java.util.Map;
 
+import javax.inject.Inject;
+import javax.inject.Named;
+
 import com.haines.ml.rce.model.Classification;
 import com.haines.ml.rce.model.Feature;
 
 public class NaiveBayesLocalIndexes extends NaiveBayesIndexes{
 
+	public static final String INJECT_BINDING_GLOBAL_INDEXES_KEY = "com.haines.ml.rce.naivebayes.globalIndexes";
 	private final NaiveBayesIndexes globalIndexes;
 	
+	@Inject
 	public NaiveBayesLocalIndexes(Map<Classification, Map<Feature, Integer>> posteriorProbabilityIndexes, Map<Classification, Integer> priorProbabilityIndexes, NaiveBayesIndexes globalIndexes){
 		super(posteriorProbabilityIndexes, priorProbabilityIndexes, globalIndexes.getMaxIndex());
 		this.globalIndexes = globalIndexes;
 	}
 	
-	public NaiveBayesLocalIndexes(NaiveBayesIndexes globalIndexes){
+	@Inject
+	public NaiveBayesLocalIndexes(@Named(INJECT_BINDING_GLOBAL_INDEXES_KEY) NaiveBayesIndexes globalIndexes){
 		this(new THashMap<Classification, Map<Feature, Integer>>(), new THashMap<Classification, Integer>(), globalIndexes);
 	}
 	@Override

@@ -10,6 +10,8 @@ import java.nio.channels.Selector;
 import java.nio.channels.spi.SelectorProvider;
 import java.util.Iterator;
 
+import javax.inject.Inject;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,6 +38,7 @@ public class SelectorEventStream<T extends SelectableChannel & NetworkChannel> i
 	private final EventStreamListener listener;
 	private volatile Thread executingThread;
 	
+	@Inject
 	<E extends Event> SelectorEventStream(Dispatcher<E> dispatcher, SelectorEventStreamConfig config, NetworkChannelProcessor<T> processor, EventMarshalBuffer<E> eventBuffer, EventStreamListener listener){
 		this.isAlive = false;
 		this.dispatcher = dispatcher;

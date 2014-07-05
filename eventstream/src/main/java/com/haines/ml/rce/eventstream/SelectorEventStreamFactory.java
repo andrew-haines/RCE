@@ -3,6 +3,8 @@ package com.haines.ml.rce.eventstream;
 import java.nio.channels.NetworkChannel;
 import java.nio.channels.SelectableChannel;
 
+import javax.inject.Inject;
+
 import com.haines.ml.rce.dispatcher.Dispatcher;
 import com.haines.ml.rce.model.Event;
 import com.haines.ml.rce.model.EventMarshalBuffer;
@@ -14,6 +16,7 @@ public class SelectorEventStreamFactory<T extends SelectableChannel & NetworkCha
 	private final EventMarshalBuffer<?> eventBuffer;
 	private final EventStreamListener listener;
 	
+	@Inject
 	public SelectorEventStreamFactory(SelectorEventStreamConfig config, NetworkChannelProcessor<T> channelFactory, EventMarshalBuffer<?> eventBuffer, EventStreamListener listener){
 		this.channelFactory = channelFactory;
 		this.config = config;

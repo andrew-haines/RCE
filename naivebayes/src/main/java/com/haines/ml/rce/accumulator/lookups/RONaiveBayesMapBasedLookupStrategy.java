@@ -2,22 +2,27 @@ package com.haines.ml.rce.accumulator.lookups;
 
 import java.util.Iterator;
 
+import javax.inject.Inject;
+import javax.inject.Named;
+
 import com.haines.ml.rce.accumulator.AccumulatorLookupStrategy;
 import com.haines.ml.rce.model.Classification;
 import com.haines.ml.rce.model.ClassifiedEvent;
 import com.haines.ml.rce.model.Feature;
 import com.haines.ml.rce.naivebayes.NaiveBayesIndexes;
 
-public class RONaiveBayesMapBasedLookupStrategy<T extends ClassifiedEvent> implements AccumulatorLookupStrategy<T>{
+public class RONaiveBayesMapBasedLookupStrategy implements AccumulatorLookupStrategy<ClassifiedEvent>{
 
+	public static final String LOOKUP_STRATEGY_INDEXES = "com.haines.ml.rce.accumulator.lookups.indexes";
 	private final NaiveBayesIndexes indexes;
 	
-	public RONaiveBayesMapBasedLookupStrategy(NaiveBayesIndexes indexes){
+	@Inject
+	public RONaiveBayesMapBasedLookupStrategy(@Named(LOOKUP_STRATEGY_INDEXES) NaiveBayesIndexes indexes){
 		this.indexes = indexes;
 	}
 	
 	@Override
-	public int[] getSlots(T event) {
+	public int[] getSlots(ClassifiedEvent event) {
 		
 		// accumulator for all feature->classification pairs and then all classifications
 		int[] accumulatorIndexesToUpdate = new int[(event.getFeatures().size() * event.getClassifications().size()) + event.getClassifications().size()];

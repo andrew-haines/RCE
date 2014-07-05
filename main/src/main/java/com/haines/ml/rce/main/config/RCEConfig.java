@@ -47,6 +47,12 @@ public interface RCEConfig {
 	
 	SocketAddress getEventStreamSocketAddress();
 	
+	Integer getFirstAccumulatorLineBitDepth();
+	
+	Integer getSecondAccumulatorLineBitDepth();
+	
+	Integer getFinalAccumulatorLineBitDepth();
+	
 	public static class Util{
 		
 		private static final String DEFAULT_CONFIG_LOC = "/xml/default-config.xml";

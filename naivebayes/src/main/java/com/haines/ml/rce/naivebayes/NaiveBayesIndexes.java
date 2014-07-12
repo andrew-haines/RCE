@@ -67,7 +67,7 @@ public abstract class NaiveBayesIndexes {
 		return map;
 	}
 	
-	Iterable<NaiveBayesPosteriorProperty> getPostiriors(){
+	Iterable<NaiveBayesPosteriorProperty> getPosteriors(){
 		return new Iterable<NaiveBayesPosteriorProperty>(){
 
 			@Override

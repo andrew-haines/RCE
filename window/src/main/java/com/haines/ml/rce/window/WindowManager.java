@@ -22,7 +22,6 @@ import com.haines.ml.rce.naivebayes.model.NaiveBayesProperty.NaiveBayesPriorProp
 public class WindowManager implements NaiveBayesProbabilitiesProvider{
 
 	private static final int NO_WINDOW_IDX = -1;
-	private static final Window NULL_WINDOW = null;
 	private final WindowConfig config;
 	private final WindowProbabilities windowProbabilities;
 	

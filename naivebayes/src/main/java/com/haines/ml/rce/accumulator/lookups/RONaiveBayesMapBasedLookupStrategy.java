@@ -61,6 +61,10 @@ public class RONaiveBayesMapBasedLookupStrategy implements AccumulatorLookupStra
 		}
 		return accumulatorIndexesToUpdate;
 	}
+	
+	public NaiveBayesIndexes getIndexes(){
+		return indexes;
+	}
 
 	@Override
 	public int getMaxIndex() {

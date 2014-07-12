@@ -48,6 +48,11 @@ public class Aggregator implements NaiveBayesCountsProvider{
 		aggregate(counts, false);
 	}
 	
+	public void clear(){
+		posteriorCounts.clear();
+		priorCounts.clear();
+	}
+	
 	protected void aggregate(Iterable<? extends NaiveBayesCounts<? extends NaiveBayesProperty>> counts, boolean subtract){
 		
 		for (NaiveBayesCounts<? extends NaiveBayesProperty> count: counts){

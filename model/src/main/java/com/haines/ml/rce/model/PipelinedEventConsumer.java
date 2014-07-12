@@ -1,5 +1,8 @@
 package com.haines.ml.rce.model;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 
 /**
  * A switchable accumulator consumer that defines 2 pipelines - live and staging - that ensentially
@@ -55,6 +58,7 @@ package com.haines.ml.rce.model;
  */
 public class PipelinedEventConsumer<E extends Event, T extends EventConsumer<E>> implements EventConsumer<E>{
 
+	private final static Logger LOG = LoggerFactory.getLogger(PipelinedEventConsumer.class);
 	private final static byte LIVE_CONSUMER_MASK = 0x1;
 	private final static byte LIVE_CONSUMER_ACTIVE_MASK = 0x2;
 	
@@ -74,7 +78,7 @@ public class PipelinedEventConsumer<E extends Event, T extends EventConsumer<E>>
 	@Override
 	public void consume(E event) {
 		
-		byte liveConsumerState = this.liveConsumerState; // copies to local variable obtaining atomisity
+		byte liveConsumerState = this.liveConsumerState; // copies to local variable obtaining atomicity
 		int liveConsumer = getLiveConsumer(liveConsumerState);
 		
 		/*
@@ -98,16 +102,18 @@ public class PipelinedEventConsumer<E extends Event, T extends EventConsumer<E>>
 		return consumerBitSet & LIVE_CONSUMER_MASK;
 	}
 
-	public T switchLiveConsumer() throws InterruptedException{
+	public T switchLiveConsumer() {
 		
 		byte stagingConsumer = this.liveConsumerState;
 		int toBeStagingConsumer = getLiveConsumer(stagingConsumer);
+		
+		LOG.debug("Switching live consumer: "+toBeStagingConsumer);
 		
 		// first switch consumers so that live->staging and staging->live
 		
 		this.liveConsumerState ^= LIVE_CONSUMER_MASK; // flip the live consumer bit.
 		
-		// now check to see if we have a consumer currently processing the old live consumer
+		// now check to see if we have a consumer currently processing the old live consumer. We busy spin until no other thread is using this downstream consumer
 		
 		int liveConsumerActiveMask = LIVE_CONSUMER_ACTIVE_MASK << toBeStagingConsumer;
 		
@@ -115,6 +121,8 @@ public class PipelinedEventConsumer<E extends Event, T extends EventConsumer<E>>
 			// busy spin.
 			Thread.yield();
 		}
+		
+		LOG.debug("New Live Consumer: "+getLiveConsumer(liveConsumerState));
 		
 		return consumers[toBeStagingConsumer];
 		

@@ -58,12 +58,14 @@ public class AccumulatorEventConsumer<T extends Event> implements EventConsumer<
 	private final int secondAccumulatorLineIndexMask;
 	private final int firstAccumulatorShift;
 	private final int phyisicalLimitOfAccumulator;
+	private final AccumulatorConfig config;
 	
 	public AccumulatorEventConsumer(AccumulatorConfig config, AccumulatorLookupStrategy<? super T> lookup){
 		
+		this.config = config;
 		int firstLineLength = getFirstLineMaxIndex(config);
 		int secondLineLength = getSecondLineMaxIndex(config);
-		this.accumulators = new int[firstLineLength][secondLineLength][]; // 4096 * 32 bits memory footprint for structure (16KB)
+		this.accumulators = newAccumulator(firstLineLength, secondLineLength);
 		this.lookup = lookup;
 		
 		this.finalAccumulatorBitSize = config.getFinalAccumulatorLineBitDepth();
@@ -79,6 +81,10 @@ public class AccumulatorEventConsumer<T extends Event> implements EventConsumer<
 		this.phyisicalLimitOfAccumulator = (firstLineLength * secondLineLength * finalAccumulatorLineSize) - 1;
 	}
 	
+	private int[][][] newAccumulator(int firstLineLength, int secondLineLength) {
+		return new int[firstLineLength][secondLineLength][]; // 4096 * 32 bits memory footprint for structure (16KB)
+	}
+
 	private static void printAccumulatorConfig(int firstLineLength, int secondLineLength, int finalAccumulatorLineSize) {
 		
 		int totalLineSize = firstLineLength * secondLineLength;
@@ -112,6 +118,16 @@ public class AccumulatorEventConsumer<T extends Event> implements EventConsumer<
 				return;
 			}
 			incrementAccumulator(slot);
+		}
+	}
+	
+	public void clear(){
+		int firstLineLength = getFirstLineMaxIndex(config);
+		int secondLineLength = getSecondLineMaxIndex(config);
+		for (int i = 0; i < accumulators.length; i++){
+			if (accumulators[i] != null){
+				accumulators[i] = new int[firstLineLength][secondLineLength];
+			}
 		}
 	}
 	
@@ -170,6 +186,10 @@ public class AccumulatorEventConsumer<T extends Event> implements EventConsumer<
 	
 	private int getMaxIndex() {
 		return Ordering.natural().min(lookup.getMaxIndex(), phyisicalLimitOfAccumulator);
+	}
+	
+	private AccumulatorLookupStrategy<? super T> getLookupStrategy(){
+		return lookup;
 	}
 
 	/**

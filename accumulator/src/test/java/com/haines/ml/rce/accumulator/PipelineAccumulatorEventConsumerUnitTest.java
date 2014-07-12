@@ -8,7 +8,7 @@ public class PipelineAccumulatorEventConsumerUnitTest {
 	private static final long INITIAL_STARTUP_TIME = System.currentTimeMillis();
 	//private static final TestConfig TEST_CONFIG = new TestConfig();
 	
-	private PipelineAccumulatorEventConsumer<TestEvent> candidate;
+	private PipelineAccumulatorController<TestAccumulatorLookupStrategy> candidate;
 	private StaticClock clock;
 	
 	public void before(){

@@ -42,7 +42,7 @@ public class NaiveBayesAccumulatorBackedCountsProvider implements NaiveBayesCoun
 
 	@Override
 	public Iterable<NaiveBayesCounts<NaiveBayesPosteriorProperty>> getPosteriorCounts() {
-		return Iterables.transform(indexes.getPostiriors(), posteriorPropertyToCountsFunction);
+		return Iterables.transform(indexes.getPosteriors(), posteriorPropertyToCountsFunction);
 	}
 
 	@Override

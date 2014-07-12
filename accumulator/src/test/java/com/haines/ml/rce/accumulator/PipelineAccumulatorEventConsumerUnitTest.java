@@ -44,5 +44,4 @@ public class PipelineAccumulatorEventConsumerUnitTest {
 			return 64 * 64 * 4096;
 		}
 	}
-	//private static class TestConfig implements Accum
 }

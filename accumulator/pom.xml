@@ -18,6 +18,11 @@
     		<version>${project.version}</version>
     	</dependency>
     	<dependency>
+    		<groupId>${project.groupId}</groupId>
+    		<artifactId>rce-dispatcher</artifactId>
+    		<version>${project.version}</version>
+    	</dependency>
+    	<dependency>
 			<groupId>com.google.guava</groupId>
 			<artifactId>guava</artifactId>
 		</dependency>

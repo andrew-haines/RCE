@@ -5,7 +5,9 @@ import java.util.Map;
 
 import com.google.common.base.Function;
 import com.google.common.collect.Iterables;
+import com.haines.ml.rce.accumulator.AccumulatorEventConsumer;
 import com.haines.ml.rce.model.Classification;
+import com.haines.ml.rce.model.ClassifiedEvent;
 import com.haines.ml.rce.model.Feature;
 import com.haines.ml.rce.naivebayes.model.NaiveBayesProperty.NaiveBayesPosteriorProperty;
 import com.haines.ml.rce.naivebayes.model.NaiveBayesProperty.NaiveBayesPriorProperty;
@@ -110,5 +112,12 @@ public abstract class NaiveBayesIndexes {
 
 	public Iterable<NaiveBayesPriorProperty> getPriors() {
 		return Iterables.transform(priorProbabilityIndexes.keySet(), CLASSIFICATION_TO_PRIOR_PROPERTY_FUNC);
+	}
+
+	public void reset(AccumulatorEventConsumer<? extends ClassifiedEvent> consumer) {
+		posteriorProbabilityIndexes.clear();
+		priorProbabilityIndexes.clear();
+		
+		maxIndex = 0;
 	}
 }

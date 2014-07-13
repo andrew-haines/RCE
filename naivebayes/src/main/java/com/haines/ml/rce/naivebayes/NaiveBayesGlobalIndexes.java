@@ -4,7 +4,9 @@ import gnu.trove.map.hash.THashMap;
 
 import java.util.Map;
 
+import com.haines.ml.rce.accumulator.AccumulatorEventConsumer;
 import com.haines.ml.rce.model.Classification;
+import com.haines.ml.rce.model.ClassifiedEvent;
 import com.haines.ml.rce.model.Feature;
 
 /**
@@ -23,7 +25,6 @@ import com.haines.ml.rce.model.Feature;
  */
 public class NaiveBayesGlobalIndexes extends NaiveBayesIndexes{
 
-	
 	/**
 	 * Enables constructions of this class to use a more fitting map (such as EnumMap) if
 	 * feature/classification instances can be constrained.
@@ -62,5 +63,10 @@ public class NaiveBayesGlobalIndexes extends NaiveBayesIndexes{
 	@Override
 	protected <K, V> Map<K, V> checkIsEmpty(Map<K, V> map) {
 		return map; // global indexes can have items in them
+	}
+
+	@Override
+	public void reset(AccumulatorEventConsumer<? extends ClassifiedEvent> consumer) {
+		// NO OP for global indexes.
 	}
 }

@@ -41,7 +41,15 @@ public class NaiveBayesServiceUnitTest {
 	@Before
 	public void before(){
 		
-		NaiveBayesIndexes indexes = new NaiveBayesLocalIndexes(new NaiveBayesGlobalIndexes());
+		final NaiveBayesIndexes globalIndexes = new NaiveBayesGlobalIndexes();
+		
+		NaiveBayesIndexes indexes = new NaiveBayesLocalIndexes(new NaiveBayesIndexesProvider() {
+			
+			@Override
+			public NaiveBayesIndexes getIndexes() {
+				return globalIndexes;
+			}
+		});
 		
 		AccumulatorEventConsumer<ClassifiedEvent> eventConsumer = new AccumulatorEventConsumer<ClassifiedEvent>(new RONaiveBayesMapBasedLookupStrategy(indexes));
 

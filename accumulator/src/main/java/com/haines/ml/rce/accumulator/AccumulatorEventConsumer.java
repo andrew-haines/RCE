@@ -188,7 +188,7 @@ public class AccumulatorEventConsumer<T extends Event> implements EventConsumer<
 		return Ordering.natural().min(lookup.getMaxIndex(), phyisicalLimitOfAccumulator);
 	}
 	
-	private AccumulatorLookupStrategy<? super T> getLookupStrategy(){
+	AccumulatorLookupStrategy<? super T> getLookupStrategy(){
 		return lookup;
 	}
 

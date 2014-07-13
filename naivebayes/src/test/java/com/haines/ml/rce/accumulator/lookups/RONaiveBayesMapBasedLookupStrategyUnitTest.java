@@ -4,8 +4,10 @@ import java.util.Arrays;
 
 import org.junit.Before;
 import org.junit.Test;
+
 import com.haines.ml.rce.naivebayes.NaiveBayesGlobalIndexes;
 import com.haines.ml.rce.naivebayes.NaiveBayesIndexes;
+import com.haines.ml.rce.naivebayes.NaiveBayesIndexesProvider;
 import com.haines.ml.rce.naivebayes.NaiveBayesLocalIndexes;
 import com.haines.ml.rce.test.TestClassification;
 import com.haines.ml.rce.test.TestEvent;
@@ -28,9 +30,15 @@ public class RONaiveBayesMapBasedLookupStrategyUnitTest {
 	@Before
 	public void before(){
 		
-		NaiveBayesIndexes globalIndexes = new NaiveBayesGlobalIndexes();
+		final NaiveBayesIndexes globalIndexes = new NaiveBayesGlobalIndexes();
 		
-		NaiveBayesIndexes localIndexes = new NaiveBayesLocalIndexes(globalIndexes);
+		NaiveBayesIndexes localIndexes = new NaiveBayesLocalIndexes(new NaiveBayesIndexesProvider() {
+			
+			@Override
+			public NaiveBayesIndexes getIndexes() {
+				return globalIndexes;
+			}
+		});
 		
 		candidate = new RONaiveBayesMapBasedLookupStrategy(localIndexes);
 	}

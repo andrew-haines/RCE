@@ -70,8 +70,11 @@ public class PipelineAccumulatorController<T extends AccumulatorLookupStrategy<?
 
 		AccumulatorProvider provider = sourceConsumer.getAccumulatorProvider(); // we now control this accumulator. All operations are now atomic.
 
+		@SuppressWarnings("unchecked")
+		T lookupStrategy = (T)sourceConsumer.getLookupStrategy();
+		
 		sourceConsumer.clear();
-		nextStageConsumer.consume(new AccumulatedEvent<T>(provider, (T)sourceConsumer.getAccumulatorProvider()));
+		nextStageConsumer.consume(new AccumulatedEvent<T>(provider, lookupStrategy));
 		
 		resetNextPipeTimeStamp();
 		LOG.debug("downstream consumer push completed. Next push time at: "+nextPushToPipe);

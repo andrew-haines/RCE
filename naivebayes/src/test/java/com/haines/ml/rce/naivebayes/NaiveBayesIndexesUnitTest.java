@@ -28,7 +28,16 @@ public class NaiveBayesIndexesUnitTest {
 	
 	@Before
 	public void before(){
-		candidate = new NaiveBayesLocalIndexes(getLocalPosteriorIndexes(), getLocalPriorIndexes(), new NaiveBayesGlobalIndexes(getGlobalPosteriorIndexes(), getGlobalPriorIndexes()));
+		
+		NaiveBayesIndexesProvider indexes = new NaiveBayesIndexesProvider() {
+			
+			@Override
+			public NaiveBayesIndexes getIndexes() {
+				return new NaiveBayesGlobalIndexes(getGlobalPosteriorIndexes(), getGlobalPriorIndexes());
+			}
+		};
+		
+		candidate = new NaiveBayesLocalIndexes(getLocalPosteriorIndexes(), getLocalPriorIndexes(), indexes);
 	}
 	
 	@Test

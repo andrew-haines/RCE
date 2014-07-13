@@ -1,14 +1,16 @@
 package com.haines.ml.rce.window;
 
+import com.haines.ml.rce.naivebayes.NaiveBayesProbabilitiesProvider;
+
 public interface WindowUpdatedListener {
 
 	public static final WindowUpdatedListener NO_OP_LISTENER = new WindowUpdatedListener() {
 		
 		@Override
-		public void windowUpdated(WindowManager window) {
+		public void windowUpdated(NaiveBayesProbabilitiesProvider window) {
 			// NoOp
 		}
 	};
 
-	void windowUpdated(WindowManager window);
+	void windowUpdated(NaiveBayesProbabilitiesProvider window);
 }

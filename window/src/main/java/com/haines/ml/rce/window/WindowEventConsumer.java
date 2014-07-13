@@ -17,6 +17,7 @@ import com.haines.ml.rce.naivebayes.NaiveBayesCountsProvider;
 import com.haines.ml.rce.naivebayes.NaiveBayesGlobalIndexes;
 import com.haines.ml.rce.naivebayes.NaiveBayesIndexes;
 import com.haines.ml.rce.naivebayes.NaiveBayesProbabilities;
+import com.haines.ml.rce.naivebayes.NaiveBayesProbabilitiesProvider;
 import com.haines.ml.rce.naivebayes.NaiveBayesProbability;
 import com.haines.ml.rce.naivebayes.model.NaiveBayesProperty.NaiveBayesPosteriorProperty;
 import com.haines.ml.rce.naivebayes.model.NaiveBayesProperty.NaiveBayesPriorProperty;
@@ -44,7 +45,7 @@ public class WindowEventConsumer implements EventConsumer<AccumulatedEvent<RONai
 		aggregator.addNewProvider(countsProvider, new WindowUpdatedListener() {
 			
 			@Override
-			public void windowUpdated(WindowManager window) {
+			public void windowUpdated(NaiveBayesProbabilitiesProvider window) {
 				
 				//update the global indexes with a sorted version of the posterior and prior properties, sorted by most probable
 				

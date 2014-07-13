@@ -69,4 +69,9 @@ public class NaiveBayesLocalIndexes extends NaiveBayesIndexes{
 		
 		return globalIndex;
 	}
+
+	@Override
+	public NaiveBayesIndexesProvider getGlobalIndexes() {
+		return globalIndexes;
+	}
 }

@@ -4,9 +4,7 @@ import gnu.trove.map.hash.THashMap;
 
 import java.util.Map;
 
-import com.haines.ml.rce.accumulator.AccumulatorEventConsumer;
 import com.haines.ml.rce.model.Classification;
-import com.haines.ml.rce.model.ClassifiedEvent;
 import com.haines.ml.rce.model.Feature;
 
 /**
@@ -66,7 +64,18 @@ public class NaiveBayesGlobalIndexes extends NaiveBayesIndexes{
 	}
 
 	@Override
-	public void reset(AccumulatorEventConsumer<? extends ClassifiedEvent> consumer) {
-		// NO OP for global indexes.
+	public NaiveBayesIndexesProvider getGlobalIndexes() {
+		return new NaiveBayesIndexesProvider() {
+			
+			@Override
+			public void setIndexes(NaiveBayesIndexes indexes) {
+				throw new UnsupportedOperationException("indexes cannot be updated on the global index directly");
+			}
+			
+			@Override
+			public NaiveBayesIndexes getIndexes() {
+				return NaiveBayesGlobalIndexes.this;
+			}
+		};
 	}
 }

@@ -114,10 +114,12 @@ public abstract class NaiveBayesIndexes {
 		return Iterables.transform(priorProbabilityIndexes.keySet(), CLASSIFICATION_TO_PRIOR_PROPERTY_FUNC);
 	}
 
-	public void reset(AccumulatorEventConsumer<? extends ClassifiedEvent> consumer) {
+	public void clear() {
 		posteriorProbabilityIndexes.clear();
 		priorProbabilityIndexes.clear();
 		
 		maxIndex = 0;
 	}
+	
+	public abstract NaiveBayesIndexesProvider getGlobalIndexes();
 }

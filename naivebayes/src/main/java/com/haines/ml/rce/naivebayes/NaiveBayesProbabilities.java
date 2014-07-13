@@ -10,7 +10,7 @@ public interface NaiveBayesProbabilities {
 	public static final double NOMINAL_PROBABILITY = 0.00001;
 	
 	public static final NaiveBayesProbabilities NOMINAL_PROBABILITIES = new NaiveBayesProbabilities(){
-
+		
 		@Override
 		public double getPosteriorProbability(Feature feature, Classification classification) {
 			return NOMINAL_PROBABILITY;
@@ -25,6 +25,11 @@ public interface NaiveBayesProbabilities {
 		public Iterable<Classification> getAllClassifications() {
 			return Collections.emptyList();
 		}
+
+		@Override
+		public Iterable<NaiveBayesProbability> getOrderedProbabilities() {
+			return Collections.emptyList();
+		}
 		
 	};
 
@@ -33,4 +38,6 @@ public interface NaiveBayesProbabilities {
 	double getPriorProbability(Classification classification);
 	
 	Iterable<Classification> getAllClassifications();
+	
+	Iterable<NaiveBayesProbability> getOrderedProbabilities();
 }

@@ -7,4 +7,6 @@ public interface AccumulatorLookupStrategy<T extends Event> {
 	int[] getSlots(T event);
 	
 	int getMaxIndex();
+	
+	void clear();
 }

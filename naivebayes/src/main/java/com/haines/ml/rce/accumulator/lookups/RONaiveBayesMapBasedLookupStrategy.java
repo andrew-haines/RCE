@@ -70,4 +70,10 @@ public class RONaiveBayesMapBasedLookupStrategy implements AccumulatorLookupStra
 	public int getMaxIndex() {
 		return indexes.getMaxIndex();
 	}
+
+	@Override
+	public void clear() {
+		indexes.clear();
+	}
+
 }

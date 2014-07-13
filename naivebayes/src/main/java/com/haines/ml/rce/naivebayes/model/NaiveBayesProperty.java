@@ -24,6 +24,11 @@ public interface NaiveBayesProperty {
 			return (NaiveBayesCounts<T>) counts;
 		}
 		
+		@Override
+		public String toString(){
+			return "typeClass: "+clazz;
+		}
+		
 		public static final PropertyType<NaiveBayesPosteriorProperty> POSTERIOR_TYPE = new PropertyType<NaiveBayesPosteriorProperty>(NaiveBayesPosteriorProperty.class){};
 		
 		public static final PropertyType<NaiveBayesPriorProperty> PRIOR_TYPE = new PropertyType<NaiveBayesPriorProperty>(NaiveBayesPriorProperty.class){};

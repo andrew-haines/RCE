@@ -19,6 +19,7 @@ import com.haines.ml.rce.model.EventConsumerFactory;
 import com.haines.ml.rce.model.PipelinedEventConsumer;
 import com.haines.ml.rce.naivebayes.NaiveBayesGlobalIndexes;
 import com.haines.ml.rce.naivebayes.NaiveBayesIndexes;
+import com.haines.ml.rce.naivebayes.NaiveBayesIndexesProvider;
 import com.haines.ml.rce.naivebayes.NaiveBayesLocalIndexes;
 
 public class PipelineRCEConfigConfiguredInitiationModule<E extends Event> extends RCEConfigConfiguredInitiationModule<E>{
@@ -41,7 +42,7 @@ public class PipelineRCEConfigConfiguredInitiationModule<E extends Event> extend
 
 	protected void bindIndexes(LinkedBindingBuilder<NaiveBayesIndexes> builder) {
 		builder.to(NaiveBayesLocalIndexes.class).in(Scopes.NO_SCOPE); // new instance for each cpu
-		bind(NaiveBayesIndexes.class).annotatedWith(Names.named(NaiveBayesLocalIndexes.INJECT_BINDING_GLOBAL_INDEXES_KEY)).to(NaiveBayesGlobalIndexes.class).in(Scopes.SINGLETON); // single shared index set for all accumulators
+		bind(NaiveBayesIndexesProvider.class).annotatedWith(Names.named(NaiveBayesLocalIndexes.INJECT_BINDING_GLOBAL_INDEXES_KEY)).to(NaiveBayesGlobalIndexes.class).in(Scopes.SINGLETON); // single shared index set for all accumulators
 	}
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })

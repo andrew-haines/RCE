@@ -192,5 +192,10 @@ public class AccumulatorEventConsumerUnitTest {
 		public int getMaxIndex() {
 			return 16777218;
 		}
+
+		@Override
+		public void clear() {
+			// NoOp
+		}
 	}
 }

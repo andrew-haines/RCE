@@ -38,6 +38,11 @@ public class RONaiveBayesMapBasedLookupStrategyUnitTest {
 			public NaiveBayesIndexes getIndexes() {
 				return globalIndexes;
 			}
+
+			@Override
+			public void setIndexes(NaiveBayesIndexes indexes) {
+				// NOOP
+			}
 		});
 		
 		candidate = new RONaiveBayesMapBasedLookupStrategy(localIndexes);

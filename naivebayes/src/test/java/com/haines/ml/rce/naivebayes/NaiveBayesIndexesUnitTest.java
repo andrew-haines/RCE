@@ -35,6 +35,11 @@ public class NaiveBayesIndexesUnitTest {
 			public NaiveBayesIndexes getIndexes() {
 				return new NaiveBayesGlobalIndexes(getGlobalPosteriorIndexes(), getGlobalPriorIndexes());
 			}
+
+			@Override
+			public void setIndexes(NaiveBayesIndexes indexes) {
+				// NoOp
+			}
 		};
 		
 		candidate = new NaiveBayesLocalIndexes(getLocalPosteriorIndexes(), getLocalPriorIndexes(), indexes);

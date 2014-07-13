@@ -129,7 +129,7 @@ public class WindowManagerUnitTest {
 	
 	@Test
 	public void givenCandidate_whenAddingSingleEventSet_thenEventsAddedToWindow(){
-		candidate.addNewProvider(getTestEvents(TEST_POSTERIOR_EVENTS_1, TEST_PRIOR_EVENTS_1));
+		candidate.addNewProvider(getTestEvents(TEST_POSTERIOR_EVENTS_1, TEST_PRIOR_EVENTS_1), WindowUpdatedListener.NO_OP_LISTENER); // TODO update listener to be a mocked that captures invocation and verifies it got called
 		
 		assertThat(candidate.getProbabilities().getPosteriorProbability(new TestFeature("feature1"), new TestClassification("class1")), is(equalTo(0.25)));
 		assertThat(candidate.getProbabilities().getPosteriorProbability(new TestFeature("feature2"), new TestClassification("class1")), is(equalTo(0.75)));
@@ -153,11 +153,11 @@ public class WindowManagerUnitTest {
 	
 	@Test
 	public void givenCandidate_whenAddingTwoEventSets_thenCorrectProbabilitiesCalculated(){
-		candidate.addNewProvider(getTestEvents(TEST_POSTERIOR_EVENTS_1, TEST_PRIOR_EVENTS_1));
+		candidate.addNewProvider(getTestEvents(TEST_POSTERIOR_EVENTS_1, TEST_PRIOR_EVENTS_1), WindowUpdatedListener.NO_OP_LISTENER);
 		
 		testClock.setCurrentTime(TEST_START_TIME + 1000);
 		
-		candidate.addNewProvider(getTestEvents(TEST_POSTERIOR_EVENTS_2, TEST_PRIOR_EVENTS_2));
+		candidate.addNewProvider(getTestEvents(TEST_POSTERIOR_EVENTS_2, TEST_PRIOR_EVENTS_2), WindowUpdatedListener.NO_OP_LISTENER);
 		
 		assertThat(candidate.getProbabilities().getPosteriorProbability(new TestFeature("feature1"), new TestClassification("class1")), is(equalTo(0.2)));
 		assertThat(candidate.getProbabilities().getPosteriorProbability(new TestFeature("feature2"), new TestClassification("class1")), is(equalTo(0.60)));
@@ -180,15 +180,15 @@ public class WindowManagerUnitTest {
 	
 	@Test
 	public void givenCandidate_whenAddingThreeEventSets_thenCorrectProbabilitiesCalculated(){
-		candidate.addNewProvider(getTestEvents(TEST_POSTERIOR_EVENTS_1, TEST_PRIOR_EVENTS_1));
+		candidate.addNewProvider(getTestEvents(TEST_POSTERIOR_EVENTS_1, TEST_PRIOR_EVENTS_1), WindowUpdatedListener.NO_OP_LISTENER);
 		
 		testClock.setCurrentTime(TEST_START_TIME + 1000);
 		
-		candidate.addNewProvider(getTestEvents(TEST_POSTERIOR_EVENTS_2, TEST_PRIOR_EVENTS_2));
+		candidate.addNewProvider(getTestEvents(TEST_POSTERIOR_EVENTS_2, TEST_PRIOR_EVENTS_2), WindowUpdatedListener.NO_OP_LISTENER);
 		
 		testClock.setCurrentTime(TEST_START_TIME + 2000);
 		
-		candidate.addNewProvider(getTestEvents(TEST_POSTERIOR_EVENTS_3, TEST_PRIOR_EVENTS_3));
+		candidate.addNewProvider(getTestEvents(TEST_POSTERIOR_EVENTS_3, TEST_PRIOR_EVENTS_3), WindowUpdatedListener.NO_OP_LISTENER);
 		
 		assertThat(candidate.getProbabilities().getPosteriorProbability(new TestFeature("feature1"), new TestClassification("class1")), is(equalTo(0.10714285714285714)));
 		assertThat(candidate.getProbabilities().getPosteriorProbability(new TestFeature("feature2"), new TestClassification("class1")), is(equalTo(0.8333333333333334)));
@@ -211,27 +211,27 @@ public class WindowManagerUnitTest {
 	
 	@Test
 	public void givenCandidate_whenAddingMultipleEventsInSameWindowPeriod_thenEventsAddedToSameWindow(){
-		candidate.addNewProvider(getTestEvents(TEST_POSTERIOR_EVENTS_1, TEST_PRIOR_EVENTS_1));
+		candidate.addNewProvider(getTestEvents(TEST_POSTERIOR_EVENTS_1, TEST_PRIOR_EVENTS_1), WindowUpdatedListener.NO_OP_LISTENER);
 		
 		testClock.setCurrentTime(TEST_START_TIME + 1000);
 		
-		candidate.addNewProvider(getTestEvents(TEST_POSTERIOR_EVENTS_2, TEST_PRIOR_EVENTS_2));
+		candidate.addNewProvider(getTestEvents(TEST_POSTERIOR_EVENTS_2, TEST_PRIOR_EVENTS_2), WindowUpdatedListener.NO_OP_LISTENER);
 		
 		testClock.setCurrentTime(TEST_START_TIME + 2000);
 		
-		candidate.addNewProvider(getTestEvents(TEST_POSTERIOR_EVENTS_3, TEST_PRIOR_EVENTS_3));
+		candidate.addNewProvider(getTestEvents(TEST_POSTERIOR_EVENTS_3, TEST_PRIOR_EVENTS_3), WindowUpdatedListener.NO_OP_LISTENER);
 		
 		testClock.setCurrentTime(TEST_START_TIME + 3000);
 		
-		candidate.addNewProvider(getTestEvents(TEST_POSTERIOR_EVENTS_4, TEST_PRIOR_EVENTS_4));
+		candidate.addNewProvider(getTestEvents(TEST_POSTERIOR_EVENTS_4, TEST_PRIOR_EVENTS_4), WindowUpdatedListener.NO_OP_LISTENER);
 		
 		testClock.setCurrentTime(TEST_START_TIME + 4000);
 		
-		candidate.addNewProvider(getTestEvents(TEST_POSTERIOR_EVENTS_5, TEST_PRIOR_EVENTS_5));
+		candidate.addNewProvider(getTestEvents(TEST_POSTERIOR_EVENTS_5, TEST_PRIOR_EVENTS_5), WindowUpdatedListener.NO_OP_LISTENER);
 		
 		testClock.setCurrentTime(TEST_START_TIME + 5000);
 		
-		candidate.addNewProvider(getTestEvents(TEST_POSTERIOR_EVENTS_6, TEST_PRIOR_EVENTS_6)); // should not pop events1 off the buffer
+		candidate.addNewProvider(getTestEvents(TEST_POSTERIOR_EVENTS_6, TEST_PRIOR_EVENTS_6), WindowUpdatedListener.NO_OP_LISTENER); // should not pop events1 off the buffer
 		
 		assertThat(candidate.getProbabilities().getPosteriorProbability(new TestFeature("feature1"), new TestClassification("class1")), is(equalTo(0.06040268456375839)));
 		assertThat(candidate.getProbabilities().getPosteriorProbability(new TestFeature("feature2"), new TestClassification("class1")), is(equalTo(0.4697986577181208)));
@@ -256,27 +256,27 @@ public class WindowManagerUnitTest {
 	
 	@Test
 	public void givenCandidate_whenAddingMultipleEventsInDifferntWindowPeriodsWithinBuffer_thenEventsNotTruncated(){
-		candidate.addNewProvider(getTestEvents(TEST_POSTERIOR_EVENTS_1, TEST_PRIOR_EVENTS_1));
+		candidate.addNewProvider(getTestEvents(TEST_POSTERIOR_EVENTS_1, TEST_PRIOR_EVENTS_1), WindowUpdatedListener.NO_OP_LISTENER);
 		
 		testClock.setCurrentTime(TEST_START_TIME + 1000);
 		
-		candidate.addNewProvider(getTestEvents(TEST_POSTERIOR_EVENTS_2, TEST_PRIOR_EVENTS_2));
+		candidate.addNewProvider(getTestEvents(TEST_POSTERIOR_EVENTS_2, TEST_PRIOR_EVENTS_2), WindowUpdatedListener.NO_OP_LISTENER);
 		
 		testClock.setCurrentTime(TEST_START_TIME + TEST_WINDOW_PERIOD);
 		
-		candidate.addNewProvider(getTestEvents(TEST_POSTERIOR_EVENTS_3, TEST_PRIOR_EVENTS_3));
+		candidate.addNewProvider(getTestEvents(TEST_POSTERIOR_EVENTS_3, TEST_PRIOR_EVENTS_3), WindowUpdatedListener.NO_OP_LISTENER);
 		
 		testClock.setCurrentTime(TEST_START_TIME + 2 * TEST_WINDOW_PERIOD);
 		
-		candidate.addNewProvider(getTestEvents(TEST_POSTERIOR_EVENTS_4, TEST_PRIOR_EVENTS_4));
+		candidate.addNewProvider(getTestEvents(TEST_POSTERIOR_EVENTS_4, TEST_PRIOR_EVENTS_4), WindowUpdatedListener.NO_OP_LISTENER);
 		
 		testClock.setCurrentTime(TEST_START_TIME + 3 * TEST_WINDOW_PERIOD);
 		
-		candidate.addNewProvider(getTestEvents(TEST_POSTERIOR_EVENTS_5, TEST_PRIOR_EVENTS_5));
+		candidate.addNewProvider(getTestEvents(TEST_POSTERIOR_EVENTS_5, TEST_PRIOR_EVENTS_5), WindowUpdatedListener.NO_OP_LISTENER);
 		
 		testClock.setCurrentTime(TEST_START_TIME + 4 * TEST_WINDOW_PERIOD);
 		
-		candidate.addNewProvider(getTestEvents(TEST_POSTERIOR_EVENTS_6, TEST_PRIOR_EVENTS_6)); // should not pop events1 off the buffer
+		candidate.addNewProvider(getTestEvents(TEST_POSTERIOR_EVENTS_6, TEST_PRIOR_EVENTS_6), WindowUpdatedListener.NO_OP_LISTENER); // should not pop events1 off the buffer
 		
 		assertThat(candidate.getProbabilities().getPosteriorProbability(new TestFeature("feature1"), new TestClassification("class1")), is(equalTo(0.06040268456375839)));
 		assertThat(candidate.getProbabilities().getPosteriorProbability(new TestFeature("feature2"), new TestClassification("class1")), is(equalTo(0.4697986577181208)));
@@ -301,27 +301,27 @@ public class WindowManagerUnitTest {
 	
 	@Test
 	public void givenCandidate_whenAddingMultipleEventsInDifferntWindowPeriodsOutsideOfBuffer_thenEventsTruncated(){
-		candidate.addNewProvider(getTestEvents(TEST_POSTERIOR_EVENTS_1, TEST_PRIOR_EVENTS_1));
+		candidate.addNewProvider(getTestEvents(TEST_POSTERIOR_EVENTS_1, TEST_PRIOR_EVENTS_1), WindowUpdatedListener.NO_OP_LISTENER);
 		
 		testClock.setCurrentTime(TEST_START_TIME + (TEST_WINDOW_PERIOD)+1);
 		
-		candidate.addNewProvider(getTestEvents(TEST_POSTERIOR_EVENTS_2, TEST_PRIOR_EVENTS_2));
+		candidate.addNewProvider(getTestEvents(TEST_POSTERIOR_EVENTS_2, TEST_PRIOR_EVENTS_2), WindowUpdatedListener.NO_OP_LISTENER);
 		
 		testClock.setCurrentTime(TEST_START_TIME + (2 *TEST_WINDOW_PERIOD)+1);
 		
-		candidate.addNewProvider(getTestEvents(TEST_POSTERIOR_EVENTS_3, TEST_PRIOR_EVENTS_3));
+		candidate.addNewProvider(getTestEvents(TEST_POSTERIOR_EVENTS_3, TEST_PRIOR_EVENTS_3), WindowUpdatedListener.NO_OP_LISTENER);
 		
 		testClock.setCurrentTime(TEST_START_TIME + (3 * TEST_WINDOW_PERIOD)+1);
 		
-		candidate.addNewProvider(getTestEvents(TEST_POSTERIOR_EVENTS_4, TEST_PRIOR_EVENTS_4));
+		candidate.addNewProvider(getTestEvents(TEST_POSTERIOR_EVENTS_4, TEST_PRIOR_EVENTS_4), WindowUpdatedListener.NO_OP_LISTENER);
 		
 		testClock.setCurrentTime(TEST_START_TIME + (4 * TEST_WINDOW_PERIOD)+1);
 		
-		candidate.addNewProvider(getTestEvents(TEST_POSTERIOR_EVENTS_5, TEST_PRIOR_EVENTS_5));
+		candidate.addNewProvider(getTestEvents(TEST_POSTERIOR_EVENTS_5, TEST_PRIOR_EVENTS_5), WindowUpdatedListener.NO_OP_LISTENER);
 		
 		testClock.setCurrentTime(TEST_START_TIME + (5 * TEST_WINDOW_PERIOD)+1);
 		
-		candidate.addNewProvider(getTestEvents(TEST_POSTERIOR_EVENTS_6, TEST_PRIOR_EVENTS_6)); // should not pop events1 off the buffer
+		candidate.addNewProvider(getTestEvents(TEST_POSTERIOR_EVENTS_6, TEST_PRIOR_EVENTS_6), WindowUpdatedListener.NO_OP_LISTENER); // should not pop events1 off the buffer
 		
 		assertThat(candidate.getProbabilities().getPosteriorProbability(new TestFeature("feature1"), new TestClassification("class1")), is(equalTo(0.031007751937984496)));
 		assertThat(candidate.getProbabilities().getPosteriorProbability(new TestFeature("feature2"), new TestClassification("class1")), is(equalTo(0.4263565891472868)));
@@ -350,7 +350,7 @@ public class WindowManagerUnitTest {
 		long time = TEST_START_TIME+1;
 		
 		for (int i = 0; i < 12; i++){
-			candidate.addNewProvider(getTestEvents(ALL_POSTERIOR_EVENTS[i%ALL_POSTERIOR_EVENTS.length], ALL_PRIOR_EVENTS[i%ALL_PRIOR_EVENTS.length]));
+			candidate.addNewProvider(getTestEvents(ALL_POSTERIOR_EVENTS[i%ALL_POSTERIOR_EVENTS.length], ALL_PRIOR_EVENTS[i%ALL_PRIOR_EVENTS.length]), WindowUpdatedListener.NO_OP_LISTENER);
 			
 			System.out.println("current time: "+time);
 			System.out.println(candidate);
@@ -387,7 +387,7 @@ public class WindowManagerUnitTest {
 		
 		// fill buffer
 		for (int i = 0; i < 12; i++){
-			candidate.addNewProvider(getTestEvents(ALL_POSTERIOR_EVENTS[i%ALL_POSTERIOR_EVENTS.length], ALL_PRIOR_EVENTS[i%ALL_PRIOR_EVENTS.length]));
+			candidate.addNewProvider(getTestEvents(ALL_POSTERIOR_EVENTS[i%ALL_POSTERIOR_EVENTS.length], ALL_PRIOR_EVENTS[i%ALL_PRIOR_EVENTS.length]), WindowUpdatedListener.NO_OP_LISTENER);
 			
 			time += (TEST_WINDOW_PERIOD);
 			
@@ -398,7 +398,7 @@ public class WindowManagerUnitTest {
 		
 		testClock.setCurrentTime(time + (5 * TEST_WINDOW_PERIOD));
 		
-		candidate.addNewProvider(getTestEvents(TEST_POSTERIOR_EVENTS_2, TEST_PRIOR_EVENTS_2));
+		candidate.addNewProvider(getTestEvents(TEST_POSTERIOR_EVENTS_2, TEST_PRIOR_EVENTS_2), WindowUpdatedListener.NO_OP_LISTENER);
 		
 	}
 

@@ -65,6 +65,8 @@ public class Aggregator implements NaiveBayesCountsProvider{
 				NaiveBayesPriorProperty prior = PropertyType.PRIOR_TYPE.cast(count.getProperty());
 				
 				updatePrior(prior, PropertyType.PRIOR_TYPE.cast(count), subtract);
+			} else{
+				throw new IllegalStateException("unknown naive bayes property type: "+count.getProperty().getType());
 			}
 		}
 	}

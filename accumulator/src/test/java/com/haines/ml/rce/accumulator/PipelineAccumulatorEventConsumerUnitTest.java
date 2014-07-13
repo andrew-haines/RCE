@@ -43,5 +43,10 @@ public class PipelineAccumulatorEventConsumerUnitTest {
 		public int getMaxIndex() {
 			return 64 * 64 * 4096;
 		}
+
+		@Override
+		public void clear() {
+			// NoOp
+		}
 	}
 }

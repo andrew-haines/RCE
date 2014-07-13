@@ -49,7 +49,7 @@ public class WindowManager implements NaiveBayesProbabilitiesProvider{
 	 * is only thread safe if the single writer paradigm is used
 	 * @param provider
 	 */
-	public void addNewProvider(NaiveBayesCountsProvider provider){
+	public void addNewProvider(NaiveBayesCountsProvider provider, WindowUpdatedListener listener){
 		long currentTime = clock.getCurrentTime();
 		
 		int currentMaxIdx = this.currentMaxIdx; // cache friendly version. NOTE that this is not needed anymore as these variables are no longer volatile
@@ -82,6 +82,10 @@ public class WindowManager implements NaiveBayesProbabilitiesProvider{
 			cyclicWindowBuffer[currentMaxIdx] = newWindow;
 			
 			windowProbabilities.processWindows(newWindow.getProvider(), (oldWindow != null)? oldWindow.getProvider(): null);
+			
+			// update the listener only when there is a new window
+			
+			listener.windowUpdated(this);
 			
 		} else { // add to existing window
 			Window currentWindow = cyclicWindowBuffer[currentMaxIdx];

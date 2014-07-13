@@ -1,7 +1,13 @@
 package com.haines.ml.rce.naivebayes;
 
+import gnu.trove.map.hash.THashMap;
+
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
 import com.haines.ml.rce.model.Classification;
 import com.haines.ml.rce.model.Feature;
@@ -14,6 +20,7 @@ public class CountsProviderNaiveBayesProbabilities implements NaiveBayesProbabil
 	
 	private final Map<Classification, Map<Feature, Probability>> posteriorProbabilities;
 	private final Map<Classification, Probability> priorProbabilities;
+	private final Iterable<NaiveBayesProbability> orderedProbabilities;
 	
 	public CountsProviderNaiveBayesProbabilities(NaiveBayesCountsProvider provider){
 		
@@ -21,14 +28,14 @@ public class CountsProviderNaiveBayesProbabilities implements NaiveBayesProbabil
 		
 		int priorTotal = getPriorTotal(provider); // TODO check that classification priors are calculated by instance seen and not feature seen
 		
-		posteriorProbabilities = new HashMap<Classification, Map<Feature, Probability>>();
-		priorProbabilities = new HashMap<Classification, Probability>();
+		posteriorProbabilities = new THashMap<Classification, Map<Feature, Probability>>();
+		priorProbabilities = new THashMap<Classification, Probability>();
 		
 		for (NaiveBayesCounts<NaiveBayesPosteriorProperty> posteriors: provider.getPosteriorCounts()){
 			Map<Feature, Probability> features = posteriorProbabilities.get(posteriors.getProperty().getClassification());
 			
 			if (features == null){
-				features = new HashMap<Feature, Probability>();
+				features = new THashMap<Feature, Probability>();
 				posteriorProbabilities.put(posteriors.getProperty().getClassification(), features);
 			}
 			
@@ -42,6 +49,35 @@ public class CountsProviderNaiveBayesProbabilities implements NaiveBayesProbabil
 		for (NaiveBayesCounts<NaiveBayesPriorProperty> prior: provider.getPriorCounts()){
 			priorProbabilities.put(prior.getProperty().getClassification(), new Probability(prior.getCounts(), priorTotal));
 		}
+		
+		orderedProbabilities = new Iterable<NaiveBayesProbability>(){ // lazy loaded iterable
+
+			private SortedSet<NaiveBayesProbability> sortedProperties = null;
+			
+			@Override
+			public Iterator<NaiveBayesProbability> iterator() {
+				if (sortedProperties == null){
+					sortedProperties = new TreeSet<NaiveBayesProbability>();
+					
+					// add posteriors
+					
+					for (Entry<Classification, Map<Feature,Probability>> classification: posteriorProbabilities.entrySet()){
+						for (Entry<Feature, Probability> feature: classification.getValue().entrySet()){
+							sortedProperties.add(new NaiveBayesProbability(new NaiveBayesPosteriorProperty(feature.getKey(), classification.getKey()), feature.getValue()));
+						}
+					}
+					
+					// add priors
+					
+					for (Entry<Classification, Probability> classification: priorProbabilities.entrySet()){
+						sortedProperties.add(new NaiveBayesProbability(new NaiveBayesPriorProperty(classification.getKey()), classification.getValue()));
+					}
+				}
+				
+				return sortedProperties.iterator();
+			}
+			
+		};
 	}
 	
 	private int getPriorTotal(NaiveBayesCountsProvider provider) {
@@ -107,5 +143,10 @@ public class CountsProviderNaiveBayesProbabilities implements NaiveBayesProbabil
 	@Override
 	public Iterable<Classification> getAllClassifications() {
 		return priorProbabilities.keySet();
+	}
+
+	@Override
+	public Iterable<NaiveBayesProbability> getOrderedProbabilities() {
+		return orderedProbabilities;
 	}
 }

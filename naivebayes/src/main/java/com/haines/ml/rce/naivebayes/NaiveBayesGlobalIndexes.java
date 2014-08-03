@@ -4,6 +4,8 @@ import gnu.trove.map.hash.THashMap;
 
 import java.util.Map;
 
+import javax.inject.Inject;
+
 import com.haines.ml.rce.model.Classification;
 import com.haines.ml.rce.model.Feature;
 
@@ -54,6 +56,7 @@ public class NaiveBayesGlobalIndexes extends NaiveBayesIndexes{
 		return currentMax;
 	}
 
+	@Inject
 	public NaiveBayesGlobalIndexes(){
 		this(new THashMap<Classification, Map<Feature, Integer>>(), new THashMap<Classification, Integer>());
 	}
@@ -77,5 +80,25 @@ public class NaiveBayesGlobalIndexes extends NaiveBayesIndexes{
 				return NaiveBayesGlobalIndexes.this;
 			}
 		};
+	}
+	
+	public static class VolatileNaiveBayesGlobalIndexesProvider implements NaiveBayesIndexesProvider{
+
+		private volatile NaiveBayesGlobalIndexes indexes;
+		
+		@Inject
+		public VolatileNaiveBayesGlobalIndexesProvider(NaiveBayesGlobalIndexes indexes){
+			this.indexes = indexes;
+		}
+		
+		@Override
+		public NaiveBayesGlobalIndexes getIndexes() {
+			return indexes;
+		}
+
+		@Override
+		public void setIndexes(NaiveBayesIndexes indexes) {
+			this.indexes = (NaiveBayesGlobalIndexes)indexes;
+		}	
 	}
 }

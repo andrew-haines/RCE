@@ -4,5 +4,5 @@ import com.haines.ml.rce.main.RCEApplication;
 
 public interface RCEApplicationFactory {
 
-	RCEApplication createApplication();
+	RCEApplication createApplication(String configOverrideLocation);
 }

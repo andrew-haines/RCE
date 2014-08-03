@@ -3,6 +3,9 @@ package com.haines.ml.rce.accumulator;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
+import javax.inject.Inject;
+import javax.inject.Named;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -15,13 +18,15 @@ import com.haines.ml.rce.model.system.SystemStartedListener;
 
 public class AsyncPipelineAccumulatorController<E extends Event, T extends AccumulatorLookupStrategy<E>> extends PipelineAccumulatorController<T> implements Runnable, SystemStartedListener{
 
+	public static final String SCHEDULE_EXECUTOR_BINDING_KEY = "AsyncPipelineAccumulatorController.asyncExecutor";
 	private final Logger LOG = LoggerFactory.getLogger(AsyncPipelineAccumulatorController.class);
 	private final Iterable<PipelinedEventConsumer<E, AccumulatorEventConsumer<E>>> consumers;
 	private final EventConsumer<AccumulatedEvent<T>> accumulatorConsumer;
 	private final ScheduledExecutorService executorService;
 	private volatile boolean isRunning;
 	
-	public AsyncPipelineAccumulatorController(Clock systemClock, PipelineAccumulatorConfig config, Iterable<PipelinedEventConsumer<E, AccumulatorEventConsumer<E>>> consumers, EventConsumer<AccumulatedEvent<T>> accumulatorConsumer, ScheduledExecutorService executorService) {
+	@Inject
+	public AsyncPipelineAccumulatorController(Clock systemClock, PipelineAccumulatorConfig config, Iterable<PipelinedEventConsumer<E, AccumulatorEventConsumer<E>>> consumers, EventConsumer<AccumulatedEvent<T>> accumulatorConsumer, @Named(SCHEDULE_EXECUTOR_BINDING_KEY) ScheduledExecutorService executorService) {
 		super(systemClock, config);
 		
 		this.consumers = consumers;

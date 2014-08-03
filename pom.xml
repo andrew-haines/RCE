@@ -9,6 +9,7 @@
 	<modules>
 		<module>parent</module>
 		<module>model</module>
+		<module>io-protostuff</module>
 		<module>accumulator</module>
 		<module>naivebayes</module>
 		<module>aggregator</module>

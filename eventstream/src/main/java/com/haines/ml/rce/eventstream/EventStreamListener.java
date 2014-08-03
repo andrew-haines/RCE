@@ -31,7 +31,7 @@ public interface EventStreamListener {
 		}
 	}
 	
-	static class NoOpEventStreamListener implements EventStreamListener{
+	public static class NoOpEventStreamListener implements EventStreamListener{
 
 		private NoOpEventStreamListener(){}
 		

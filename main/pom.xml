@@ -10,6 +10,64 @@
     <artifactId>rce-main</artifactId>
     <packaging>jar</packaging>
     <name>Realtime Classification Engine - Application</name>
+    <properties>
+    	<protostuff-output-directory>target/generated-sources</protostuff-output-directory>
+    </properties>
+    <build>
+    	<plugins>
+    		<plugin>
+		        <groupId>com.dyuproject.protostuff</groupId>
+		        <artifactId>protostuff-maven-plugin</artifactId>
+		        <version>1.0.8</version>
+		        <configuration>
+		          <protoModules>
+		            <protoModule>
+		              <source>src/test/resources/protobuf/testevent.proto</source>
+		              <outputDir>${protostuff-output-directory}</outputDir>
+		              <output>java_bean</output>
+		              <encoding>UTF-8</encoding>
+		              <options>
+		                <property>
+		                  <name>separate_schema</name>
+		                </property>
+		                <property>
+		                  <name>generate_field_map</name>
+		                </property>
+		              </options>
+		            </protoModule>
+		          </protoModules>
+		        </configuration>
+		        <executions>
+		          <execution>
+		            <id>generate-sources</id>
+		            <phase>generate-test-sources</phase>
+		            <goals>
+		              <goal>compile</goal>
+		            </goals>
+		          </execution>
+		        </executions>
+		      </plugin>
+		      <plugin>
+		        <groupId>org.codehaus.mojo</groupId>
+		        <artifactId>build-helper-maven-plugin</artifactId>
+		        <version>1.5</version>
+		        <executions>
+		          <execution>
+		            <id>add-test-source</id>
+		            <phase>generate-test-sources</phase>
+		            <goals>
+		              <goal>add-test-source</goal>
+		            </goals>
+		            <configuration>
+		              <sources>
+		                <source>${protostuff-output-directory}</source>
+		              </sources>
+		            </configuration>
+		          </execution>
+		        </executions>
+		      </plugin>
+    	</plugins>
+    </build>
     <dependencies>
     	<dependency>
 			<groupId>ch.qos.logback</groupId>
@@ -20,6 +78,18 @@
 			<groupId>${project.groupId}</groupId>
 			<artifactId>rce-model</artifactId>
 			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+		    <groupId>com.dyuproject.protostuff</groupId>
+		    <artifactId>protostuff-api</artifactId>
+		    <version>1.0.8</version>
+		    <scope>test</scope>
+		</dependency>
+		<dependency>
+		    <groupId>com.dyuproject.protostuff</groupId>
+		    <artifactId>protostuff-core</artifactId>
+		    <version>1.0.8</version>
+		    <scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.hamcrest</groupId>
@@ -52,6 +122,11 @@
 		    <groupId>javax.xml.bind</groupId>
 		    <artifactId>jaxb-api</artifactId>
 		    <version>${jaxb.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.google.guava</groupId>
+			<artifactId>guava-io</artifactId>
+			<version>r03</version>
 		</dependency>
 		<dependency>
 		    <groupId>com.google.inject</groupId>

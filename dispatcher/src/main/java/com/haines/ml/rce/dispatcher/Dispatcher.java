@@ -2,6 +2,8 @@ package com.haines.ml.rce.dispatcher;
 
 import java.util.Random;
 
+import javax.inject.Inject;
+
 import com.google.common.collect.Iterables;
 import com.haines.ml.rce.model.Event;
 
@@ -11,6 +13,7 @@ public class Dispatcher<E extends Event> {
 	private final Random randomGenerator;
 	
 	@SuppressWarnings("unchecked")
+	@Inject
 	public Dispatcher(Iterable<DispatcherConsumer<E>> consumers){
 		
 		this.consumers = Iterables.toArray(consumers, DispatcherConsumer.class);

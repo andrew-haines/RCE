@@ -12,10 +12,14 @@ public class GuiceRCEApplicationFactory implements RCEApplicationFactory{
 	public GuiceRCEApplicationFactory(Module initiationModule){
 		this.initiationModule = initiationModule;
 	}
+	
+	protected Module getInitialisationModule(String configOverrideLocation){
+		return initiationModule;
+	}
 
 	@Override
-	public RCEApplication createApplication() {
-		Injector injector = Guice.createInjector(initiationModule);
+	public RCEApplication createApplication(String configOverrideLocation) {
+		Injector injector = Guice.createInjector(getInitialisationModule(configOverrideLocation));
 		
 		return injector.getInstance(RCEApplication.class);
 	}

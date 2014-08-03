@@ -1,21 +1,43 @@
 package com.haines.ml.rce.main.config;
 
+import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.nio.ByteOrder;
 
 import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlRootElement;
 
 import com.haines.ml.rce.eventstream.SelectorEventStreamConfig.BufferType;
 
+@XmlRootElement(name="config")
 public class RCEConfigJAXB implements RCEConfig{
 
-	@XmlElement
+	private static final String BIG_BYTE_ORDER = "big";
+
+	private static final String LITTLE_BYTE_ORDER = "little";
+
 	private int numberOfEventWorkers;
 	
-	@XmlElement
 	private StreamType eventTransportProtocol;
+	
+	private Integer eventBufferCapacity;
+	
+	private BufferType eventBufferType;
+	
+	private String eventByteOrder;
+
+	private int eventStreamPort;
+
+	private String eventStreamHost;
+
+	private Integer accumulatorFirstLineBitDepth;
+
+	private Integer accumulatorSecondLineBitDepth;
+
+	private Integer accumulatorFinalLineBitDepth;
 
 	@Override
+	@XmlElement
 	public Integer getNumberOfEventWorkers() {
 		return numberOfEventWorkers;
 	}
@@ -25,6 +47,7 @@ public class RCEConfigJAXB implements RCEConfig{
 	}
 
 	@Override
+	@XmlElement
 	public StreamType getEventTransportProtocal() {
 		return eventTransportProtocol;
 	}
@@ -34,44 +57,110 @@ public class RCEConfigJAXB implements RCEConfig{
 	}
 
 	@Override
+	@XmlElement
 	public Integer getEventBufferCapacity() {
-		// TODO Auto-generated method stub
-		return null;
+		return eventBufferCapacity;
 	}
 
 	@Override
+	@XmlElement
 	public BufferType getEventBufferType() {
-		// TODO Auto-generated method stub
-		return null;
+		return eventBufferType;
 	}
 
 	@Override
 	public ByteOrder getByteOrder() {
-		// TODO Auto-generated method stub
-		return null;
+		if (getEventByteOrder().equalsIgnoreCase(BIG_BYTE_ORDER)){
+			return ByteOrder.BIG_ENDIAN;
+		} else if (getEventByteOrder().equalsIgnoreCase(LITTLE_BYTE_ORDER)){
+			return ByteOrder.LITTLE_ENDIAN;
+		} else{
+			throw new RuntimeException("Unknown byte order type: "+getEventByteOrder());
+		}
 	}
 
 	@Override
 	public SocketAddress getEventStreamSocketAddress() {
-		// TODO Auto-generated method stub
-		return null;
+		return InetSocketAddress.createUnresolved(getEventStreamHost(), getEventStreamPort());
 	}
 
 	@Override
 	public Integer getFirstAccumulatorLineBitDepth() {
-		// TODO Auto-generated method stub
-		return null;
+		return getAccumulatorFirstLineBitDepth();
 	}
 
 	@Override
 	public Integer getSecondAccumulatorLineBitDepth() {
-		// TODO Auto-generated method stub
-		return null;
+		return getAccumulatorSecondLineBitDepth();
 	}
 
 	@Override
 	public Integer getFinalAccumulatorLineBitDepth() {
-		// TODO Auto-generated method stub
-		return null;
+		return getAccumulatorFinalLineBitDepth();
+	}
+
+	public void setEventBufferCapacity(Integer eventBufferCapacity) {
+		this.eventBufferCapacity = eventBufferCapacity;
+	}
+
+	public void setEventBufferType(BufferType eventBufferType) {
+		this.eventBufferType = eventBufferType;
+	}
+
+	@XmlElement
+	public String getEventByteOrder() {
+		return eventByteOrder;
+	}
+
+	public void setEventByteOrder(String eventByteOrder) {
+		this.eventByteOrder = eventByteOrder;
+	}
+
+	@XmlElement
+	public int getEventStreamPort() {
+		return eventStreamPort;
+	}
+
+	public void setEventStreamPort(int eventStreamPort) {
+		this.eventStreamPort = eventStreamPort;
+	}
+
+	@XmlElement
+	public String getEventStreamHost() {
+		return eventStreamHost;
+	}
+
+	public void setEventStreamHost(String eventStreamHost) {
+		this.eventStreamHost = eventStreamHost;
+	}
+
+	@XmlElement
+	public Integer getAccumulatorFirstLineBitDepth() {
+		return accumulatorFirstLineBitDepth;
+	}
+
+	public void setAccumulatorFirstLineBitDepth(
+			Integer accumulatorFirstLineBitDepth) {
+		this.accumulatorFirstLineBitDepth = accumulatorFirstLineBitDepth;
+	}
+
+	@XmlElement
+	public Integer getAccumulatorSecondLineBitDepth() {
+		return accumulatorSecondLineBitDepth;
+	}
+
+	public void setAccumulatorSecondLineBitDepth(
+			Integer accumulatorSecondLineBitDepth) {
+		this.accumulatorSecondLineBitDepth = accumulatorSecondLineBitDepth;
+	}
+
+	@XmlElement
+	public Integer getAccumulatorFinalLineBitDepth() {
+		return accumulatorFinalLineBitDepth;
+	}
+
+	public void setAccumulatorFinalLineBitDepth(
+			Integer accumulatorFinalLineBitDepth) {
+		this.accumulatorFinalLineBitDepth = accumulatorFinalLineBitDepth;
 	}
 }

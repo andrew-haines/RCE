@@ -1,0 +1,18 @@
+package test;
+
+option java_package = "com.haines.ml.rce.test.model";
+option java_outer_classname = "TestEventProtos";
+
+message TestEvent {
+
+	message Feature {
+		required string featureId = 1;
+	}
+	
+	message Classification {
+		required string classificationId = 1;
+	}
+
+	repeated Feature features = 1;
+	repeated Classification classifications = 2;
+}

@@ -1,0 +1,31 @@
+package test;
+
+option java_package = "com.haines.ml.rce.io.proto.model";
+option java_outer_classname = "TestMessageProtos";
+
+message TestMessage {
+
+	message TestInnerMessage {
+		required string featureId = 1;
+	}
+
+	repeated TestInnerMessage innerMessages = 1;
+	required TestInnerMessage innerMessage = 2;
+	required int32 testInt32 = 3;
+	required int64 testInt64 = 4;
+	required uint32 testUint32 = 5;
+	required uint64 testUint64 = 6;
+	required sint32 testSint32 = 7;
+	required sint64 testSint64 = 8;
+	required fixed32 testFixed32 = 9;
+	required fixed64 testFixed64 = 10;
+	required sfixed32 testSFixed32 = 11;
+	required sfixed64 testSFixed64 = 12;
+	required bool testBool = 13;
+	required string testString = 14;
+	required bytes byteArray = 15;
+	required float testFloat = 16;
+	required double testDouble = 17;
+	repeated TestMessage messageArray = 18;
+	optional TestMessage message = 19;
+}

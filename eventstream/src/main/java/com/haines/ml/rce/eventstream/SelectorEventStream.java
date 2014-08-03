@@ -26,20 +26,20 @@ import com.haines.ml.rce.model.EventMarshalBuffer;
  * @author haines
  *
  */
-public class SelectorEventStream<T extends SelectableChannel & NetworkChannel> implements EventStream{
+public class SelectorEventStream<T extends SelectableChannel & NetworkChannel, E extends Event> implements EventStream{
 
 	private static final Logger LOG = LoggerFactory.getLogger(SelectorEventStream.class);
 	
 	private volatile boolean isAlive;
 	private final SelectorEventStreamConfig config;
-	private final Dispatcher<?> dispatcher;
+	private final Dispatcher<E> dispatcher;
 	private final NetworkChannelProcessor<T> processor;
-	private final EventMarshalBuffer<?> eventBuffer;
+	private final EventMarshalBuffer<E> eventBuffer;
 	private final EventStreamListener listener;
 	private volatile Thread executingThread;
 	
 	@Inject
-	<E extends Event> SelectorEventStream(Dispatcher<E> dispatcher, SelectorEventStreamConfig config, NetworkChannelProcessor<T> processor, EventMarshalBuffer<E> eventBuffer, EventStreamListener listener){
+	public SelectorEventStream(Dispatcher<E> dispatcher, SelectorEventStreamConfig config, NetworkChannelProcessor<T> processor, EventMarshalBuffer<E> eventBuffer, EventStreamListener listener){
 		this.isAlive = false;
 		this.dispatcher = dispatcher;
 		this.config = config;
@@ -137,11 +137,9 @@ public class SelectorEventStream<T extends SelectableChannel & NetworkChannel> i
 						processor.closeAccept(readerChannel);					
 						
 						if (totalRead > 0){
-							Event event = eventBuffer.buildEventAndResetBuffer();
-							@SuppressWarnings({"rawtypes" })
-							Dispatcher rawDispatcher = dispatcher;
+							E event = eventBuffer.buildEventAndResetBuffer();
 							
-							rawDispatcher.dispatchEvent(event);
+							dispatcher.dispatchEvent(event);
 						}
 					}
 				}

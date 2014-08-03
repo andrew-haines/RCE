@@ -80,6 +80,11 @@ public interface RCEConfig {
 		}
 		
 		private RCEConfig loadJaxbClass(InputStream stream) throws JAXBException{
+			
+			if (stream == null){
+				throw new IllegalArgumentException("jaxb config file could not be found");
+			}
+			
 			JAXBContext context = JAXBContext.newInstance(RCEConfigJAXB.class);
 			
 			Unmarshaller unmarshaller = context.createUnmarshaller();

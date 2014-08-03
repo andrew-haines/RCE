@@ -42,7 +42,7 @@ public abstract class AbstractSelectorEventStreamIT<T extends SelectableChannel 
 	
 	public static final int TEST_PORT = 34564;
 	private static final int NUMBER_EVENTS_TO_SEND = 16000;
-	private SelectorEventStream<T> candidate;
+	private SelectorEventStream<T, TestEvent> candidate;
 	private Executor executor;
 	private TestDispatcher dispatcher;
 	private CountDownLatch startupLatch;
@@ -71,7 +71,7 @@ public abstract class AbstractSelectorEventStreamIT<T extends SelectableChannel 
 		startupLatch = new CountDownLatch(1);
 		shutdownLatch = new CountDownLatch(1);
 		
-		SelectorEventStreamFactory<T> streamFactory = new SelectorEventStreamFactory<T>(config, createNetworkChannelProcessor(), new TestEventBuffer(), new LatchNotifierEventStreamListener(startupLatch, shutdownLatch));
+		SelectorEventStreamFactory<T, TestEvent> streamFactory = new SelectorEventStreamFactory<T, TestEvent>(config, createNetworkChannelProcessor(), new TestEventBuffer(), new LatchNotifierEventStreamListener(startupLatch, shutdownLatch));
 		candidate = streamFactory.create(dispatcher);
 	}
 	
@@ -201,7 +201,7 @@ public abstract class AbstractSelectorEventStreamIT<T extends SelectableChannel 
 	
 	protected abstract C getClientChannel(SocketAddress address) throws IOException, InterruptedException;
 	
-	private static Runnable getStarter(final SelectorEventStream<?> candidate){
+	private static Runnable getStarter(final SelectorEventStream<?, TestEvent> candidate){
 		return new Runnable(){
 
 			@Override

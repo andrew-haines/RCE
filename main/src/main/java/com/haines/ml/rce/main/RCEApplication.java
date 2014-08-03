@@ -13,24 +13,19 @@ import org.apache.commons.cli.OptionBuilder;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 
+import com.haines.ml.rce.eventstream.EventStream;
 import com.haines.ml.rce.eventstream.EventStreamException;
-import com.haines.ml.rce.eventstream.SelectorEventStream;
-import com.haines.ml.rce.main.factory.GuiceRCEApplicationFactory;
 import com.haines.ml.rce.main.factory.RCEApplicationFactory;
-import com.haines.ml.rce.main.guice.PipelineRCEConfigConfiguredInitiationModule;
-import com.haines.ml.rce.main.guice.RCEConfigConfiguredInitiationModule;
-import com.haines.ml.rce.model.Event;
-
 public class RCEApplication {
 	
-	private final SelectorEventStream<?> eventStream;
+	private final EventStream eventStream;
 	
 	@Inject
-	public RCEApplication(SelectorEventStream<?> eventStream){
+	public RCEApplication(EventStream eventStream){
 		this.eventStream = eventStream;
 	}
 
-	private void start() throws RCEApplicationException {
+	public void start() throws RCEApplicationException {
 		try {
 			eventStream.start();
 		} catch (EventStreamException e) {
@@ -40,6 +35,7 @@ public class RCEApplication {
 	
 	private static final String CONFIG_OVERRIDE_OPTION_KEY = "configOverrideLocation";
 
+	@SuppressWarnings("static-access")
 	public static void main(String[] args) throws ParseException, RCEApplicationException, JAXBException, IOException{
 		Options options = new Options();
         options.addOption(OptionBuilder.hasArg(true).withDescription("Config Override Location").isRequired(false).create(CONFIG_OVERRIDE_OPTION_KEY));
@@ -59,7 +55,7 @@ public class RCEApplication {
 		// set the number of event worker to be 1 less than the number of CPUs on the VM
 		private String configOverrideLocation;
 		
-		private RCEApplicationBuilder(String configOverrideLocation){
+		public RCEApplicationBuilder(String configOverrideLocation){
 			this.configOverrideLocation = configOverrideLocation;
 		}
 		
@@ -67,10 +63,10 @@ public class RCEApplication {
 			ServiceLoader<RCEApplicationFactory> loader = ServiceLoader.load(RCEApplicationFactory.class);
 			
 			for (RCEApplicationFactory factory: loader){
-				return factory.createApplication();
+				return factory.createApplication(configOverrideLocation);
 			}
-
-			return new GuiceRCEApplicationFactory(new PipelineRCEConfigConfiguredInitiationModule<Event>(configOverrideLocation)).createApplication();
+			
+			throw new IllegalArgumentException("No service loader found.");
 		}
 	}
 }

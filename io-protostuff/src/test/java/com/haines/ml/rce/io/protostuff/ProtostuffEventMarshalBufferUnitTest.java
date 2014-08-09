@@ -15,6 +15,12 @@ import com.dyuproject.protostuff.ProtostuffIOUtil;
 import com.haines.ml.rce.io.proto.model.TestMessage;
 import com.haines.ml.rce.io.proto.model.TestMessage.TestInnerMessage;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.not;
+import static org.hamcrest.Matchers.nullValue;
+
 public class ProtostuffEventMarshalBufferUnitTest {
 
 	private static final ByteString TEST_BYTE_ARRAY = ByteString.copyFrom(new byte[]{45, 34, 4, -5, 6, 23,71,44, 110});
@@ -44,11 +50,40 @@ public class ProtostuffEventMarshalBufferUnitTest {
 		
 		ByteArrayOutputStream outputStream = new ByteArrayOutputStream(4096);
 		
-		ProtostuffIOUtil.writeTo(outputStream, createTestMessage(), TestMessage.getSchema(), LinkedBuffer.allocate(1024));
+		int size = ProtostuffIOUtil.writeTo(outputStream, createTestMessage(), TestMessage.getSchema(), LinkedBuffer.allocate(1024));
 		
-		candidate.marshal(ByteBuffer.wrap(outputStream.toByteArray()));
+		//TestMessage message = TestMessage.getSchema().newMessage();
+		
+		//ByteBuffer buffer = ByteBuffer.wrap(outputStream.toByteArray());
+		
+		//byte[] array = new byte[buffer.remaining()];
+		
+		//buffer.get(array);
+		
+		//ProtostuffIOUtil.mergeFrom(array, message, TestMessage.getSchema());
+		
+		assertThat(candidate.marshal(ByteBuffer.wrap(outputStream.toByteArray())), is(equalTo(true)));
 		
 		TestMessage message = candidate.buildEventAndResetBuffer();
+		
+		assertThat(message.getTestInt32(), is(equalTo(TEST_INT_32)));
+		assertThat(message.getTestInt64(), is(equalTo(TEST_LONG_64)));
+		assertThat(message.getByteArray(), is(equalTo(TEST_BYTE_ARRAY)));
+		assertThat(message.getTestBool(), is(equalTo(true)));
+		assertThat(message.getTestDouble(), is(equalTo(TEST_DOUBLE)));
+		assertThat(message.getTestFloat(), is(equalTo(TEST_FLOAT)));
+		assertThat(message.getTestSFixed32(), is(equalTo(TEST_S_FIXED_32)));
+		assertThat(message.getTestSFixed64(), is(equalTo(TEST_S_FIXED_64)));
+		assertThat(message.getTestFixed32(), is(equalTo(TEST_FIXED_32)));
+		assertThat(message.getTestFixed64(), is(equalTo(TEST_FIXED_64)));
+		assertThat(message.getTestSint32(), is(equalTo(TEST_S_INT_32)));
+		assertThat(message.getTestSint64(), is(equalTo(TEST_S_INT_64)));
+		assertThat(message.getTestString(), is(equalTo(TEST_STRING)));
+		assertThat(message.getInnerMessage(), is(not(nullValue())));
+		assertThat(message.getInnerMessage().getFeatureId(), is(equalTo(TEST_INNER_STRING)));
+		assertThat(message.getInnerMessagesList().size(), is(equalTo(2)));
+		assertThat(message.getInnerMessagesList().get(0).getFeatureId(), is(equalTo(TEST_INNER_STRING)));
+		assertThat(message.getInnerMessagesList().get(1).getFeatureId(), is(equalTo(TEST_INNER_STRING)));
 	}
 	
 	private static TestMessage createTestMessage(){

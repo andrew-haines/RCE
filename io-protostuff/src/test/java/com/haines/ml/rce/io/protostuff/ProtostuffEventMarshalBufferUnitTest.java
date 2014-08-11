@@ -14,6 +14,7 @@ import com.dyuproject.protostuff.LinkedBuffer;
 import com.dyuproject.protostuff.ProtostuffIOUtil;
 import com.haines.ml.rce.io.proto.model.TestMessage;
 import com.haines.ml.rce.io.proto.model.TestMessage.TestInnerMessage;
+import com.haines.ml.rce.io.proto.model.TestMessageOptional;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
@@ -39,14 +40,64 @@ public class ProtostuffEventMarshalBufferUnitTest {
 	private static final Integer TEST_U_INT_32 = 5746295;
 	private static final Long TEST_U_INT_64 = 85738272848905232l;
 	private ProtostuffEventMarshalBuffer<TestMessage> candidate;
+	private ProtostuffEventMarshalBuffer<TestMessageOptional> candidateOptional;
 	
 	@Before
 	public void before(){
 		candidate = new ProtostuffEventMarshalBuffer<TestMessage>(TestMessage.getSchema());
+		candidateOptional = new ProtostuffEventMarshalBuffer<TestMessageOptional>(TestMessageOptional.getSchema());
 	}
 	
 	@Test
-	public void givenCandidate_whenCallingMarshalWithLargeBuffer_thenExpectedMessageReturned() throws IOException{
+	public void givenCandidateWithInt32Set_whenCallingMarshalWithLargeBuffer_thenExpectedMessageReturned() throws IOException{
+		
+		ByteArrayOutputStream outputStream = new ByteArrayOutputStream(4096);
+		TestMessageOptional message = new TestMessageOptional();
+		
+		message.setTestInt32(TEST_INT_32);
+		
+		int size = ProtostuffIOUtil.writeTo(outputStream, message, TestMessageOptional.getSchema(), LinkedBuffer.allocate(1024));
+		
+		assertThat(candidateOptional.marshal(ByteBuffer.wrap(outputStream.toByteArray())), is(equalTo(true)));
+		
+		TestMessageOptional demarshalledMessage = candidateOptional.buildEventAndResetBuffer();
+		
+		assertThat(demarshalledMessage.getTestInt32(), is(equalTo(TEST_INT_32)));
+	}
+	
+	@Test
+	public void givenCandidateWithInt32Set_whenCallingMarshalWithSmallBuffer_thenExpectedMessageReturned() throws IOException{
+		
+		ByteArrayOutputStream outputStream = new ByteArrayOutputStream(4096);
+		TestMessageOptional message = new TestMessageOptional();
+		
+		message.setTestInt32(TEST_INT_32);
+		
+		int size = ProtostuffIOUtil.writeTo(outputStream, message, TestMessageOptional.getSchema(), LinkedBuffer.allocate(1024));
+		
+		byte[] array = outputStream.toByteArray();
+		byte[] array1 = new byte[1];
+		byte[] array2 = new byte[2];
+		byte[] array3 = new byte[2];
+		System.arraycopy(array, 0, array1, 0, 1);
+		System.arraycopy(array, 1, array2, 0, 2);
+		System.arraycopy(array, 3, array3, 0, 2);
+		
+		ByteBuffer buffer1 = ByteBuffer.wrap(array1);
+		ByteBuffer buffer2 = ByteBuffer.wrap(array2);
+		ByteBuffer buffer3 = ByteBuffer.wrap(array3);
+		
+		assertThat(candidateOptional.marshal(buffer1), is(equalTo(false)));
+		assertThat(candidateOptional.marshal(buffer2), is(equalTo(false)));
+		assertThat(candidateOptional.marshal(buffer3), is(equalTo(true)));
+		
+		TestMessageOptional demarshalledMessage = candidateOptional.buildEventAndResetBuffer();
+		
+		assertThat(demarshalledMessage.getTestInt32(), is(equalTo(TEST_INT_32)));
+	}
+	
+	//@Test
+	public void givenCandidate_whenCallingFullMarshalWithLargeBuffer_thenExpectedMessageReturned() throws IOException{
 		
 		ByteArrayOutputStream outputStream = new ByteArrayOutputStream(4096);
 		

@@ -27,5 +27,32 @@ message TestMessage {
 	required float testFloat = 16;
 	required double testDouble = 17;
 	repeated TestMessage messageArray = 18;
+	required TestMessage message = 19;
+}
+
+message TestMessageOptional {
+
+	message TestInnerMessage {
+		required string featureId = 1;
+	}
+
+	optional TestInnerMessage innerMessages = 1;
+	optional TestInnerMessage innerMessage = 2;
+	optional int32 testInt32 = 3;
+	optional int64 testInt64 = 4;
+	optional uint32 testUint32 = 5;
+	optional uint64 testUint64 = 6;
+	optional sint32 testSint32 = 7;
+	optional sint64 testSint64 = 8;
+	optional fixed32 testFixed32 = 9;
+	optional fixed64 testFixed64 = 10;
+	optional sfixed32 testSFixed32 = 11;
+	optional sfixed64 testSFixed64 = 12;
+	optional bool testBool = 13;
+	optional string testString = 14;
+	optional bytes byteArray = 15;
+	optional float testFloat = 16;
+	optional double testDouble = 17;
+	repeated TestMessage messageArray = 18;
 	optional TestMessage message = 19;
 }

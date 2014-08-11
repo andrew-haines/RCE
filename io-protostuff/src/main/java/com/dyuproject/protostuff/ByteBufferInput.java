@@ -13,6 +13,7 @@ import com.dyuproject.protostuff.StringSerializer.STRING;
 public class ByteBufferInput implements Input{
 	
 	private final static ByteBuffer NO_BUFFER = ByteBuffer.allocate(0);
+	private final static byte[] NO_BYTES = new byte[0];
 
 	private static final int NO_VALUE_INT = -1;
 
@@ -28,6 +29,8 @@ public class ByteBufferInput implements Input{
 	private int cachedLastReadTag = NO_TAG_SET;
 	private int offset, limit = 0;
 	private final boolean decodeNestedMessageAsGroup;
+	private boolean readEnoughBytes = true;
+	private byte[] toLookbackBuffer = NO_BYTES;
 	
 	public ByteBufferInput(boolean decodeNestedMessageAsGroup){
 		this.decodeNestedMessageAsGroup = decodeNestedMessageAsGroup;
@@ -35,7 +38,8 @@ public class ByteBufferInput implements Input{
 	
 	public void setNextBuffer(ByteBuffer buffer){
 		this.buffer = buffer;
-		this.limit = buffer.remaining();
+		this.limit += buffer.remaining();
+		this.readEnoughBytes = true;
 	}
 
 	@Override
@@ -51,6 +55,10 @@ public class ByteBufferInput implements Input{
 	@Override
 	public <T> int readFieldNumber(Schema<T> schema) throws IOException {
 		
+		if (!readEnoughBytes){
+			return 0;
+		}
+		
 		if (cachedLastReadTag != NO_TAG_SET){
 			return cachedLastReadTag;
 		}
@@ -60,76 +68,82 @@ public class ByteBufferInput implements Input{
             return 0;
         }
 		
-		if (getTotalBytesAvailable() > 3){ // do we have at least 4 bytes to read the next field number?
+		readEnoughBytes = true;
+		
+		if (getTotalBytesAvailable() > 1){ // do we have at least 4 bytes to read the next field number?
 			final int tag = readRawInt32();
 			
-			final int fieldNumber = tag >>> TAG_TYPE_BITS;
+			if (readEnoughBytes){
 			
-			if (fieldNumber == 0)
-	        {
-	            if (decodeNestedMessageAsGroup && 
-	                    WIRETYPE_TAIL_DELIMITER == (tag & TAG_TYPE_MASK))
-	            {
-	                // protostuff's tail delimiter for streaming
-	                // 2 options: length-delimited or tail-delimited.
-	                //lastTag = 0;
-	                return 0;
-	            }
-	            // If we actually read zero, that's not a valid tag.
-	            throw ProtobufException.invalidTag();
-	        }
-	        if (decodeNestedMessageAsGroup && WIRETYPE_END_GROUP == (tag & TAG_TYPE_MASK))
-	        {
-	            //lastTag = 0;
-	            return 0;
-	        }
-			
-			cachedLastReadTag = fieldNumber;
-			
-			return fieldNumber;
-		} else{
+				final int fieldNumber = tag >>> TAG_TYPE_BITS;
+				
+				if (fieldNumber == 0)
+		        {
+		            if (decodeNestedMessageAsGroup && 
+		                    WIRETYPE_TAIL_DELIMITER == (tag & TAG_TYPE_MASK))
+		            {
+		                // protostuff's tail delimiter for streaming
+		                // 2 options: length-delimited or tail-delimited.
+		                //lastTag = 0;
+		                return 0;
+		            }
+		            // If we actually read zero, that's not a valid tag.
+		            throw ProtobufException.invalidTag();
+		        }
+		        if (decodeNestedMessageAsGroup && WIRETYPE_END_GROUP == (tag & TAG_TYPE_MASK))
+		        {
+		            //lastTag = 0;
+		            return 0;
+		        }
+				
+				cachedLastReadTag = fieldNumber;
+				
+				return fieldNumber;
+			}
+		} 
 			// now store the remaining bytes into a temporary buffer prior to the next invocation
 			
-			lookBackBuffer.put(buffer);
+		pushToLookbackBuffer();
 			
-			return 0;
-		}
+		return 0;
 		
 	}
 
 	private int readRawInt32() throws IOException{
-		
-		int value = readRawVarInt32();
-		
-		
-		
-		return value;
+		readEnoughBytes = true;
+		return readRawVarInt32();
     }
 
 	@Override
 	public int readInt32() throws IOException {
-		if (getTotalBytesAvailable() > 3){
+		if (getTotalBytesAvailable() > 0){
 			int value = readRawInt32();
 			
-			cachedLastReadTag = NO_TAG_SET; // successfully read this tag so return
+			if (readEnoughBytes){
+				cachedLastReadTag = NO_TAG_SET; // successfully read this tag so return
+				
+				return value;
+			} 
 			
-			return value;
-		} else{
-			pushToLookbackBuffer();
 			
-			return NO_VALUE_INT;
-		}
+		} 
+		pushToLookbackBuffer();
+			
+		return NO_VALUE_INT;
+		
 	}
 	
 	private byte get(){
 		byte value;
 		if (lookBackBuffer.hasRemaining()){
 			value = lookBackBuffer.get();
-		} else{
+		} else if (buffer.hasRemaining()){ // only count the reads from the actual buffer
 			value = buffer.get();
+			offset++;
+		} else{
+			readEnoughBytes = false;
+			value = Byte.MIN_VALUE;
 		}
-		
-		offset++;
 		
 		return value;
 	}
@@ -150,38 +164,80 @@ public class ByteBufferInput implements Input{
 		offset += bytes.length;
 	}
 	
-	private int readRawVarInt32()
-			throws ProtobufException {
+	private int readRawVarInt32() throws ProtobufException {
 		
 		byte tmp = get();
 		if (tmp >= 0) {
 			return tmp;
 		}
+		if (!readEnoughBytes){
+			
+			return NO_VALUE_INT;
+		}
 		int result = tmp & 0x7f;
 		if ((tmp = get()) >= 0) {
 			result |= tmp << 7;
 		} else {
-			result |= (tmp & 0x7f) << 7;
-			if ((tmp = get()) >= 0) {
-				result |= tmp << 14;
-			} else {
-				result |= (tmp & 0x7f) << 14;
+			if (readEnoughBytes){
+				result |= (tmp & 0x7f) << 7;
 				if ((tmp = get()) >= 0) {
-					result |= tmp << 21;
+					result |= tmp << 14;
 				} else {
-					result |= (tmp & 0x7f) << 21;
-					result |= (tmp = get()) << 28;
-					if (tmp < 0) {
-						// Discard upper 32 bits.
-						for (int i = 0; i < 5; i++) {
-							if (get() >= 0) {
-								return result;
+					if (readEnoughBytes){
+						result |= (tmp & 0x7f) << 14;
+						if ((tmp = get()) >= 0) {
+							result |= tmp << 21;
+						} else {
+							if (readEnoughBytes){
+								result |= (tmp & 0x7f) << 21;
+								tmp = get();
+								if (readEnoughBytes){
+									result |= tmp << 28;
+									if (tmp < 0) {
+										// Discard upper 32 bits.
+										for (int i = 0; i < 5; i++) {
+											if (get() >= 0) {
+												return result;
+											} else if (!readEnoughBytes){
+												toLookbackBuffer = new byte[4];
+												toLookbackBuffer[0] = (byte)((0x7F & result) | 0x80);
+												toLookbackBuffer[1] = (byte)((0x7F & result >> 7) | 0x80);
+												toLookbackBuffer[2] = (byte)((0x7F & result >> 14) | 0x80);
+												toLookbackBuffer[3] = (byte)((0x7F & result >> 21) | 0x80);
+												return NO_VALUE_INT;
+											}
+										}
+										throw ProtobufException.malformedVarint();
+									}
+								} else{
+									toLookbackBuffer = new byte[4];
+									toLookbackBuffer[0] = (byte)((0x7F & result) | 0x80);
+									toLookbackBuffer[1] = (byte)((0x7F & result >> 7) | 0x80);
+									toLookbackBuffer[2] = (byte)((0x7F & result >> 14) | 0x80);
+									toLookbackBuffer[3] = (byte)((0x7F & result >> 21) | 0x80);
+									return NO_VALUE_INT;
+								}
+							} else{
+								toLookbackBuffer = new byte[3];
+								toLookbackBuffer[0] = (byte)((0x7F & result) | 0x80);
+								toLookbackBuffer[1] = (byte)((0x7F & result >> 7) | 0x80);
+								toLookbackBuffer[2] = (byte)((0x7F & result >> 14) | 0x80);;
+								return NO_VALUE_INT;
 							}
 						}
-						throw ProtobufException.malformedVarint();
+					} else{
+						toLookbackBuffer = new byte[2];
+						toLookbackBuffer[0] = (byte)((0x7F & result) | 0x80);
+						toLookbackBuffer[1] = (byte)((0x7F & result >> 7) | 0x80);
+						return NO_VALUE_INT;
 					}
 				}
+			} else{
+				toLookbackBuffer = new byte[1];
+				toLookbackBuffer[0] = (byte)((0x7F & result) | 0x80);
+				return NO_VALUE_INT;
 			}
+			
 		}
 
 		return result;
@@ -189,11 +245,13 @@ public class ByteBufferInput implements Input{
 
 	private void pushToLookbackBuffer() {
 		
+		readEnoughBytes = false;// belts and braces assignment
+		
 		if (lookBackBuffer == NO_BUFFER){
 			lookBackBuffer = defaultLookbackBuffer;
 		}
 		
-		if (lookBackBuffer.remaining() < buffer.remaining()){
+		if (lookBackBuffer.remaining() < buffer.remaining() + toLookbackBuffer.length){
 			// need to grow the lookback buffer
 			
 			ByteBuffer newBuffer = ByteBuffer.allocate(lookBackBuffer.capacity() * 2);
@@ -203,7 +261,13 @@ public class ByteBufferInput implements Input{
 			lookBackBuffer = newBuffer;
 		}
 		
+		if (toLookbackBuffer != NO_BYTES){
+			lookBackBuffer.put(toLookbackBuffer);
+		}
 		lookBackBuffer.put(buffer);
+		lookBackBuffer.flip();
+		
+		toLookbackBuffer = NO_BYTES;
 	}
 
 	@Override
@@ -430,6 +494,10 @@ public class ByteBufferInput implements Input{
 			int fieldNumber, boolean repeated) throws IOException {
 		// TODO Auto-generated method stub
 		
+	}
+
+	public boolean hasReadEnoughBytes() {
+		return getTotalBytesAvailable() == 0;
 	}
 
 	

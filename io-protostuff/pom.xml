@@ -74,6 +74,10 @@
 		                    <name>TestMessage.implements_declaration</name>
 		                    <value>implements com.haines.ml.rce.model.Event</value>
 		                </property>
+		                <property>
+		                    <name>TestMessageOptional.implements_declaration</name>
+		                    <value>implements com.haines.ml.rce.model.Event</value>
+		                </property>
 		              </options>
 		            </protoModule>
 		          </protoModules>

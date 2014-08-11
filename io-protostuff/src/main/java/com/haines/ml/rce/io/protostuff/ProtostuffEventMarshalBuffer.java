@@ -27,16 +27,16 @@ public class ProtostuffEventMarshalBuffer<T extends Message<T> & Event> implemen
 		
 		input.setNextBuffer(content);
 		
-		byte[] buffer = new byte[content.remaining()];
+		//byte[] buffer = new byte[content.remaining()];
 		
-		content.get(buffer);
+		//content.get(buffer);
 		
 		//ByteArrayInput input = new ByteArrayInput(buffer, 0, buffer.length, true);
 		
 		try {
 			schema.mergeFrom(input, messageBuffer);
 			
-			return schema.isInitialized(messageBuffer);
+			return schema.isInitialized(messageBuffer) && input.hasReadEnoughBytes();
 		} catch (IOException e) {
 			throw new RuntimeException("Unable to marshal event from buffer", e);
 		}

@@ -48,7 +48,7 @@ public class ProtostuffEventMarshalBuffer<T extends Message<T> & Event> implemen
 		T returnValue = this.messageBuffer;
 		
 		this.messageBuffer = schema.newMessage();
-		this.input = null;
+		this.input = new ByteBufferInput(true);
 		return returnValue;
 	}
 

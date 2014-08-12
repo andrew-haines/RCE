@@ -27,7 +27,8 @@ message TestMessage {
 	required float testFloat = 16;
 	required double testDouble = 17;
 	repeated TestMessage messageArray = 18;
-	required TestMessage message = 19;
+	optional TestMessage message = 19;
+	required EnumType testEnumType = 20;
 }
 
 message TestMessageOptional {
@@ -55,4 +56,12 @@ message TestMessageOptional {
 	optional double testDouble = 17;
 	repeated TestMessage messageArray = 18;
 	optional TestMessage message = 19;
+	optional EnumType testEnumType = 20;
 }
+
+enum EnumType { 
+	TYPE1 = 1;
+	TYPE2 = 2;
+	TYPE3 = 3;
+	TYPE4 = 4;
+} 

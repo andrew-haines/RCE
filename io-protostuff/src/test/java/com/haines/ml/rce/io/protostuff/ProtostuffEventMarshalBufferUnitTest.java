@@ -13,8 +13,8 @@ import com.dyuproject.protostuff.ByteString;
 import com.dyuproject.protostuff.LinkedBuffer;
 import com.dyuproject.protostuff.ProtostuffIOUtil;
 import com.haines.ml.rce.io.proto.model.EnumType;
+import com.haines.ml.rce.io.proto.model.TestInnerMessage;
 import com.haines.ml.rce.io.proto.model.TestMessage;
-import com.haines.ml.rce.io.proto.model.TestMessage.TestInnerMessage;
 import com.haines.ml.rce.io.proto.model.TestMessageOptional;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -22,6 +22,7 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.nullValue;
+import static org.hamcrest.Matchers.hasSize;
 
 public class ProtostuffEventMarshalBufferUnitTest {
 
@@ -203,6 +204,48 @@ public class ProtostuffEventMarshalBufferUnitTest {
 	}
 	
 	@Test
+	public void givenCandidateWithTestInnerMessageSet_whenCallingMarshalWithLargeBuffer_thenExpectedMessageReturned() throws IOException{
+		
+		ByteArrayOutputStream outputStream = new ByteArrayOutputStream(4096);
+		TestMessageOptional message = new TestMessageOptional();
+		
+		message.setInnerMessage(createInnerMessage(TEST_INNER_STRING));
+		
+		ProtostuffIOUtil.writeTo(outputStream, message, TestMessageOptional.getSchema(), LinkedBuffer.allocate(1024));
+		
+		assertThat(candidateOptional.marshal(ByteBuffer.wrap(outputStream.toByteArray())), is(equalTo(true)));
+		
+		TestMessageOptional demarshalledMessage = candidateOptional.buildEventAndResetBuffer();
+		
+		assertThat(demarshalledMessage.getInnerMessage(), is(not(nullValue())));
+		assertThat(demarshalledMessage.getInnerMessage().getFeatureId(), is(equalTo(TEST_INNER_STRING)));
+	}
+	
+	@Test
+	public void givenCandidateWithTestInnerMessagesSet_whenCallingMarshalWithLargeBuffer_thenExpectedMessageReturned() throws IOException{
+		
+		ByteArrayOutputStream outputStream = new ByteArrayOutputStream(4096);
+		TestMessageOptional message = new TestMessageOptional();
+		
+		List<TestInnerMessage> messages = new ArrayList<TestInnerMessage>();
+		messages.add(createInnerMessage(TEST_INNER_STRING+"_1"));
+		messages.add(createInnerMessage(TEST_INNER_STRING+"_2"));
+		
+		message.setInnerMessagesList(messages);
+		
+		ProtostuffIOUtil.writeTo(outputStream, message, TestMessageOptional.getSchema(), LinkedBuffer.allocate(1024));
+		
+		assertThat(candidateOptional.marshal(ByteBuffer.wrap(outputStream.toByteArray())), is(equalTo(true)));
+		
+		TestMessageOptional demarshalledMessage = candidateOptional.buildEventAndResetBuffer();
+		
+		assertThat(demarshalledMessage.getInnerMessagesList(), is(not(nullValue())));
+		assertThat(demarshalledMessage.getInnerMessagesList(), hasSize(2));
+		assertThat(demarshalledMessage.getInnerMessagesList().get(0).getFeatureId(), is(equalTo(TEST_INNER_STRING+"_1")));
+		assertThat(demarshalledMessage.getInnerMessagesList().get(1).getFeatureId(), is(equalTo(TEST_INNER_STRING+"_2")));
+	}
+	
+	@Test
 	public void givenCandidateWithSFixed32Set_whenCallingMarshalWithLargeBuffer_thenExpectedMessageReturned() throws IOException{
 		
 		ByteArrayOutputStream outputStream = new ByteArrayOutputStream(4096);
@@ -378,6 +421,20 @@ public class ProtostuffEventMarshalBufferUnitTest {
 		assertThat(demarshalledMessage.getTestString(), is(equalTo(TEST_STRING)));
 		assertThat(demarshalledMessage.getTestUint32(), is(equalTo(TEST_U_INT_32)));
 		assertThat(demarshalledMessage.getTestUint64(), is(equalTo(TEST_U_INT_64)));
+	}
+	
+	@Test
+	public void givenCandidate_whenCallingResetAndSubsequentRead_thenBothMessagesReadSuccessfully() throws IOException{
+		ProtostuffEventMarshalBuffer<TestMessageOptional> candidateOptional = this.candidateOptional;
+		
+		givenCandidateWithMultipleFieldsSet_whenCallingMarshalWithSmallBuffer_thenExpectedMessageReturned();
+		
+		assertThat(candidateOptional, is(equalTo(this.candidateOptional))); // ensure we havent created a new version of this
+		
+		givenCandidateWithMultipleFieldsSet_whenCallingMarshalWithLargeBuffer_thenExpectedMessageReturned();
+		
+		assertThat(candidateOptional, is(equalTo(this.candidateOptional))); // ensure we havent created a new version of this
+		
 	}
 	
 	@Test
@@ -938,7 +995,7 @@ public class ProtostuffEventMarshalBufferUnitTest {
 		assertThat(demarshalledMessage.getTestInt32(), is(equalTo(TEST_INT_32)));
 	}
 	
-	//@Test
+	@Test
 	public void givenCandidate_whenCallingFullMarshalWithLargeBuffer_thenExpectedMessageReturned() throws IOException{
 		
 		ByteArrayOutputStream outputStream = new ByteArrayOutputStream(4096);

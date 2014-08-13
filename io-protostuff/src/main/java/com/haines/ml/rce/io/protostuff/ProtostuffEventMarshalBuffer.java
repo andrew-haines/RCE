@@ -27,12 +27,6 @@ public class ProtostuffEventMarshalBuffer<T extends Message<T> & Event> implemen
 		
 		input.setNextBuffer(content);
 		
-		//byte[] buffer = new byte[content.remaining()];
-		
-		//content.get(buffer);
-		
-		//ByteArrayInput input = new ByteArrayInput(buffer, 0, buffer.length, true);
-		
 		try {
 			schema.mergeFrom(input, messageBuffer);
 			
@@ -48,7 +42,7 @@ public class ProtostuffEventMarshalBuffer<T extends Message<T> & Event> implemen
 		T returnValue = this.messageBuffer;
 		
 		this.messageBuffer = schema.newMessage();
-		this.input = new ByteBufferInput(true);
+		this.input.resetBuffered();
 		return returnValue;
 	}
 

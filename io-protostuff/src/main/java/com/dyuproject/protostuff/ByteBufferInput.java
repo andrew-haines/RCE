@@ -640,7 +640,13 @@ public class ByteBufferInput implements Input{
 	private <T> T mergeObjectEncodedAsGroup(T value, final Schema<T> schema) throws IOException{
         if(value == null)
             value = schema.newMessage();
+        
+        int savedLastTag = cachedLastReadTag;
+        cachedLastReadTag = NO_TAG_SET;
         schema.mergeFrom(this, value);
+        if (!readEnoughBytes){
+        	cachedLastReadTag = savedLastTag;
+        }
         return value;
     }
 
@@ -712,5 +718,16 @@ public class ByteBufferInput implements Input{
 		return getTotalBytesAvailable() == 0 && readEnoughBytes && offset == limit;
 	}
 
+	public void resetBuffered(){
+		lookBackBuffer.clear();
+		lookBackBufferSize = 0;
+		offset = 0;
+		limit = 0;
+		fieldLength = NO_VALUE_INT;
+		cachedLastReadTag = NO_TAG_SET;
+		readEnoughBytes = true;
+		cachedLastReadTag = NO_TAG_SET;
+		toLookbackBuffer = NO_BYTES;
+	}
 	
 }

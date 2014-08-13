@@ -5,10 +5,6 @@ option java_outer_classname = "TestMessageProtos";
 
 message TestMessage {
 
-	message TestInnerMessage {
-		required string featureId = 1;
-	}
-
 	repeated TestInnerMessage innerMessages = 1;
 	required TestInnerMessage innerMessage = 2;
 	required int32 testInt32 = 3;
@@ -31,13 +27,13 @@ message TestMessage {
 	required EnumType testEnumType = 20;
 }
 
+message TestInnerMessage {
+	required string featureId = 1;
+}
+
 message TestMessageOptional {
 
-	message TestInnerMessage {
-		required string featureId = 1;
-	}
-
-	optional TestInnerMessage innerMessages = 1;
+	repeated TestInnerMessage innerMessages = 1;
 	optional TestInnerMessage innerMessage = 2;
 	optional int32 testInt32 = 3;
 	optional int64 testInt64 = 4;

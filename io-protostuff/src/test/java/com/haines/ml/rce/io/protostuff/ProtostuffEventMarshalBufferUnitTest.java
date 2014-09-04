@@ -1130,7 +1130,7 @@ public class ProtostuffEventMarshalBufferUnitTest {
 		assertThat(message.getInnerMessagesList().get(1).getFeatureId(), is(equalTo(TEST_INNER_STRING)));
 	}
 	
-	//@Test
+	//@Test //TODO Fix nested levels of object graph!
 	public void givenCandidate_whenCallingFullMarshalWithSmallBuffer_thenExpectedMessageReturned() throws IOException{
 		
 		ByteArrayOutputStream outputStream = new ByteArrayOutputStream(4096);

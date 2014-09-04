@@ -34,7 +34,7 @@ public class ByteBufferInput implements Input{
 	private boolean readEnoughBytes = true;
 	private final ByteBuffer toLookbackBuffer = ByteBuffer.allocate(9); // maximum is 9 bytes
 	private int fieldLength = NO_VALUE_INT;
-	private boolean isReadingGroup = false;
+	private int groupReadDepth = 0;
 	private Deque<Object> innerMessageCandidateStack = new ArrayDeque<Object>(1);
 	
 	public ByteBufferInput(boolean decodeNestedMessageAsGroup){
@@ -84,7 +84,7 @@ public class ByteBufferInput implements Input{
 			return cachedLastReadTag;
 		}
 		
-		if (offset == limit && !isReadingGroup)
+		if (offset == limit && groupReadDepth == 0)
         {
             return 0;
         }
@@ -112,12 +112,12 @@ public class ByteBufferInput implements Input{
 	        }
 			
 			if (decodeNestedMessageAsGroup && WIRETYPE_START_GROUP == (tag & TAG_TYPE_MASK)){
-				isReadingGroup = true;
+				groupReadDepth = innerMessageCandidateStack.size() + 1;
 			}
 			
 	        if (decodeNestedMessageAsGroup && WIRETYPE_END_GROUP == (tag & TAG_TYPE_MASK))
 	        {
-	        	isReadingGroup = false;
+	        	groupReadDepth = innerMessageCandidateStack.size();
 	            return 0;
 	        }
 			
@@ -662,7 +662,9 @@ public class ByteBufferInput implements Input{
 //        	}
         }
         
-        cachedLastReadTag = NO_TAG_SET;
+        if (innerMessageCandidateStack.isEmpty()){
+        	cachedLastReadTag = NO_TAG_SET;
+        }
         
         schema.mergeFrom(this, value);
         if (!readEnoughBytes){
@@ -755,7 +757,7 @@ public class ByteBufferInput implements Input{
 	}
 
 	public boolean hasReadEnoughBytes() {
-		return getTotalBytesAvailable() == 0 && readEnoughBytes && offset == limit && innerMessageCandidateStack.isEmpty() && !isReadingGroup;
+		return getTotalBytesAvailable() == 0 && readEnoughBytes && offset == limit && innerMessageCandidateStack.isEmpty() && groupReadDepth == 0;
 	}
 
 	public void resetBuffered(){

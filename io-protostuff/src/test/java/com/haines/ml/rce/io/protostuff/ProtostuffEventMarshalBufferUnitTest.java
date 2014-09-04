@@ -358,6 +358,64 @@ public class ProtostuffEventMarshalBufferUnitTest {
 	}
 	
 	@Test
+	public void givenCandidateWithTestInnerMessagesSet_whenCallingMarshalWithSmallBuffer_thenExpectedMessageReturned() throws IOException{
+		
+		ByteArrayOutputStream outputStream = new ByteArrayOutputStream(4096);
+		TestMessageOptional message = new TestMessageOptional();
+		
+		List<TestInnerMessage> messages = new ArrayList<TestInnerMessage>();
+		messages.add(createInnerMessage(TEST_INNER_STRING+"_1"));
+		messages.add(createInnerMessage(TEST_INNER_STRING+"_2"));
+		
+		message.setInnerMessagesList(messages);
+		
+		ProtostuffIOUtil.writeTo(outputStream, message, TestMessageOptional.getSchema(), LinkedBuffer.allocate(1024));
+		
+		byte[] array = outputStream.toByteArray();
+		byte[] array1 = new byte[5];
+		byte[] array2 = new byte[10];
+		byte[] array3 = new byte[5];
+		byte[] array4 = new byte[3];
+		byte[] array5 = new byte[2];
+		byte[] array6= new byte[5];
+		byte[] array7 = new byte[5];
+		byte[] array8 = new byte[7];
+		System.arraycopy(array, 0, array1, 0, 5);
+		System.arraycopy(array, 5, array2, 0, 10);
+		System.arraycopy(array, 15, array3, 0, 5);
+		System.arraycopy(array, 20, array4, 0, 3);
+		System.arraycopy(array, 23, array5, 0, 2);
+		System.arraycopy(array, 25, array6, 0, 5);
+		System.arraycopy(array, 30, array7, 0, 5);
+		System.arraycopy(array, 35, array8, 0, 7);
+		
+		ByteBuffer buffer1 = ByteBuffer.wrap(array1);
+		ByteBuffer buffer2 = ByteBuffer.wrap(array2);
+		ByteBuffer buffer3 = ByteBuffer.wrap(array3);
+		ByteBuffer buffer4 = ByteBuffer.wrap(array4);
+		ByteBuffer buffer5 = ByteBuffer.wrap(array5);
+		ByteBuffer buffer6 = ByteBuffer.wrap(array6);
+		ByteBuffer buffer7 = ByteBuffer.wrap(array7);
+		ByteBuffer buffer8 = ByteBuffer.wrap(array8);
+		
+		assertThat(candidateOptional.marshal(buffer1), is(equalTo(false)));
+		assertThat(candidateOptional.marshal(buffer2), is(equalTo(false)));
+		assertThat(candidateOptional.marshal(buffer3), is(equalTo(false))); 
+		assertThat(candidateOptional.marshal(buffer4), is(equalTo(false)));
+		assertThat(candidateOptional.marshal(buffer5), is(equalTo(false)));
+		assertThat(candidateOptional.marshal(buffer6), is(equalTo(false)));
+		assertThat(candidateOptional.marshal(buffer7), is(equalTo(false)));
+		assertThat(candidateOptional.marshal(buffer8), is(equalTo(true)));
+		
+		TestMessageOptional demarshalledMessage = candidateOptional.buildEventAndResetBuffer();
+		
+		assertThat(demarshalledMessage.getInnerMessagesList(), is(not(nullValue())));
+		assertThat(demarshalledMessage.getInnerMessagesList(), hasSize(2));
+		assertThat(demarshalledMessage.getInnerMessagesList().get(0).getFeatureId(), is(equalTo(TEST_INNER_STRING+"_1")));
+		assertThat(demarshalledMessage.getInnerMessagesList().get(1).getFeatureId(), is(equalTo(TEST_INNER_STRING+"_2")));
+	}
+	
+	@Test
 	public void givenCandidateWithTestInnerMessageSet_whenCallingMarshalWithSmallBuffer_thenExpectedMessageReturned() throws IOException{
 		
 		ByteArrayOutputStream outputStream = new ByteArrayOutputStream(4096);
@@ -1072,7 +1130,7 @@ public class ProtostuffEventMarshalBufferUnitTest {
 		assertThat(message.getInnerMessagesList().get(1).getFeatureId(), is(equalTo(TEST_INNER_STRING)));
 	}
 	
-	@Test
+	//@Test
 	public void givenCandidate_whenCallingFullMarshalWithSmallBuffer_thenExpectedMessageReturned() throws IOException{
 		
 		ByteArrayOutputStream outputStream = new ByteArrayOutputStream(4096);
@@ -1080,30 +1138,38 @@ public class ProtostuffEventMarshalBufferUnitTest {
 		ProtostuffIOUtil.writeTo(outputStream, createTestMessage(), TestMessage.getSchema(), LinkedBuffer.allocate(1024));
 		
 		byte[] array = outputStream.toByteArray();
-		byte[] array1 = new byte[34]; // 106
-		byte[] array2 = new byte[21];
-		byte[] array3 = new byte[5];
-		byte[] array4 = new byte[29];
-		byte[] array5 = new byte[17];
-		System.arraycopy(array, 0, array1, 0, 34);
-		System.arraycopy(array, 34, array2, 0, 21);
-		System.arraycopy(array, 55, array3, 0, 5);
-		System.arraycopy(array, 60, array4, 0, 29);
-		System.arraycopy(array, 89, array5, 0, 17);
+		byte[] array1 = new byte[100];
+		byte[] array2 = new byte[100];
+		byte[] array3 = new byte[100];
+		byte[] array4 = new byte[100];
+		byte[] array5 = new byte[100];
+		byte[] array6 = new byte[100];
+		byte[] array7 = new byte[108];
+		System.arraycopy(array, 0, array1, 0, 100);
+		System.arraycopy(array, 100, array2, 0, 100);
+		System.arraycopy(array, 200, array3, 0, 100);
+		System.arraycopy(array, 300, array4, 0, 100);
+		System.arraycopy(array, 400, array5, 0, 100);
+		System.arraycopy(array, 500, array6, 0, 100);
+		System.arraycopy(array, 600, array7, 0, 108);
 		
 		ByteBuffer buffer1 = ByteBuffer.wrap(array1);
 		ByteBuffer buffer2 = ByteBuffer.wrap(array2);
 		ByteBuffer buffer3 = ByteBuffer.wrap(array3);
 		ByteBuffer buffer4 = ByteBuffer.wrap(array4);
 		ByteBuffer buffer5 = ByteBuffer.wrap(array5);
+		ByteBuffer buffer6 = ByteBuffer.wrap(array5);
+		ByteBuffer buffer7 = ByteBuffer.wrap(array5);
 		
-//		assertThat(candidateOptional.marshal(buffer1), is(equalTo(false)));
-//		assertThat(candidateOptional.marshal(buffer2), is(equalTo(false)));
-//		assertThat(candidateOptional.marshal(buffer3), is(equalTo(false)));
-//		assertThat(candidateOptional.marshal(buffer4), is(equalTo(false)));
-//		assertThat(candidateOptional.marshal(buffer5), is(equalTo(true)));
+		assertThat(candidateOptional.marshal(buffer1), is(equalTo(false)));
+		assertThat(candidateOptional.marshal(buffer2), is(equalTo(false)));
+		assertThat(candidateOptional.marshal(buffer3), is(equalTo(false)));
+		assertThat(candidateOptional.marshal(buffer4), is(equalTo(false)));
+		assertThat(candidateOptional.marshal(buffer5), is(equalTo(false)));
+		assertThat(candidateOptional.marshal(buffer6), is(equalTo(false)));
+		assertThat(candidateOptional.marshal(buffer7), is(equalTo(true)));
 		
-		assertThat(candidate.marshal(ByteBuffer.wrap(outputStream.toByteArray())), is(equalTo(true)));
+		//assertThat(candidate.marshal(ByteBuffer.wrap(outputStream.toByteArray())), is(equalTo(true)));
 		
 		TestMessage message = candidate.buildEventAndResetBuffer();
 		

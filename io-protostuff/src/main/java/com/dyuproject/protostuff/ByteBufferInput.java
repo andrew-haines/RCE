@@ -3,6 +3,7 @@ package com.dyuproject.protostuff;
 import static com.dyuproject.protostuff.WireFormat.TAG_TYPE_BITS;
 import static com.dyuproject.protostuff.WireFormat.TAG_TYPE_MASK;
 import static com.dyuproject.protostuff.WireFormat.WIRETYPE_END_GROUP;
+import static com.dyuproject.protostuff.WireFormat.WIRETYPE_START_GROUP;
 import static com.dyuproject.protostuff.WireFormat.WIRETYPE_TAIL_DELIMITER;
 
 import java.io.IOException;
@@ -18,6 +19,8 @@ public class ByteBufferInput implements Input{
 	private static final int NO_VALUE_INT = -1;
 
 	private static final int NO_TAG_SET = -1;
+
+	private static final int READING_INNER_MESSAGE_FIELD = -1;
 	
 	private ByteBuffer buffer;
 	
@@ -31,6 +34,8 @@ public class ByteBufferInput implements Input{
 	private boolean readEnoughBytes = true;
 	private final ByteBuffer toLookbackBuffer = ByteBuffer.allocate(9); // maximum is 9 bytes
 	private int fieldLength = NO_VALUE_INT;
+	private boolean isReadingGroup = false;
+	private Deque<Object> innerMessageCandidateStack = new ArrayDeque<Object>(1);
 	
 	public ByteBufferInput(boolean decodeNestedMessageAsGroup){
 		this.decodeNestedMessageAsGroup = decodeNestedMessageAsGroup;
@@ -42,9 +47,20 @@ public class ByteBufferInput implements Input{
 		this.readEnoughBytes = true;
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public <T> void handleUnknownField(int fieldNumber, Schema<T> schema) throws IOException {
-		throw new UnsupportedOperationException("Unable to handle unknown fields");
+		
+		if (fieldNumber == READING_INNER_MESSAGE_FIELD){
+			// this indicates that we are mid way through reading an embedded message object from the stream. This is required as list reading will create
+			// additional objects for each read which is not what we want. Thus we use the stack to push half read objects back into the deserialisation process
+			
+			T innerMessage = (T)innerMessageCandidateStack.pop();
+			
+			mergeObject(innerMessage, ((Message<T>)innerMessage).cachedSchema());
+		} else{
+			throw new UnsupportedOperationException("Unable to handle unknown field ("+fieldNumber+")");
+		}
 		
 	}
 	
@@ -60,11 +76,15 @@ public class ByteBufferInput implements Input{
 			return 0;
 		}
 		
+		if (!innerMessageCandidateStack.isEmpty()){
+			return READING_INNER_MESSAGE_FIELD;
+		}
+		
 		if (cachedLastReadTag != NO_TAG_SET){
 			return cachedLastReadTag;
 		}
 		
-		if (offset == limit)
+		if (offset == limit && !isReadingGroup)
         {
             return 0;
         }
@@ -90,9 +110,14 @@ public class ByteBufferInput implements Input{
 	            // If we actually read zero, that's not a valid tag.
 	            throw ProtobufException.invalidTag();
 	        }
+			
+			if (decodeNestedMessageAsGroup && WIRETYPE_START_GROUP == (tag & TAG_TYPE_MASK)){
+				isReadingGroup = true;
+			}
+			
 	        if (decodeNestedMessageAsGroup && WIRETYPE_END_GROUP == (tag & TAG_TYPE_MASK))
 	        {
-	            //lastTag = 0;
+	        	isReadingGroup = false;
 	            return 0;
 	        }
 			
@@ -629,21 +654,38 @@ public class ByteBufferInput implements Input{
 	}
 	
 	private <T> T mergeObjectEncodedAsGroup(T value, final Schema<T> schema) throws IOException{
-        if(value == null)
+        if(value == null){
             value = schema.newMessage();
+         // must read the end group tag so set the limit to be at least 1 byte more
+//        	if (isReadingGroup){
+//        		limit++;
+//        	}
+        }
         
-        int savedLastTag = cachedLastReadTag;
         cachedLastReadTag = NO_TAG_SET;
+        
         schema.mergeFrom(this, value);
         if (!readEnoughBytes){
         	
         	// push the inner message field tag back into the lookback buffer.
-        	ByteBuffer field = ByteBuffer.allocate(4);
-        	putRawVarInt32(field, cachedLastReadTag);
         	
-        	lookBackBuffer.addFirst(field);
+        	if (cachedLastReadTag != NO_TAG_SET){
+	        	ByteBuffer field = ByteBuffer.allocate(4);
+	        	        	
+	        	putRawVarInt32(field, cachedLastReadTag << TAG_TYPE_BITS | WIRETYPE_START_GROUP);
+	        	
+	        	field.flip();
+	        	
+	        	lookBackBufferSize += field.remaining();
+	        	offset -= field.remaining();
+	        	
+	        	lookBackBuffer.addFirst(field);
+        	}
         	
-        	cachedLastReadTag = savedLastTag;
+        	// push half read message onto stack and set the field to be the READING_INNER_MESSAGE_FIELD so that reads can continue as expected
+        	
+        	innerMessageCandidateStack.push(value);
+        	cachedLastReadTag = READING_INNER_MESSAGE_FIELD;
         }
         return value; // return the partially read message so that it can be appended to as new buffers come in.
     }
@@ -713,7 +755,7 @@ public class ByteBufferInput implements Input{
 	}
 
 	public boolean hasReadEnoughBytes() {
-		return getTotalBytesAvailable() == 0 && readEnoughBytes && offset == limit;
+		return getTotalBytesAvailable() == 0 && readEnoughBytes && offset == limit && innerMessageCandidateStack.isEmpty() && !isReadingGroup;
 	}
 
 	public void resetBuffered(){

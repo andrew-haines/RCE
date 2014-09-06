@@ -13,7 +13,7 @@ import com.haines.ml.rce.model.UnMarshalableException;
 public class ProtostuffEventMarshalBuffer<T extends Message<T> & Event> implements EventMarshalBuffer<T>{
 
 	private final Schema<T> schema;
-	private T messageBuffer;
+	T messageBuffer;
 	private ByteBufferInput input;
 	
 	public ProtostuffEventMarshalBuffer(Schema<T> schema){

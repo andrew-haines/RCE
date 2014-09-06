@@ -8,6 +8,8 @@ import java.util.Arrays;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.haines.ml.rce.model.system.Clock.StaticClock;
 import com.haines.ml.rce.naivebayes.NaiveBayesCountsProvider;
@@ -19,6 +21,8 @@ import com.haines.ml.rce.test.TestClassification;
 import com.haines.ml.rce.test.TestFeature;
 
 public class WindowManagerUnitTest {
+	
+	private static final Logger LOG = LoggerFactory.getLogger(WindowManagerUnitTest.class);
 	
 	private static final int TEST_WINDOW_PERIOD = 15000;
 	private static final int TEST_NUM_WINDOWS = 5;
@@ -352,8 +356,8 @@ public class WindowManagerUnitTest {
 		for (int i = 0; i < 12; i++){
 			candidate.addNewProvider(getTestEvents(ALL_POSTERIOR_EVENTS[i%ALL_POSTERIOR_EVENTS.length], ALL_PRIOR_EVENTS[i%ALL_PRIOR_EVENTS.length]), WindowUpdatedListener.NO_OP_LISTENER);
 			
-			System.out.println("current time: "+time);
-			System.out.println(candidate);
+			LOG.info("current time: "+time);
+			LOG.info(candidate.toString());
 			
 			time += (TEST_WINDOW_PERIOD);
 			

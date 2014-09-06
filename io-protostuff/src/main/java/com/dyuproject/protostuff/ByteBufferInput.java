@@ -35,7 +35,8 @@ public class ByteBufferInput implements Input{
 	private final ByteBuffer toLookbackBuffer = ByteBuffer.allocate(9); // maximum is 9 bytes
 	private int fieldLength = NO_VALUE_INT;
 	private int groupReadDepth = 0;
-	private Deque<Object> innerMessageCandidateStack = new ArrayDeque<Object>(1);
+	private final Deque<Object> innerMessageCandidateStack = new ArrayDeque<Object>(1);
+	private final Deque<Object> currentReadingInnerMessageStack = new ArrayDeque<Object>(1);
 	
 	public ByteBufferInput(boolean decodeNestedMessageAsGroup){
 		this.decodeNestedMessageAsGroup = decodeNestedMessageAsGroup;
@@ -84,8 +85,7 @@ public class ByteBufferInput implements Input{
 			return cachedLastReadTag;
 		}
 		
-		if (offset == limit && groupReadDepth == 0)
-        {
+		if (offset == limit && currentReadingInnerMessageStack.isEmpty()){
             return 0;
         }
 		
@@ -97,11 +97,9 @@ public class ByteBufferInput implements Input{
 		
 			final int fieldNumber = tag >>> TAG_TYPE_BITS;
 			
-			if (fieldNumber == 0)
-	        {
+			if (fieldNumber == 0) {
 	            if (decodeNestedMessageAsGroup && 
-	                    WIRETYPE_TAIL_DELIMITER == (tag & TAG_TYPE_MASK))
-	            {
+	                    WIRETYPE_TAIL_DELIMITER == (tag & TAG_TYPE_MASK)) {
 	                // protostuff's tail delimiter for streaming
 	                // 2 options: length-delimited or tail-delimited.
 	                //lastTag = 0;
@@ -112,12 +110,12 @@ public class ByteBufferInput implements Input{
 	        }
 			
 			if (decodeNestedMessageAsGroup && WIRETYPE_START_GROUP == (tag & TAG_TYPE_MASK)){
-				groupReadDepth = innerMessageCandidateStack.size() + 1;
+				groupReadDepth = currentReadingInnerMessageStack.size();
 			}
 			
-	        if (decodeNestedMessageAsGroup && WIRETYPE_END_GROUP == (tag & TAG_TYPE_MASK))
-	        {
-	        	groupReadDepth = innerMessageCandidateStack.size();
+	        if (decodeNestedMessageAsGroup && WIRETYPE_END_GROUP == (tag & TAG_TYPE_MASK)) {
+	        	groupReadDepth = currentReadingInnerMessageStack.size() -1;
+	        	//cachedLastReadTag = fieldNumber;
 	            return 0;
 	        }
 			
@@ -219,10 +217,10 @@ public class ByteBufferInput implements Input{
 		return value;
 	}
 	
-	private void get(byte[] bytes){
+	private void get(byte[] bytes){ // only call this if getTotalBytesAvailable() > bytes.length. This method does not do any checking!
 		
 		int bytesRead = 0;
-		while (!lookBackBuffer.isEmpty()){
+		while (!lookBackBuffer.isEmpty() && bytesRead < bytes.length){
 			
 			ByteBuffer nextBuffer = lookBackBuffer.peek();
 			int bytesToRead = Math.min(nextBuffer.remaining(), bytes.length);
@@ -238,10 +236,10 @@ public class ByteBufferInput implements Input{
 			}
 		}
 		
-		if (bytesRead != bytes.length){
+		if (bytesRead < bytes.length){
 			int moreBytesToRead = bytes.length - bytesRead;
 			
-			buffer.get(bytes, bytesRead, moreBytesToRead);
+			buffer.get(bytes, bytesRead, moreBytesToRead); //{45, 34, 4, -5, 6, 23,71,44, 110}); //45, 34, 4, 114, 83, 116, 114, 105, 110
 			
 			bytesRead += moreBytesToRead;
 		}
@@ -265,7 +263,6 @@ public class ByteBufferInput implements Input{
 	            }
 	            shift += 7;
 	            bytes++;
-	            System.out.println(bytes);
             } else if (bytes > 0){
             	for (int i = 0; i < bytes; i++){
             		toLookbackBuffer.put((byte)(0x7F & result >> (7*i) | 0x80));
@@ -377,18 +374,6 @@ public class ByteBufferInput implements Input{
 		}
 	}
 	
-	private static void showStats( String where, ByteBuffer b ){
-    System.out.println( where +
-                 " bufferPosition: " +
-                 b.position() +
-                 " limit: " +
-                 b.limit() +
-                 " remaining: " +
-                 b.remaining() +
-                 " capacity: " +
-                 b.capacity() +" backing array: "+Arrays.toString(b.array()));
-    }
-
 	@Override
 	public int readSInt32() throws IOException {
 		final int n = readRawVarInt32();
@@ -520,13 +505,14 @@ public class ByteBufferInput implements Input{
         final byte b8 = get();
         
         return (((long)b1 & 0xff)    ) |
-             (((long)b2 & 0xff) <<  8) |
-             (((long)b3 & 0xff) << 16) |
-             (((long)b4 & 0xff) << 24) |
-             (((long)b5 & 0xff) << 32) |
-             (((long)b6 & 0xff) << 40) |
-             (((long)b7 & 0xff) << 48) |
-             (((long)b8 & 0xff) << 56);
+                (((long)b2 & 0xff) <<  8) |
+                (((long)b3 & 0xff) << 16) |
+                (((long)b4 & 0xff) << 24) |
+                (((long)b5 & 0xff) << 32) |
+                (((long)b6 & 0xff) << 40) |
+                (((long)b7 & 0xff) << 48) |
+                (((long)b8 & 0xff) << 56);
+        
     }
 	
 
@@ -614,7 +600,13 @@ public class ByteBufferInput implements Input{
 
 	@Override
 	public ByteString readBytes() throws IOException {
-		return ByteString.wrap(readByteArray());
+		byte[] array = readByteArray();
+		
+		if (array != null){
+			return ByteString.wrap(array);
+		} else{
+			return null;
+		}
 	}
 
 	@Override
@@ -627,8 +619,9 @@ public class ByteBufferInput implements Input{
 			fieldLength = length;
 		}
 		if (readEnoughBytes){
-	        if(length < 0)
+	        if(length < 0){
 	            throw ProtobufException.negativeSize();
+	        }
 	        
 	        if (getTotalBytesAvailable() < length){ // we dont have enough to read this section of data so copy to the lookback buffer
 	        	
@@ -662,11 +655,14 @@ public class ByteBufferInput implements Input{
 //        	}
         }
         
+        currentReadingInnerMessageStack.push(value);
+        
         if (innerMessageCandidateStack.isEmpty()){
         	cachedLastReadTag = NO_TAG_SET;
         }
         
         schema.mergeFrom(this, value);
+        currentReadingInnerMessageStack.pop();
         if (!readEnoughBytes){
         	
         	// push the inner message field tag back into the lookback buffer.
@@ -688,8 +684,19 @@ public class ByteBufferInput implements Input{
         	
         	innerMessageCandidateStack.push(value);
         	cachedLastReadTag = READING_INNER_MESSAGE_FIELD;
+        } else{
+        	if (!schema.isInitialized(value)){
+        		//throw new UninitializedMessageException(value, schema);
+        	}
+        	
         }
-        return value; // return the partially read message so that it can be appended to as new buffers come in.
+    	/* 
+    	 * return the partially read message so that it can be appended to as new buffers come in. 
+    	 * Note that call by reference will mean that subsequent writes to this object will mean that 
+    	 * it's variable assignment location need not be remembered
+    	 */
+    	return value; 
+	
     }
 
 	@Override
@@ -769,6 +776,9 @@ public class ByteBufferInput implements Input{
 		cachedLastReadTag = NO_TAG_SET;
 		readEnoughBytes = true;
 		cachedLastReadTag = NO_TAG_SET;
+		groupReadDepth = 0;
+		innerMessageCandidateStack.clear();
+		currentReadingInnerMessageStack.clear();
 		toLookbackBuffer.clear();
 	}
 	

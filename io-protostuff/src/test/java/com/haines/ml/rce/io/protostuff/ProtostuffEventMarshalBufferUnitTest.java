@@ -2,16 +2,30 @@ package com.haines.ml.rce.io.protostuff;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.ByteBuffer;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.builder.ReflectionToStringBuilder;
+import org.apache.commons.lang.builder.ToStringStyle;
 import org.junit.Before;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.dyuproject.protostuff.ByteString;
 import com.dyuproject.protostuff.LinkedBuffer;
 import com.dyuproject.protostuff.ProtostuffIOUtil;
+import com.google.common.base.Function;
+import com.google.common.collect.Iterables;
 import com.haines.ml.rce.io.proto.model.EnumType;
 import com.haines.ml.rce.io.proto.model.TestInnerMessage;
 import com.haines.ml.rce.io.proto.model.TestMessage;
@@ -25,8 +39,12 @@ import static org.hamcrest.Matchers.nullValue;
 import static org.hamcrest.Matchers.hasSize;
 
 public class ProtostuffEventMarshalBufferUnitTest {
+	
+	private static final Logger LOG = LoggerFactory.getLogger(ProtostuffEventMarshalBufferUnitTest.class);
+	
+	private static final Pattern BYTE_ARRAY_EXTRACTOR = Pattern.compile(".*\\[(.*)\\]");
 
-	private static final ByteString TEST_BYTE_ARRAY = ByteString.copyFrom(new byte[]{45, 34, 4, -5, 6, 23,71,44, 110});
+	private static final ByteString TEST_BYTE_ARRAY = ByteString.copyFrom(new byte[]{45, 34, 4, -5, 6, 23, 71, 44, 110}); //45, 34, 4, -5, 6, 23, 71, 44, 110
 	private static final String TEST_INNER_STRING = "testInnerString";
 	private static final Double TEST_DOUBLE = (Double.MAX_VALUE - 3433) + 0.05;
 	private static final int TEST_FIXED_32 = 345464;
@@ -1130,14 +1148,10 @@ public class ProtostuffEventMarshalBufferUnitTest {
 		assertThat(message.getInnerMessagesList().get(1).getFeatureId(), is(equalTo(TEST_INNER_STRING)));
 	}
 	
-	//@Test //TODO Fix nested levels of object graph!
+	@Test
 	public void givenCandidate_whenCallingFullMarshalWithSmallBuffer_thenExpectedMessageReturned() throws IOException{
 		
-		ByteArrayOutputStream outputStream = new ByteArrayOutputStream(4096);
-		
-		ProtostuffIOUtil.writeTo(outputStream, createTestMessage(), TestMessage.getSchema(), LinkedBuffer.allocate(1024));
-		
-		byte[] array = outputStream.toByteArray();
+		byte[] array = getFullMessageByteArray();
 		byte[] array1 = new byte[100];
 		byte[] array2 = new byte[100];
 		byte[] array3 = new byte[100];
@@ -1158,20 +1172,25 @@ public class ProtostuffEventMarshalBufferUnitTest {
 		ByteBuffer buffer3 = ByteBuffer.wrap(array3);
 		ByteBuffer buffer4 = ByteBuffer.wrap(array4);
 		ByteBuffer buffer5 = ByteBuffer.wrap(array5);
-		ByteBuffer buffer6 = ByteBuffer.wrap(array5);
-		ByteBuffer buffer7 = ByteBuffer.wrap(array5);
+		ByteBuffer buffer6 = ByteBuffer.wrap(array6);
+		ByteBuffer buffer7 = ByteBuffer.wrap(array7);
 		
-		assertThat(candidateOptional.marshal(buffer1), is(equalTo(false)));
-		assertThat(candidateOptional.marshal(buffer2), is(equalTo(false)));
-		assertThat(candidateOptional.marshal(buffer3), is(equalTo(false)));
-		assertThat(candidateOptional.marshal(buffer4), is(equalTo(false)));
-		assertThat(candidateOptional.marshal(buffer5), is(equalTo(false)));
-		assertThat(candidateOptional.marshal(buffer6), is(equalTo(false)));
-		assertThat(candidateOptional.marshal(buffer7), is(equalTo(true)));
+		assertThat(candidate.marshal(buffer1), is(equalTo(false)));
+		assertThat(candidate.marshal(buffer2), is(equalTo(false)));
+		assertThat(candidate.marshal(buffer3), is(equalTo(false)));
+		assertThat(candidate.marshal(buffer4), is(equalTo(false)));
+		assertThat(candidate.marshal(buffer5), is(equalTo(false)));
+		assertThat(candidate.marshal(buffer6), is(equalTo(false)));
+		assertThat(candidate.marshal(buffer7), is(equalTo(true)));
 		
 		//assertThat(candidate.marshal(ByteBuffer.wrap(outputStream.toByteArray())), is(equalTo(true)));
 		
 		TestMessage message = candidate.buildEventAndResetBuffer();
+		
+		assertFullySerialisedMessage(message, true);
+	}
+	
+	private void assertFullySerialisedMessage(TestMessage message, boolean includeEmbeddedObjects){
 		
 		assertThat(message.getTestInt32(), is(equalTo(TEST_INT_32)));
 		assertThat(message.getTestInt64(), is(equalTo(TEST_LONG_64)));
@@ -1191,8 +1210,150 @@ public class ProtostuffEventMarshalBufferUnitTest {
 		assertThat(message.getInnerMessagesList().size(), is(equalTo(2)));
 		assertThat(message.getInnerMessagesList().get(0).getFeatureId(), is(equalTo(TEST_INNER_STRING)));
 		assertThat(message.getInnerMessagesList().get(1).getFeatureId(), is(equalTo(TEST_INNER_STRING)));
+		
+		if (includeEmbeddedObjects){
+			for (TestMessage messageInner: message.getMessageArrayList()){
+				assertFullySerialisedMessage(messageInner, false);
+			}
+			
+			assertFullySerialisedMessage(message.getMessage(), false);
+		}
 	}
 	
+	@Test
+	public void givenCandidate_whenCallingFullMarshalWithEdgeCaseBufferSize_thenExpectedMessageReturned() throws IOException{
+		
+		Iterable<ByteBuffer> buffers = loadByteBuffersFromFile("testBuffer1.txt");
+		Iterator<ByteBuffer> buffersIt = buffers.iterator();
+		
+		int i = 0;
+		int totalBytesRead = 0;
+		while (buffersIt.hasNext()){
+			ByteBuffer buffer = buffersIt.next();
+			
+			totalBytesRead += buffer.remaining();
+			LOG.debug("trying buffer: "+(i++));
+			
+			boolean moreToRead = candidate.marshal(buffer);
+			
+			LOG.debug("inner message now: "+ReflectionToStringBuilder.toString(candidate.messageBuffer, ToStringStyle.MULTI_LINE_STYLE));
+			assertThat(moreToRead, is(equalTo(!buffersIt.hasNext())));
+		}
+		
+		System.out.println(totalBytesRead+" bytes read");
+		
+		TestMessage message = candidate.buildEventAndResetBuffer();
+		
+		assertFullySerialisedMessage(message, true);
+	}
+	
+	@Test
+	public void givenCandidate_whenCallingFullMarshalWithEdgeCase2BufferSize_thenExpectedMessageReturned() throws IOException{
+		
+		Iterable<ByteBuffer> buffers = loadByteBuffersFromFile("testBuffer2.txt");
+		Iterator<ByteBuffer> buffersIt = buffers.iterator();
+		
+		int i = 0;
+		int totalBytesRead = 0;
+		while (buffersIt.hasNext()){
+			ByteBuffer buffer = buffersIt.next();
+			
+			totalBytesRead += buffer.remaining();
+			LOG.debug("trying buffer: "+(i++));
+			
+			boolean moreToRead = candidate.marshal(buffer);
+			
+			LOG.debug("inner message now: "+ReflectionToStringBuilder.toString(candidate.messageBuffer, ToStringStyle.MULTI_LINE_STYLE));
+			assertThat(moreToRead, is(equalTo(!buffersIt.hasNext())));
+		}
+		
+		System.out.println(totalBytesRead+" bytes read");
+		
+		TestMessage message = candidate.buildEventAndResetBuffer();
+		
+		assertFullySerialisedMessage(message, true);
+	}
+	
+	private Iterable<ByteBuffer> loadByteBuffersFromFile(String splitFileName) throws IOException {
+		
+		InputStream stream = ProtostuffEventMarshalBufferUnitTest.class.getResourceAsStream("/testBufferSplits/"+splitFileName);
+		
+		Iterable<String> bufferStrings = IOUtils.readLines(stream, Charset.defaultCharset());
+		
+		return Iterables.transform(bufferStrings, new Function<String, ByteBuffer>(){
+
+			@Override
+			public ByteBuffer apply(String input) {
+				
+				Matcher matcher = BYTE_ARRAY_EXTRACTOR.matcher(input); // strip out everything except the bytes
+				
+				matcher.find();
+				input = matcher.group(1);
+				
+				String[] byteStrs = input.split(",");
+				
+				byte[] bytes = new byte[byteStrs.length];
+				
+				for (int i = 0; i < byteStrs.length; i++){
+					bytes[i] = Byte.parseByte(byteStrs[i].trim());
+				}
+				return ByteBuffer.wrap(bytes);
+			}
+			
+		});
+	}
+
+	@Test // this test performs multiple serialisations of the Fully marshalled object with random buffers to brute force the serialisation process over multiple buffers
+	public void givenCandidate_whenCallingFullMarshalWithRandomBufferSizes_thenExpectedMessageReturned() throws IOException{
+		
+		byte[] array = getFullMessageByteArray();
+		
+		for (int i = 0; i < 20; i ++){ // attempt 20 random iterations
+			
+			int numBuffers = (int)(Math.random() * 100); // up to 100 buffers
+			
+			LOG.info("serializing random buffer attempt num : "+i+" using "+numBuffers+" buffers");
+			int bytesReadSoFar = 0;
+			
+			for (int j = 0; j < numBuffers; j++){ // now create the buffers with random split points of at least 1 byte big
+				
+				int maxBufferSize = ((array.length - bytesReadSoFar - numBuffers) / (numBuffers - j));
+				
+				int newBufferSize;
+				if (j+1 == numBuffers){
+					newBufferSize = array.length - bytesReadSoFar; // add the remaining bytes to this last buffer (with at least 1 byte)
+				} else{
+					newBufferSize = 1 + (int)(Math.random() * maxBufferSize);
+				}
+				
+				byte[] bytes = new byte[newBufferSize];
+				
+				System.arraycopy(array, bytesReadSoFar, bytes, 0, bytes.length);
+				bytesReadSoFar += bytes.length;
+				
+				//LOG.info("Creating random buffer: "+j+" with size "+newBufferSize+" ("+remainingBytesToCopy+" - "+ (array.length - bytesReadSoFar) +" bytes left to copy)");
+				
+				System.out.println(j+": = "+Arrays.toString(bytes));
+				
+				ByteBuffer newBuffer = ByteBuffer.wrap(bytes);
+				
+				assertThat(candidate.marshal(newBuffer), is(equalTo(j+1 == numBuffers))); // if it's the last buffer then this should be true
+			}
+			TestMessage message = candidate.buildEventAndResetBuffer();
+			
+			assertFullySerialisedMessage(message, true);
+		}
+	}
+	
+	private byte[] getFullMessageByteArray() throws IOException {
+
+		ByteArrayOutputStream outputStream = new ByteArrayOutputStream(4096);
+		
+		ProtostuffIOUtil.writeTo(outputStream, createTestMessage(), TestMessage.getSchema(), LinkedBuffer.allocate(1024));
+		
+		return outputStream.toByteArray();
+	}
+
 	private static TestMessage createTestMessage(){
 		TestMessage message = createSimpleTestMessage();
 		message.setMessage(createSimpleTestMessage());

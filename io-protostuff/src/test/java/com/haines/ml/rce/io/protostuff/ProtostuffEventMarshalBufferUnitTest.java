@@ -7,7 +7,6 @@ import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -37,6 +36,12 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.nullValue;
 import static org.hamcrest.Matchers.hasSize;
+
+/*
+Copyright 2014 Yahoo! Inc.
+Copyrights licensed under the [name of] License. See the accompanying LICENSE
+file for terms.
+*/
 
 public class ProtostuffEventMarshalBufferUnitTest {
 	
@@ -1232,11 +1237,11 @@ public class ProtostuffEventMarshalBufferUnitTest {
 			ByteBuffer buffer = buffersIt.next();
 			
 			totalBytesRead += buffer.remaining();
-			LOG.debug("trying buffer: "+(i++));
+			//LOG.debug("trying buffer: "+(i++));
 			
 			boolean moreToRead = candidate.marshal(buffer);
 			
-			LOG.debug("inner message now: "+ReflectionToStringBuilder.toString(candidate.messageBuffer, ToStringStyle.MULTI_LINE_STYLE));
+			//LOG.debug("inner message now: "+ReflectionToStringBuilder.toString(candidate.messageBuffer, ToStringStyle.MULTI_LINE_STYLE));
 			assertThat(moreToRead, is(equalTo(!buffersIt.hasNext())));
 		}
 		

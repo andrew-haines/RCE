@@ -65,7 +65,7 @@ public abstract class AbstractSelectorEventStreamIT<T extends SelectableChannel 
 		config = new SelectorEventStreamConfig.SelectorEventStreamConfigBuilder()
 		.bufferCapacity(getBufferCapacity())
 		.bufferType(BufferType.DIRECT_BUFFER)
-		.socketAddress(new InetSocketAddress(InetAddress.getLocalHost(), TEST_PORT))
+		.socketAddress(new InetSocketAddress(TEST_PORT))
 		.build();
 		
 		startupLatch = new CountDownLatch(1);

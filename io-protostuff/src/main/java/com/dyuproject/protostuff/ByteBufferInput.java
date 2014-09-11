@@ -14,6 +14,11 @@ import java.util.Deque;
 
 import com.dyuproject.protostuff.StringSerializer.STRING;
 
+/*
+Copyright 2014 Yahoo! Inc.
+Copyrights licensed under the [name of] License. See the accompanying LICENSE
+file for terms.
+*/
 public class ByteBufferInput implements Input{
 
 	private static final int NO_VALUE_INT = -1;

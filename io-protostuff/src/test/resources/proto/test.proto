@@ -1,3 +1,9 @@
+/*
+Copyright 2014 Yahoo! Inc.
+Copyrights licensed under the [name of] License. See the accompanying LICENSE
+file for terms.
+*/
+
 package test;
 
 option java_package = "com.haines.ml.rce.io.proto.model";

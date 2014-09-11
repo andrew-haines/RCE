@@ -10,6 +10,11 @@ import com.haines.ml.rce.model.Event;
 import com.haines.ml.rce.model.EventMarshalBuffer;
 import com.haines.ml.rce.model.UnMarshalableException;
 
+/*
+Copyright 2014 Yahoo! Inc.
+Copyrights licensed under the [name of] License. See the accompanying LICENSE
+file for terms.
+*/
 public class ProtostuffEventMarshalBuffer<T extends Message<T> & Event> implements EventMarshalBuffer<T>{
 
 	private final Schema<T> schema;

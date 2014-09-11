@@ -57,9 +57,8 @@ public class SelectorEventStream<T extends SelectableChannel & NetworkChannel, E
 		ByteBuffer buffer = createBuffer();
 		isAlive = true;
 		
+		LOG.info("Server selector ("+channelDetails.getSelector().getClass().getName()+") started on address: "+config.getAddress().toString()); 		
 		listener.streamStarted();
-		
-		LOG.info("Server selector ("+channelDetails.getSelector().getClass().getName()+") started on address: "+config.getAddress().toString()); 
 		
 		while(isAlive){
 			try{

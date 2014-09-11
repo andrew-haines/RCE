@@ -1,5 +1,7 @@
 package com.haines.ml.rce.eventstream;
 
+import javax.inject.Inject;
+
 public interface EventStreamListener {
 	
 	public static final EventStreamListener NO_OP_LISTENER = new NoOpEventStreamListener();
@@ -33,7 +35,8 @@ public interface EventStreamListener {
 	
 	public static class NoOpEventStreamListener implements EventStreamListener{
 
-		private NoOpEventStreamListener(){}
+		@Inject
+		public NoOpEventStreamListener(){}
 		
 		@Override
 		public void streamStarted() {}

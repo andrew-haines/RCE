@@ -4,17 +4,27 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.SocketAddress;
 import java.nio.ByteOrder;
+import java.nio.channels.NetworkChannel;
+import java.nio.channels.SelectableChannel;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.Executors;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
 
+import com.haines.ml.rce.dispatcher.DispatcherConsumer;
+import com.haines.ml.rce.dispatcher.DisruptorConfig;
+import com.haines.ml.rce.dispatcher.DisruptorConsumer;
 import com.haines.ml.rce.eventstream.NetworkChannelProcessor;
 import com.haines.ml.rce.eventstream.NetworkChannelProcessor.NetworkChannelProcessorProvider;
+import com.haines.ml.rce.eventstream.SelectorEventStreamConfig;
 import com.haines.ml.rce.eventstream.SelectorEventStreamConfig.BufferType;
+import com.haines.ml.rce.eventstream.SelectorEventStreamConfig.SelectorEventStreamConfigBuilder;
 
 public interface RCEConfig {
 	
@@ -76,7 +86,7 @@ public interface RCEConfig {
 		private RCEConfig getDefaultConfig() throws JAXBException {
 			InputStream defaultLocation = Util.class.getResourceAsStream(DEFAULT_CONFIG_LOC);
 			
-			return loadJaxbClass(defaultLocation);
+			return new DefaultRCEConfig(loadJaxbClass(defaultLocation));
 		}
 		
 		private RCEConfig loadJaxbClass(InputStream stream) throws JAXBException{
@@ -92,5 +102,108 @@ public interface RCEConfig {
 			return (RCEConfig)unmarshaller.unmarshal(stream);
 		}
 		
+		public SelectorEventStreamConfig getSelectorEventStreamConfig(RCEConfig config){
+			SelectorEventStreamConfigBuilder configBuilder = new SelectorEventStreamConfigBuilder()
+			.socketAddress(config.getEventStreamSocketAddress());
+
+			if (config.getEventBufferCapacity() != null){
+			configBuilder.bufferCapacity(config.getEventBufferCapacity());
+			}
+			
+			if (config.getEventBufferType() != null){
+			configBuilder.bufferType(config.getEventBufferType());
+			}
+			
+			if (config.getByteOrder() != null){
+			configBuilder.byteOrder(config.getByteOrder());
+			}
+			
+			return configBuilder.build();
+		}
+
+		public NetworkChannelProcessorProvider<?> getNetworkChannelProcessorProvider(RCEConfig config) {
+			switch (config.getEventTransportProtocal()){
+				case TCP:{
+					return NetworkChannelProcessor.TCP_PROVIDER;
+				} case UDP:{
+					return NetworkChannelProcessor.UDP_PROVIDER;
+				} default:{
+					throw new IllegalArgumentException("unknown stream type: "+config.getEventTransportProtocal());
+				}
+			}
+		}
+		
+		public DisruptorConfig getDisruptorConfig(RCEConfig config){
+			
+			return new DisruptorConfig.Builder().ringSize(config.getDisruptorRingSize()).build();
+		}
 	}
+	
+	/**
+	 * Provides programmatic default values. Used to dynamically compute the default number of workers based
+	 * on the number of CPU cores available to the system
+	 * @author haines
+	 *
+	 */
+	public static class DefaultRCEConfig implements RCEConfig{
+
+		private final RCEConfig delegate;
+		
+		private DefaultRCEConfig(RCEConfig delegate){
+			this.delegate = delegate;
+		}
+		
+		@Override
+		public Integer getNumberOfEventWorkers() {
+			return Runtime.getRuntime().availableProcessors() - 1; // 1 cpu should be used for the event dispatching
+		}
+
+		@Override
+		public StreamType getEventTransportProtocal() {
+			return delegate.getEventTransportProtocal();
+		}
+
+		@Override
+		public Integer getEventBufferCapacity() {
+			return delegate.getEventBufferCapacity();
+		}
+
+		@Override
+		public BufferType getEventBufferType() {
+			return delegate.getEventBufferType();
+		}
+
+		@Override
+		public ByteOrder getByteOrder() {
+			return delegate.getByteOrder();
+		}
+
+		@Override
+		public SocketAddress getEventStreamSocketAddress() {
+			return delegate.getEventStreamSocketAddress();
+		}
+
+		@Override
+		public Integer getFirstAccumulatorLineBitDepth() {
+			return delegate.getFirstAccumulatorLineBitDepth();
+		}
+
+		@Override
+		public Integer getSecondAccumulatorLineBitDepth() {
+			return delegate.getSecondAccumulatorLineBitDepth();
+		}
+
+		@Override
+		public Integer getFinalAccumulatorLineBitDepth() {
+			return delegate.getFinalAccumulatorLineBitDepth();
+		}
+
+		@Override
+		public int getDisruptorRingSize() {
+			return delegate.getDisruptorRingSize();
+		}
+		
+	}
+
+	int getDisruptorRingSize();
 }

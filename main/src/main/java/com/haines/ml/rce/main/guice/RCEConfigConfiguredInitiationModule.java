@@ -33,6 +33,7 @@ import com.haines.ml.rce.eventstream.SelectorEventStreamFactory;
 import com.haines.ml.rce.eventstream.NetworkChannelProcessor.NetworkChannelProcessorProvider;
 import com.haines.ml.rce.main.RCEApplication;
 import com.haines.ml.rce.main.config.RCEConfig;
+import com.haines.ml.rce.main.factory.RCEApplicationFactory;
 import com.haines.ml.rce.model.Event;
 import com.haines.ml.rce.model.EventConsumer;
 import com.haines.ml.rce.model.EventConsumerFactory;
@@ -59,7 +60,7 @@ public abstract class RCEConfigConfiguredInitiationModule<T extends SelectableCh
 		try{
 			bind(RCEApplication.class).in(Scopes.SINGLETON);
 			bind(SelectorEventStreamConfig.class).toProvider(SelectorEventStreamConfigProvider.class).in(Scopes.SINGLETON);
-			bind(RCEConfig.class).toInstance(loadConfig(overrideLocation));
+			bind(RCEConfig.class).toInstance(RCEApplicationFactory.UTIL.loadConfig(overrideLocation));
 			bind(Clock.class).to(getClockType());
 			bind(EventStreamListener.class).to(getEventStreamListenerType());
 			bind(EventStream.class).to(getSelectorEventStreamType()).in(Scopes.SINGLETON); // TODO maybe not singleton if we want multiple selectors but lets think about this some more
@@ -67,7 +68,7 @@ public abstract class RCEConfigConfiguredInitiationModule<T extends SelectableCh
 			bind(TypeLiteral.get(Types.newParameterizedType(EventMarshalBuffer.class, eventType))).toProvider((Provider)eventMarshallerProvider);
 			bind(TypeLiteral.get(Types.newParameterizedType(Iterable.class, Types.newParameterizedType(DispatcherConsumer.class, eventType)))).toProvider((Class)getDispatcherConsumersProviderType()).in(Scopes.SINGLETON);
 			bind(TypeLiteral.get(Types.newParameterizedType(Dispatcher.class, eventType))).in(Scopes.SINGLETON);
-			bind(TypeLiteral.get(Types.newParameterizedType(EventConsumerFactory.class, eventType, Types.subtypeOf(Types.newParameterizedType(EventConsumer.class, eventType))))).annotatedWith(Names.named(PRIMARY_CONSUMER_BIND_KEY)).to((Class)getEventConsumerFactoryType()).in(Scopes.SINGLETON);
+			bind(TypeLiteral.get(Types.newParameterizedType(EventConsumerFactory.class, eventType, Types.subtypeOf(Types.newParameterizedType(EventConsumer.class, eventType))))).annotatedWith(Names.named(PRIMARY_CONSUMER_BIND_KEY)).toProvider((Class)getEventConsumerFactoryProviderType()).in(Scopes.SINGLETON);
 		} catch (JAXBException | IOException e){
 			throw new RuntimeException("Unable to configure RCE module from JAXB config", e);
 		}
@@ -90,16 +91,7 @@ public abstract class RCEConfigConfiguredInitiationModule<T extends SelectableCh
 		return NetworkChannelProcessorGuiceProvider.class;
 	}
 	
-	protected abstract Class<? extends EventConsumerFactory<E, ? extends EventConsumer<E>>> getEventConsumerFactoryType();
-	
-	private static RCEConfig loadConfig(String overrideLocation) throws JAXBException, IOException {
-		Path overrideLocationPath = null;
-		if (overrideLocation != null){
-			overrideLocationPath = Paths.get(overrideLocation);
-		}
-		
-		return RCEConfig.UTIL.loadConfig(overrideLocationPath);
-	}
+	protected abstract Class<Provider<? extends EventConsumerFactory<E, ? extends EventConsumer<E>>>> getEventConsumerFactoryProviderType();
 
 	/**
 	 * Override if you require a custom event stream provider
@@ -120,22 +112,7 @@ public abstract class RCEConfigConfiguredInitiationModule<T extends SelectableCh
 		}
 		@Override
 		public SelectorEventStreamConfig get() {
-			SelectorEventStreamConfigBuilder configBuilder = new SelectorEventStreamConfigBuilder()
-																.socketAddress(config.getEventStreamSocketAddress());
-			
-			if (config.getEventBufferCapacity() != null){
-				configBuilder.bufferCapacity(config.getEventBufferCapacity());
-			}
-			
-			if (config.getEventBufferType() != null){
-				configBuilder.bufferType(config.getEventBufferType());
-			}
-			
-			if (config.getByteOrder() != null){
-				configBuilder.byteOrder(config.getByteOrder());
-			}
-												
-			return configBuilder.build();									
+			return RCEConfig.UTIL.getSelectorEventStreamConfig(config);								
 		}
 	}
 	
@@ -150,15 +127,7 @@ public abstract class RCEConfigConfiguredInitiationModule<T extends SelectableCh
 		
 		@Override
 		public NetworkChannelProcessorProvider<?> get() {
-			switch (config.getEventTransportProtocal()){
-				case TCP:{
-					return NetworkChannelProcessor.TCP_PROVIDER;
-				} case UDP:{
-					return NetworkChannelProcessor.UDP_PROVIDER;
-				} default:{
-					throw new IllegalArgumentException("unknown stream type: "+config.getEventTransportProtocal());
-				}
-			}
+			return RCEConfig.UTIL.getNetworkChannelProcessorProvider(config);
 		}
 		
 	}

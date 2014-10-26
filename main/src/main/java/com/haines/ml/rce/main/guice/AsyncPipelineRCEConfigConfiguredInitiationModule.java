@@ -2,23 +2,17 @@ package com.haines.ml.rce.main.guice;
 
 import java.nio.channels.NetworkChannel;
 import java.nio.channels.SelectableChannel;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ThreadFactory;
 
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Provider;
 
 import com.google.inject.Scopes;
-import com.google.inject.TypeLiteral;
 import com.google.inject.binder.LinkedBindingBuilder;
 import com.google.inject.name.Names;
 import com.haines.ml.rce.accumulator.AccumulatorConfig;
 import com.haines.ml.rce.accumulator.AccumulatorEventConsumer;
 import com.haines.ml.rce.accumulator.AccumulatorLookupStrategy;
-import com.haines.ml.rce.accumulator.AsyncPipelineAccumulatorController;
-import com.haines.ml.rce.accumulator.lookups.RONaiveBayesMapBasedLookupStrategy;
 import com.haines.ml.rce.main.config.RCEConfig;
 import com.haines.ml.rce.model.Event;
 import com.haines.ml.rce.model.EventConsumer;
@@ -71,23 +65,30 @@ public class AsyncPipelineRCEConfigConfiguredInitiationModule<T extends Selectab
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@Override
-	protected Class<? extends EventConsumerFactory<E, ? extends EventConsumer<E>>> getEventConsumerFactoryType() {
-		return (Class)PipelineEventConsumerFactory.class;
+	protected Class<Provider<? extends EventConsumerFactory<E, ? extends EventConsumer<E>>>> getEventConsumerFactoryProviderType() {
+		return (Class)PipelineEventConsumerFactoryProvider.class;
 	}
 	
-	public static class PipelineEventConsumerFactory<E extends Event, EC extends EventConsumer<E>> implements EventConsumerFactory<E, PipelinedEventConsumer<E, EC>>{
+	public static class PipelineEventConsumerFactoryProvider<E extends Event, EC extends EventConsumer<E>> implements Provider<EventConsumerFactory<E, PipelinedEventConsumer<E, EC>>>{
 
 		private final EventConsumerFactory<E, EC> downstreamConsumer;
 		
 		@Inject
-		public PipelineEventConsumerFactory(@Named(DOWNSTREAM_CONSUMER_BIND_KEY) EventConsumerFactory<E, EC> downstreamConsumer){
+		public PipelineEventConsumerFactoryProvider(@Named(DOWNSTREAM_CONSUMER_BIND_KEY) EventConsumerFactory<E, EC> downstreamConsumer){
 			this.downstreamConsumer = downstreamConsumer;
 		}
-
+		
 		@Override
-		public PipelinedEventConsumer<E, EC> create() {
-			return new PipelinedEventConsumer<E, EC>(downstreamConsumer.create(), downstreamConsumer.create());
+		public EventConsumerFactory<E, PipelinedEventConsumer<E, EC>> get() {
+			return new EventConsumerFactory<E, PipelinedEventConsumer<E, EC>>() {
+
+				@Override
+				public PipelinedEventConsumer<E, EC> create() {
+					return new PipelinedEventConsumer<E, EC>(downstreamConsumer.create(), downstreamConsumer.create());
+				}
+			};
 		}
+		
 	}
 	
 	public static class AccumulatorEventConsumerFactory<E extends Event> implements EventConsumerFactory<E, AccumulatorEventConsumer<E>>{

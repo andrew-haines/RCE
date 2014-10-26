@@ -23,5 +23,4 @@ public class GuiceRCEApplicationFactory implements RCEApplicationFactory{
 		
 		return injector.getInstance(RCEApplication.class);
 	}
-
 }

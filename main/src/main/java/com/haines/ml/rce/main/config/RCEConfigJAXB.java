@@ -35,6 +35,8 @@ public class RCEConfigJAXB implements RCEConfig{
 	private Integer accumulatorSecondLineBitDepth;
 
 	private Integer accumulatorFinalLineBitDepth;
+	
+	private int disruptorRingSize;
 
 	@Override
 	@XmlElement
@@ -66,6 +68,12 @@ public class RCEConfigJAXB implements RCEConfig{
 	@XmlElement
 	public BufferType getEventBufferType() {
 		return eventBufferType;
+	}
+	
+	@Override
+	@XmlElement
+	public int getDisruptorRingSize() {
+		return disruptorRingSize;
 	}
 
 	@Override
@@ -139,8 +147,7 @@ public class RCEConfigJAXB implements RCEConfig{
 		return accumulatorFirstLineBitDepth;
 	}
 
-	public void setAccumulatorFirstLineBitDepth(
-			Integer accumulatorFirstLineBitDepth) {
+	public void setAccumulatorFirstLineBitDepth(Integer accumulatorFirstLineBitDepth) {
 		this.accumulatorFirstLineBitDepth = accumulatorFirstLineBitDepth;
 	}
 
@@ -149,8 +156,7 @@ public class RCEConfigJAXB implements RCEConfig{
 		return accumulatorSecondLineBitDepth;
 	}
 
-	public void setAccumulatorSecondLineBitDepth(
-			Integer accumulatorSecondLineBitDepth) {
+	public void setAccumulatorSecondLineBitDepth(Integer accumulatorSecondLineBitDepth) {
 		this.accumulatorSecondLineBitDepth = accumulatorSecondLineBitDepth;
 	}
 
@@ -159,8 +165,11 @@ public class RCEConfigJAXB implements RCEConfig{
 		return accumulatorFinalLineBitDepth;
 	}
 
-	public void setAccumulatorFinalLineBitDepth(
-			Integer accumulatorFinalLineBitDepth) {
+	public void setAccumulatorFinalLineBitDepth(Integer accumulatorFinalLineBitDepth) {
 		this.accumulatorFinalLineBitDepth = accumulatorFinalLineBitDepth;
+	}
+	
+	public void setDisruptorRingSize(int disruptorRingSize){
+		this.disruptorRingSize = disruptorRingSize;
 	}
 }

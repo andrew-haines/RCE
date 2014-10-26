@@ -133,4 +133,15 @@ public class OverrideRCEConfig implements RCEConfig{
 		
 		return value;
 	}
+
+	@Override
+	public int getDisruptorRingSize() {
+		return doOverride(new ValueGetter<Integer>() {
+
+			@Override
+			public Integer getValue(RCEConfig config) {
+				return config.getDisruptorRingSize();
+			}
+		});
+	}
 }

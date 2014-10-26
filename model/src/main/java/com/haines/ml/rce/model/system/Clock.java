@@ -1,6 +1,8 @@
 package com.haines.ml.rce.model.system;
 
 public interface Clock {
+	
+	public final static Clock SYSTEM_CLOCK = new SystemClock();
 
 	long getCurrentTime();
 	

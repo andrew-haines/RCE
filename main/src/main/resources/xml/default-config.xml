@@ -1,5 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <config>
     
-    
+    <aysyncPushIntervalMs>15000</aysyncPushIntervalMs>
+    <accumulator>
+        <firstLineBitDepth>4</firstLineBitDepth>
+        <secondLineBitDepth>4</secondLineBitDepth>
+        <finalLineBitDepth>4</finalLineBitDepth>
+    </accumulator>
 </config>

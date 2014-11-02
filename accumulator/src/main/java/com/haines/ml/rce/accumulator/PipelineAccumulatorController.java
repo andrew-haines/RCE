@@ -6,6 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.haines.ml.rce.accumulator.model.AccumulatedEvent;
+import com.haines.ml.rce.model.Event;
 import com.haines.ml.rce.model.EventConsumer;
 import com.haines.ml.rce.model.PipelinedEventConsumer;
 import com.haines.ml.rce.model.system.Clock;
@@ -43,7 +44,7 @@ import com.haines.ml.rce.model.system.SystemStartedListener;
  * @author haines
  *
  */
-public class PipelineAccumulatorController<T extends AccumulatorLookupStrategy<?>> implements SystemStartedListener{
+public class PipelineAccumulatorController implements SystemStartedListener{
 
 	private static final Logger LOG = LoggerFactory.getLogger(PipelineAccumulatorController.class);
 	
@@ -57,7 +58,7 @@ public class PipelineAccumulatorController<T extends AccumulatorLookupStrategy<?
 		this.config = config;
 	}
 	
-	void pushIfRequired(AccumulatorEventConsumer<?> sourceConsumer, EventConsumer<AccumulatedEvent<T>> nextStageConsumer){
+	<E extends Event, T extends AccumulatorLookupStrategy<E>> void pushIfRequired(AccumulatorEventConsumer<E> sourceConsumer, EventConsumer<AccumulatedEvent<T>> nextStageConsumer){
 		long currentTime = systemClock.getCurrentTime();
 		
 		if (currentTime > nextPushToPipe){ // we need to push data to pipe. Basically set up memory barrier for consumer to read data
@@ -65,7 +66,7 @@ public class PipelineAccumulatorController<T extends AccumulatorLookupStrategy<?
 		}
 	}
 
-	protected void pushToPipe(AccumulatorEventConsumer<?> sourceConsumer, EventConsumer<AccumulatedEvent<T>> nextStageConsumer) {
+	protected <E extends Event, T extends AccumulatorLookupStrategy<?>> void pushToPipe(AccumulatorEventConsumer<E> sourceConsumer, EventConsumer<? super AccumulatedEvent<T>> nextStageConsumer) {
 		LOG.debug("Pushing to downstream consumer at push time: "+nextPushToPipe);
 
 		AccumulatorProvider provider = sourceConsumer.getAccumulatorProvider(); // we now control this accumulator. All operations are now atomic.

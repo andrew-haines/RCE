@@ -1,4 +1,4 @@
-package com.haines.ml.rce.main.config;
+package com.haines.ml.rce.main.config.jaxb;
 
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
@@ -8,6 +8,8 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
 import com.haines.ml.rce.eventstream.SelectorEventStreamConfig.BufferType;
+import com.haines.ml.rce.main.config.RCEConfig;
+import com.haines.ml.rce.main.config.RCEConfig.StreamType;
 
 @XmlRootElement(name="config")
 public class RCEConfigJAXB implements RCEConfig{
@@ -30,13 +32,11 @@ public class RCEConfigJAXB implements RCEConfig{
 
 	private String eventStreamHost;
 
-	private Integer accumulatorFirstLineBitDepth;
-
-	private Integer accumulatorSecondLineBitDepth;
-
-	private Integer accumulatorFinalLineBitDepth;
+	private AccumulatorConfigJaxB accumulatorConfig;
 	
 	private int disruptorRingSize;
+	
+	private long asyncPushIntervalMs;
 
 	@Override
 	@XmlElement
@@ -94,17 +94,17 @@ public class RCEConfigJAXB implements RCEConfig{
 
 	@Override
 	public Integer getFirstAccumulatorLineBitDepth() {
-		return getAccumulatorFirstLineBitDepth();
+		return getAccumulatorConfig().getAccumulatorFirstLineBitDepth();
 	}
 
 	@Override
 	public Integer getSecondAccumulatorLineBitDepth() {
-		return getAccumulatorSecondLineBitDepth();
+		return getAccumulatorConfig().getAccumulatorSecondLineBitDepth();
 	}
 
 	@Override
 	public Integer getFinalAccumulatorLineBitDepth() {
-		return getAccumulatorFinalLineBitDepth();
+		return getAccumulatorConfig().getAccumulatorFinalLineBitDepth();
 	}
 
 	public void setEventBufferCapacity(Integer eventBufferCapacity) {
@@ -141,35 +141,27 @@ public class RCEConfigJAXB implements RCEConfig{
 	public void setEventStreamHost(String eventStreamHost) {
 		this.eventStreamHost = eventStreamHost;
 	}
-
-	@XmlElement
-	public Integer getAccumulatorFirstLineBitDepth() {
-		return accumulatorFirstLineBitDepth;
-	}
-
-	public void setAccumulatorFirstLineBitDepth(Integer accumulatorFirstLineBitDepth) {
-		this.accumulatorFirstLineBitDepth = accumulatorFirstLineBitDepth;
-	}
-
-	@XmlElement
-	public Integer getAccumulatorSecondLineBitDepth() {
-		return accumulatorSecondLineBitDepth;
-	}
-
-	public void setAccumulatorSecondLineBitDepth(Integer accumulatorSecondLineBitDepth) {
-		this.accumulatorSecondLineBitDepth = accumulatorSecondLineBitDepth;
-	}
-
-	@XmlElement
-	public Integer getAccumulatorFinalLineBitDepth() {
-		return accumulatorFinalLineBitDepth;
-	}
-
-	public void setAccumulatorFinalLineBitDepth(Integer accumulatorFinalLineBitDepth) {
-		this.accumulatorFinalLineBitDepth = accumulatorFinalLineBitDepth;
-	}
 	
 	public void setDisruptorRingSize(int disruptorRingSize){
 		this.disruptorRingSize = disruptorRingSize;
+	}
+
+	@Override
+	@XmlElement(name="aysyncPushIntervalMs")
+	public long getAsyncPushIntervalMs() {
+		return asyncPushIntervalMs;
+	}
+	
+	public void setAsyncPushIntervalMs(long asyncPushIntervalMs){
+		this.asyncPushIntervalMs = asyncPushIntervalMs;
+	}
+
+	@XmlElement(name="accumulator")
+	public AccumulatorConfigJaxB getAccumulatorConfig() {
+		return accumulatorConfig;
+	}
+
+	public void setAccumulatorConfig(AccumulatorConfigJaxB accumulator) {
+		this.accumulatorConfig = accumulator;
 	}
 }

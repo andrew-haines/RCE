@@ -17,6 +17,7 @@ import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
 
+import com.haines.ml.rce.accumulator.PipelineAccumulatorConfig;
 import com.haines.ml.rce.dispatcher.DispatcherConsumer;
 import com.haines.ml.rce.dispatcher.DisruptorConfig;
 import com.haines.ml.rce.dispatcher.DisruptorConsumer;
@@ -25,6 +26,7 @@ import com.haines.ml.rce.eventstream.NetworkChannelProcessor.NetworkChannelProce
 import com.haines.ml.rce.eventstream.SelectorEventStreamConfig;
 import com.haines.ml.rce.eventstream.SelectorEventStreamConfig.BufferType;
 import com.haines.ml.rce.eventstream.SelectorEventStreamConfig.SelectorEventStreamConfigBuilder;
+import com.haines.ml.rce.main.config.jaxb.RCEConfigJAXB;
 
 public interface RCEConfig {
 	
@@ -62,6 +64,8 @@ public interface RCEConfig {
 	Integer getSecondAccumulatorLineBitDepth();
 	
 	Integer getFinalAccumulatorLineBitDepth();
+	
+	long getAsyncPushIntervalMs();
 	
 	public static class Util{
 		
@@ -137,6 +141,16 @@ public interface RCEConfig {
 			
 			return new DisruptorConfig.Builder().ringSize(config.getDisruptorRingSize()).build();
 		}
+		
+		public PipelineAccumulatorConfig getPipelineAccumulatorConfig(final RCEConfig config){
+			return new PipelineAccumulatorConfig() {
+				
+				@Override
+				public long getPushIntervalTimeMs() {
+					return config.getAsyncPushIntervalMs();
+				}
+			};
+		}
 	}
 	
 	/**
@@ -201,6 +215,11 @@ public interface RCEConfig {
 		@Override
 		public int getDisruptorRingSize() {
 			return delegate.getDisruptorRingSize();
+		}
+
+		@Override
+		public long getAsyncPushIntervalMs() {
+			return delegate.getAsyncPushIntervalMs();
 		}
 		
 	}

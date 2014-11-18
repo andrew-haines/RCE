@@ -1,13 +1,13 @@
 package com.haines.ml.rce.eventstream;
 
-import java.util.Arrays;
-
 import javax.inject.Inject;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public interface EventStreamListener {
+import com.haines.ml.rce.model.system.SystemListener;
+
+public interface EventStreamListener extends SystemListener{
 	
 	public static final Util UTIL = new Util();
 	
@@ -44,8 +44,8 @@ public interface EventStreamListener {
 		
 		private Util(){}
 		
-		public EventStreamListener chainListeners(EventStreamListener... listeners){
-			return new MultipleEventStreamListener(Arrays.asList(listeners));
+		public EventStreamListener chainListeners(Iterable<EventStreamListener> listeners){
+			return new MultipleEventStreamListener(listeners);
 		}
 	}
 	

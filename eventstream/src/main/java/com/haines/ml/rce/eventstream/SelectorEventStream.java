@@ -171,6 +171,7 @@ public class SelectorEventStream<T extends SelectableChannel & NetworkChannel, E
 		
 		if (isAlive()){
 			executingThread.interrupt();
+			isAlive = false;
 		}
 	}
 	

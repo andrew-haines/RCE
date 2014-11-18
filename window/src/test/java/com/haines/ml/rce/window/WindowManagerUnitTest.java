@@ -119,7 +119,7 @@ public class WindowManagerUnitTest {
 		candidate = new WindowManager(new WindowConfig(){
 
 			@Override
-			public int getWindowPeriod() {
+			public long getWindowPeriod() {
 				return TEST_WINDOW_PERIOD;
 			}
 

@@ -4,6 +4,7 @@ import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.Module;
 import com.haines.ml.rce.main.RCEApplication;
+import com.haines.ml.rce.model.system.SystemListener;
 
 public class GuiceRCEApplicationFactory implements RCEApplicationFactory{
 	
@@ -22,5 +23,10 @@ public class GuiceRCEApplicationFactory implements RCEApplicationFactory{
 		Injector injector = Guice.createInjector(getInitialisationModule(configOverrideLocation));
 		
 		return injector.getInstance(RCEApplication.class);
+	}
+
+	@Override
+	public void addSystemListeners(Iterable<SystemListener> startupListeners) {
+		// NOOP
 	}
 }

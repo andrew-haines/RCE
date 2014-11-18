@@ -56,7 +56,7 @@ import org.slf4j.LoggerFactory;
  * @param <E>
  * @param <T>
  */
-public class PipelinedEventConsumer<E extends Event, T extends EventConsumer<E>> implements EventConsumer<E>{
+public class PipelinedEventConsumer<E extends Event, T extends EventConsumer<? super E>> implements EventConsumer<E>{
 
 	private final static Logger LOG = LoggerFactory.getLogger(PipelinedEventConsumer.class);
 	private final static byte LIVE_CONSUMER_MASK = 0x1;

@@ -4,12 +4,12 @@ public interface Classification {
 
 	public static final Classification UNKNOWN = new Classification(){
 
-		@Override
-		public String toExternalForm() {
-			return "Unknown";
-		}
+//		@Override
+//		public String toExternalForm() {
+//			return "Unknown";
+//		}
 		
 	};
 	
-	String toExternalForm();
+	//String toExternalForm();
 }

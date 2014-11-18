@@ -156,4 +156,26 @@ public class OverrideRCEConfig implements RCEConfig{
 			
 		});
 	}
+
+	@Override
+	public int getNumWindows() {
+		return doOverride(new ValueGetter<Integer>(){
+
+			@Override
+			public Integer getValue(RCEConfig config) {
+				return config.getNumWindows();
+			}
+		});
+	}
+
+	@Override
+	public long getWindowPeriod() {
+		return doOverride(new ValueGetter<Long>(){
+
+			@Override
+			public Long getValue(RCEConfig config) {
+				return config.getWindowPeriod();
+			}
+		});
+	}
 }

@@ -9,7 +9,6 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 import com.haines.ml.rce.eventstream.SelectorEventStreamConfig.BufferType;
 import com.haines.ml.rce.main.config.RCEConfig;
-import com.haines.ml.rce.main.config.RCEConfig.StreamType;
 
 @XmlRootElement(name="config")
 public class RCEConfigJAXB implements RCEConfig{
@@ -20,7 +19,7 @@ public class RCEConfigJAXB implements RCEConfig{
 
 	private int numberOfEventWorkers;
 	
-	private StreamType eventTransportProtocol;
+	private TransportConfigJaxB transport;
 	
 	private Integer eventBufferCapacity;
 	
@@ -28,15 +27,13 @@ public class RCEConfigJAXB implements RCEConfig{
 	
 	private String eventByteOrder;
 
-	private int eventStreamPort;
-
-	private String eventStreamHost;
-
 	private AccumulatorConfigJaxB accumulatorConfig;
 	
 	private int disruptorRingSize;
 	
 	private long asyncPushIntervalMs;
+	
+	private WindowConfigJaxB window;
 
 	@Override
 	@XmlElement
@@ -49,13 +46,8 @@ public class RCEConfigJAXB implements RCEConfig{
 	}
 
 	@Override
-	@XmlElement
 	public StreamType getEventTransportProtocal() {
-		return eventTransportProtocol;
-	}
-
-	public void setEventTransportProtocal(StreamType type){
-		this.eventTransportProtocol = type;
+		return StreamType.valueOf(transport.getProtocol());
 	}
 
 	@Override
@@ -89,7 +81,7 @@ public class RCEConfigJAXB implements RCEConfig{
 
 	@Override
 	public SocketAddress getEventStreamSocketAddress() {
-		return InetSocketAddress.createUnresolved(getEventStreamHost(), getEventStreamPort());
+		return new InetSocketAddress(getEventStreamHost(), getEventStreamPort());
 	}
 
 	@Override
@@ -124,22 +116,12 @@ public class RCEConfigJAXB implements RCEConfig{
 		this.eventByteOrder = eventByteOrder;
 	}
 
-	@XmlElement
 	public int getEventStreamPort() {
-		return eventStreamPort;
+		return transport.getPort();
 	}
 
-	public void setEventStreamPort(int eventStreamPort) {
-		this.eventStreamPort = eventStreamPort;
-	}
-
-	@XmlElement
 	public String getEventStreamHost() {
-		return eventStreamHost;
-	}
-
-	public void setEventStreamHost(String eventStreamHost) {
-		this.eventStreamHost = eventStreamHost;
+		return transport.getHost();
 	}
 	
 	public void setDisruptorRingSize(int disruptorRingSize){
@@ -163,5 +145,33 @@ public class RCEConfigJAXB implements RCEConfig{
 
 	public void setAccumulatorConfig(AccumulatorConfigJaxB accumulator) {
 		this.accumulatorConfig = accumulator;
+	}
+
+	@Override
+	public int getNumWindows() {
+		return getWindow().getNumWindows();
+	}
+
+	@Override
+	public long getWindowPeriod() {
+		return getWindow().getWindowSizeMs();
+	}
+
+	@XmlElement(name="window")
+	public WindowConfigJaxB getWindow() {
+		return window;
+	}
+
+	public void setWindow(WindowConfigJaxB window) {
+		this.window = window;
+	}
+
+	@XmlElement
+	public TransportConfigJaxB getTransport() {
+		return transport;
+	}
+
+	public void setTransport(TransportConfigJaxB transport) {
+		this.transport = transport;
 	}
 }

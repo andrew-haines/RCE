@@ -8,6 +8,7 @@ import javax.xml.bind.JAXBException;
 
 import com.haines.ml.rce.main.RCEApplication;
 import com.haines.ml.rce.main.config.RCEConfig;
+import com.haines.ml.rce.model.system.SystemListener;
 
 public interface RCEApplicationFactory {
 	
@@ -28,4 +29,6 @@ public interface RCEApplicationFactory {
 			return RCEConfig.UTIL.loadConfig(overrideLocationPath);
 		}
 	}
+
+	void addSystemListeners(Iterable<SystemListener> startupListeners);
 }

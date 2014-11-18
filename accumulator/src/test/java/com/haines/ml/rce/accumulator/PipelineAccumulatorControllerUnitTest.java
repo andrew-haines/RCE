@@ -1,21 +1,31 @@
 package com.haines.ml.rce.accumulator;
 
+import org.junit.Before;
+
 import com.haines.ml.rce.model.Event;
 import com.haines.ml.rce.model.system.Clock.StaticClock;
 
-public class PipelineAccumulatorEventConsumerUnitTest {
+public class PipelineAccumulatorControllerUnitTest {
 
 	private static final long INITIAL_STARTUP_TIME = System.currentTimeMillis();
-	//private static final TestConfig TEST_CONFIG = new TestConfig();
+	private static final PipelineAccumulatorConfig TEST_CONFIG = new PipelineAccumulatorConfig(){
+
+		@Override
+		public long getPushIntervalTimeMs() {
+			return 100;
+		}
+		
+	};
 	
-	private PipelineAccumulatorController<TestAccumulatorLookupStrategy> candidate;
+	private PipelineAccumulatorController candidate;
 	private StaticClock clock;
 	
+	@Before
 	public void before(){
 		
 		clock = new StaticClock(INITIAL_STARTUP_TIME);
 		
-		//candidate = new PipelineAccumulatorEventConsumer<TestEvent>(new AccumulatorEventConsumer<TestEvent>(TEST_CONFIG, new TestAccumulatorLookupStrategy()), nextStageConsumer, clock, TEST_CONFIG);
+		candidate = new PipelineAccumulatorController(clock, TEST_CONFIG);
 		candidate.systemStarted();
 	}
 	

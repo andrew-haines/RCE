@@ -2,9 +2,20 @@
 <config>
     
     <aysyncPushIntervalMs>15000</aysyncPushIntervalMs>
+    <disruptorRingSize>1024</disruptorRingSize>
+    <eventByteOrder>big</eventByteOrder>
+    <transport>
+        <protocol>UDP</protocol>
+        <host>localhost</host>
+        <port>8080</port>
+    </transport>
     <accumulator>
         <firstLineBitDepth>4</firstLineBitDepth>
         <secondLineBitDepth>4</secondLineBitDepth>
         <finalLineBitDepth>4</finalLineBitDepth>
     </accumulator>
+    <window> <!-- 8.3 minutes in total -->
+        <windowSizeMs>5000</windowSizeMs>
+        <numWindows>100</numWindows>
+    </window>
 </config>

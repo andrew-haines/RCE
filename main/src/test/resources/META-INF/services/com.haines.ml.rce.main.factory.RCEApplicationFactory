@@ -1,1 +1,1 @@
-com.haines.ml.rce.main.factory.TestGuiceRCEApplicationFactory
+com.haines.ml.rce.main.factory.TestNaiveBayesRCEApplicationFactory

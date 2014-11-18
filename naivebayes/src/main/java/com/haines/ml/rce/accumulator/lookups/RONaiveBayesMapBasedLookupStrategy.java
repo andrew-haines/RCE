@@ -25,13 +25,13 @@ public class RONaiveBayesMapBasedLookupStrategy implements AccumulatorLookupStra
 	public int[] getSlots(ClassifiedEvent event) {
 		
 		// accumulator for all feature->classification pairs and then all classifications
-		int[] accumulatorIndexesToUpdate = new int[(event.getFeatures().size() * event.getClassifications().size()) + event.getClassifications().size()];
+		int[] accumulatorIndexesToUpdate = new int[(event.getFeaturesList().size() * event.getClassificationsList().size()) + event.getClassificationsList().size()];
 		
 		int idx = 0;
-		Iterator<Feature> featureIt = event.getFeatures().iterator();
+		Iterator<? extends Feature> featureIt = event.getFeaturesList().iterator();
 		for (; featureIt.hasNext();){
 			Feature feature = featureIt.next();
-			Iterator<Classification> classificationIt = event.getClassifications().iterator();
+			Iterator<? extends Classification> classificationIt = event.getClassificationsList().iterator();
 			for (; classificationIt.hasNext();){
 				Classification classification = classificationIt.next();
 				
@@ -47,7 +47,7 @@ public class RONaiveBayesMapBasedLookupStrategy implements AccumulatorLookupStra
 		
 		// now add the classification accumulator idxs
 		
-		Iterator<Classification> classificationIt = event.getClassifications().iterator();
+		Iterator<? extends Classification> classificationIt = event.getClassificationsList().iterator();
 		
 		for (; classificationIt.hasNext();){
 			Classification classification = classificationIt.next();

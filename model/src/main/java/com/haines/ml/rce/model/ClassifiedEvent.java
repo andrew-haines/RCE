@@ -4,5 +4,5 @@ import java.util.Collection;
 
 public interface ClassifiedEvent extends FeaturedEvent{
 
-	Collection<Classification> getClassifications();
+	Collection<? extends Classification> getClassificationsList();
 }

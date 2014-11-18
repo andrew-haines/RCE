@@ -17,12 +17,12 @@ public class TestEvent implements ClassifiedEvent{
 	}
 	
 	@Override
-	public Collection<Feature> getFeatures() {
+	public Collection<Feature> getFeaturesList() {
 		return features;
 	}
 
 	@Override
-	public Collection<Classification> getClassifications() {
+	public Collection<Classification> getClassificationsList() {
 		return classification;
 	}
 

@@ -31,8 +31,16 @@
 		                  <name>separate_schema</name>
 		                </property>
 		                <property>
+		                    <name>FeatureProto.implements_declaration</name>
+		                    <value>implements com.haines.ml.rce.model.Feature</value>
+		                </property>
+		                 <property>
+		                    <name>ClassificationProto.implements_declaration</name>
+		                    <value>implements com.haines.ml.rce.model.Classification</value>
+		                </property>
+		                 <property>
 		                    <name>TestEvent.implements_declaration</name>
-		                    <value>implements com.haines.ml.rce.model.Event</value>
+		                    <value>implements com.haines.ml.rce.model.ClassifiedEvent</value>
 		                </property>
 		                <property>
 		                  <name>generate_field_map</name>

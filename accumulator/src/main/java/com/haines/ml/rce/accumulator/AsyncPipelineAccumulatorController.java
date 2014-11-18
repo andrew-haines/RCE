@@ -16,17 +16,17 @@ import com.haines.ml.rce.model.PipelinedEventConsumer;
 import com.haines.ml.rce.model.system.Clock;
 import com.haines.ml.rce.model.system.SystemStartedListener;
 
-public class AsyncPipelineAccumulatorController<E extends Event> extends PipelineAccumulatorController implements Runnable, SystemStartedListener{
+public class AsyncPipelineAccumulatorController<E extends Event, T extends AccumulatorLookupStrategy<? super E>> extends PipelineAccumulatorController implements Runnable, SystemStartedListener{
 
 	public static final String SCHEDULE_EXECUTOR_BINDING_KEY = "AsyncPipelineAccumulatorController.asyncExecutor";
 	private final Logger LOG = LoggerFactory.getLogger(AsyncPipelineAccumulatorController.class);
 	private final Iterable<PipelinedEventConsumer<E, AccumulatorEventConsumer<E>>> consumers;
-	private final EventConsumer<AccumulatedEvent<?>> accumulatorConsumer;
+	private final EventConsumer<AccumulatedEvent<T>> accumulatorConsumer;
 	private final ScheduledExecutorService executorService;
 	private volatile boolean isRunning;
 	
 	@Inject
-	public AsyncPipelineAccumulatorController(Clock systemClock, PipelineAccumulatorConfig config, Iterable<PipelinedEventConsumer<E, AccumulatorEventConsumer<E>>> consumers, EventConsumer<AccumulatedEvent<?>> accumulatorConsumer, @Named(SCHEDULE_EXECUTOR_BINDING_KEY) ScheduledExecutorService executorService) {
+	public AsyncPipelineAccumulatorController(Clock systemClock, PipelineAccumulatorConfig config, Iterable<PipelinedEventConsumer<E, AccumulatorEventConsumer<E>>> consumers, EventConsumer<AccumulatedEvent<T>> accumulatorConsumer, @Named(SCHEDULE_EXECUTOR_BINDING_KEY) ScheduledExecutorService executorService) {
 		super(systemClock, config);
 		
 		this.consumers = consumers;

@@ -4,5 +4,5 @@ import java.util.Collection;
 
 public interface FeaturedEvent extends Event{
 
-	Collection<Feature> getFeatures();
+	Collection<? extends Feature> getFeaturesList();
 }

@@ -1,11 +1,7 @@
 package com.haines.ml.rce.model;
 
-import java.util.Collection;
-import java.util.Collections;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicBoolean;
-
-import junit.framework.AssertionFailedError;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -32,6 +28,7 @@ public class PipelinedEventConsumerUnitTest {
 	@Test
 	public void givenCandidateAnd2Threads_whenCallingSwitchConsumer_thenOwnershipOfConsumerTransferedBetweenThreads() throws InterruptedException{
 		final CountDownLatch starter = new CountDownLatch(2);
+		final CountDownLatch finished = new CountDownLatch(2);
 		final AtomicBoolean stopped = new AtomicBoolean(false);
 		final AtomicBoolean inError = new AtomicBoolean(false);
 		final Thread thread1 = new Thread(new Runnable(){
@@ -39,8 +36,12 @@ public class PipelinedEventConsumerUnitTest {
 			@Override
 			public void run() {
 				starter.countDown();
-				while(!stopped.get()){
-					candidate.consume(new TestEvent(1));
+				try{
+					while(!stopped.get()){
+						candidate.consume(new TestEvent(1));
+					}
+				} finally{
+					finished.countDown();
 				}
 			}
 			
@@ -78,6 +79,8 @@ public class PipelinedEventConsumerUnitTest {
 					inError.set(true);
 					LOG.error("error in thread: ", t);
 					throw t;
+				} finally{
+					finished.countDown();
 				}
 			}
 			
@@ -90,6 +93,8 @@ public class PipelinedEventConsumerUnitTest {
 		Thread.sleep(5000); // run test for 5 seconds
 		
 		stopped.set(true);
+		
+		finished.await();
 		
 		assertThat(inError.get(), is(equalTo(false)));
 	}

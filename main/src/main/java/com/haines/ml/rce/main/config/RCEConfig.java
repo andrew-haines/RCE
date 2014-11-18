@@ -4,29 +4,24 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.SocketAddress;
 import java.nio.ByteOrder;
-import java.nio.channels.NetworkChannel;
-import java.nio.channels.SelectableChannel;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.Executors;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
 
+import com.haines.ml.rce.accumulator.AccumulatorConfig;
 import com.haines.ml.rce.accumulator.PipelineAccumulatorConfig;
-import com.haines.ml.rce.dispatcher.DispatcherConsumer;
 import com.haines.ml.rce.dispatcher.DisruptorConfig;
-import com.haines.ml.rce.dispatcher.DisruptorConsumer;
 import com.haines.ml.rce.eventstream.NetworkChannelProcessor;
 import com.haines.ml.rce.eventstream.NetworkChannelProcessor.NetworkChannelProcessorProvider;
 import com.haines.ml.rce.eventstream.SelectorEventStreamConfig;
 import com.haines.ml.rce.eventstream.SelectorEventStreamConfig.BufferType;
 import com.haines.ml.rce.eventstream.SelectorEventStreamConfig.SelectorEventStreamConfigBuilder;
 import com.haines.ml.rce.main.config.jaxb.RCEConfigJAXB;
+import com.haines.ml.rce.window.WindowConfig;
 
 public interface RCEConfig {
 	
@@ -44,6 +39,16 @@ public interface RCEConfig {
 
 		public NetworkChannelProcessorProvider<?> getChannelProcessorProvider() {
 			return provider;
+		}
+		
+		public static StreamType fromValue(String value){
+			for (StreamType type: values()){
+				if (type.name().equalsIgnoreCase(value)){
+					return type;
+				}
+			}
+			
+			throw new IllegalArgumentException("Unknow stream type: "+value);
 		}
 	}
 
@@ -151,6 +156,43 @@ public interface RCEConfig {
 				}
 			};
 		}
+
+		public AccumulatorConfig getAccumulatorConfig(final RCEConfig config) {
+			return new AccumulatorConfig(){
+
+				@Override
+				public int getFirstAccumulatorLineBitDepth() {
+					return config.getFirstAccumulatorLineBitDepth();
+				}
+
+				@Override
+				public int getSecondAccumulatorLineBitDepth() {
+					return config.getSecondAccumulatorLineBitDepth();
+				}
+
+				@Override
+				public int getFinalAccumulatorLineBitDepth() {
+					return config.getFinalAccumulatorLineBitDepth();
+				}
+				
+			};
+		}
+
+		public WindowConfig getWindowConfig(final RCEConfig config) {
+			return new WindowConfig(){
+
+				@Override
+				public long getWindowPeriod() {
+					return config.getWindowPeriod();
+				}
+
+				@Override
+				public int getNumWindows() {
+					return config.getNumWindows();
+				}
+				
+			};
+		}
 	}
 	
 	/**
@@ -221,8 +263,22 @@ public interface RCEConfig {
 		public long getAsyncPushIntervalMs() {
 			return delegate.getAsyncPushIntervalMs();
 		}
+
+		@Override
+		public int getNumWindows() {
+			return delegate.getNumWindows();
+		}
+
+		@Override
+		public long getWindowPeriod() {
+			return delegate.getWindowPeriod();
+		}
 		
 	}
 
 	int getDisruptorRingSize();
+
+	int getNumWindows();
+
+	long getWindowPeriod();
 }

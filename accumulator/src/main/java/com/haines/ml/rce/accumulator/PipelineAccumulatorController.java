@@ -58,7 +58,7 @@ public class PipelineAccumulatorController implements SystemStartedListener{
 		this.config = config;
 	}
 	
-	<E extends Event, T extends AccumulatorLookupStrategy<E>> void pushIfRequired(AccumulatorEventConsumer<E> sourceConsumer, EventConsumer<AccumulatedEvent<T>> nextStageConsumer){
+	<E extends Event, T extends AccumulatorLookupStrategy<? super E>> void pushIfRequired(AccumulatorEventConsumer<E> sourceConsumer, EventConsumer<AccumulatedEvent<T>> nextStageConsumer){
 		long currentTime = systemClock.getCurrentTime();
 		
 		if (currentTime > nextPushToPipe){ // we need to push data to pipe. Basically set up memory barrier for consumer to read data
@@ -66,7 +66,7 @@ public class PipelineAccumulatorController implements SystemStartedListener{
 		}
 	}
 
-	protected <E extends Event, T extends AccumulatorLookupStrategy<?>> void pushToPipe(AccumulatorEventConsumer<E> sourceConsumer, EventConsumer<? super AccumulatedEvent<T>> nextStageConsumer) {
+	protected <E extends Event, T extends AccumulatorLookupStrategy<?>> void pushToPipe(AccumulatorEventConsumer<E> sourceConsumer, EventConsumer<AccumulatedEvent<T>> nextStageConsumer) {
 		LOG.debug("Pushing to downstream consumer at push time: "+nextPushToPipe);
 
 		AccumulatorProvider provider = sourceConsumer.getAccumulatorProvider(); // we now control this accumulator. All operations are now atomic.

@@ -6,7 +6,7 @@ package com.haines.ml.rce.model.system;
  * @author haines
  *
  */
-public interface SystemStartedListener {
+public interface SystemStartedListener extends SystemListener{
 
 	void systemStarted();
 }

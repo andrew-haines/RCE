@@ -2,6 +2,7 @@ package com.haines.ml.rce.naivebayes;
 
 import com.haines.ml.rce.main.RCEApplication;
 import com.haines.ml.rce.main.RCEApplicationException;
+import com.haines.ml.rce.main.config.RCEConfig;
 import com.haines.ml.rce.model.Event;
 import com.haines.ml.rce.model.EventConsumer;
 
@@ -33,5 +34,10 @@ public class NaiveBayesRCEApplication<E extends Event> implements RCEApplication
 	@Override
 	public EventConsumer<E> getEventConsumer() {
 		return rceApplication.getEventConsumer();
+	}
+
+	@Override
+	public RCEConfig getConfig() {
+		return rceApplication.getConfig();
 	}
 }

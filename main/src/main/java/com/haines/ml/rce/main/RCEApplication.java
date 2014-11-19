@@ -35,11 +35,13 @@ public interface RCEApplication<E extends Event> {
 		
 		private final EventStreamController eventStream;
 		private final EventConsumer<E> consumer;
+		private final RCEConfig config;
 		
 		@Inject
-		public DefaultRCEApplication(EventStreamController eventStream, EventConsumer<E> consumer){
+		public DefaultRCEApplication(EventStreamController eventStream, EventConsumer<E> consumer, RCEConfig config){
 			this.eventStream = eventStream;
 			this.consumer = consumer;
+			this.config = config;
 		}
 	
 		@Override
@@ -82,6 +84,11 @@ public interface RCEApplication<E extends Event> {
 		public EventConsumer<E> getEventConsumer() {
 			return consumer;
 		}
+
+		@Override
+		public RCEConfig getConfig() {
+			return config;
+		}
 	}
 	public static class RCEApplicationBuilder<T extends Event> {
 		
@@ -121,4 +128,5 @@ public interface RCEApplication<E extends Event> {
 			throw new IllegalArgumentException("No service loader found.");
 		}
 	}
+	RCEConfig getConfig();
 }

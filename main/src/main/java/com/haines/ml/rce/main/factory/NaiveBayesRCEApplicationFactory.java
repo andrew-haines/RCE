@@ -1,45 +1,46 @@
 package com.haines.ml.rce.main.factory;
 
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ThreadFactory;
+import java.io.IOException;
 
+import javax.xml.bind.JAXBException;
+
+import com.google.common.collect.Iterables;
 import com.haines.ml.rce.accumulator.AccumulatorLookupStrategy;
 import com.haines.ml.rce.accumulator.AccumulatorLookupStrategy.AccumulatorLookupStrategyFactory;
 import com.haines.ml.rce.accumulator.lookups.RONaiveBayesMapBasedLookupStrategy;
 import com.haines.ml.rce.accumulator.model.AccumulatedEvent;
-import com.haines.ml.rce.main.RCEApplication;
+import com.haines.ml.rce.main.config.RCEConfig;
+import com.haines.ml.rce.main.factory.AccumulatorRCEApplicationFactory.Mode;
 import com.haines.ml.rce.model.ClassifiedEvent;
 import com.haines.ml.rce.model.EventConsumer;
 import com.haines.ml.rce.model.EventMarshalBuffer;
 import com.haines.ml.rce.model.system.Clock;
 import com.haines.ml.rce.model.system.SystemListener;
-import com.haines.ml.rce.main.config.RCEConfig;
-import com.haines.ml.rce.main.factory.DefaultRCEApplicationFactory.AccumulatorEventConsumerFactory;
-import com.haines.ml.rce.main.factory.DefaultRCEApplicationFactory.DefaultASyncRCEApplicationFactory;
-import com.haines.ml.rce.main.factory.DefaultRCEApplicationFactory.DefaultSyncRCEApplicationFactory;
 import com.haines.ml.rce.naivebayes.NaiveBayesGlobalIndexes;
-import com.haines.ml.rce.naivebayes.NaiveBayesGlobalIndexes.VolatileNaiveBayesGlobalIndexesProvider;
 import com.haines.ml.rce.naivebayes.NaiveBayesLocalIndexes;
+import com.haines.ml.rce.naivebayes.NaiveBayesRCEApplication;
+import com.haines.ml.rce.naivebayes.NaiveBayesService;
+import com.haines.ml.rce.naivebayes.NaiveBayesGlobalIndexes.VolatileNaiveBayesGlobalIndexesProvider;
 import com.haines.ml.rce.window.WindowEventConsumer;
 import com.haines.ml.rce.window.WindowManager;
+import com.haines.ml.rce.window.WindowUpdatedListener;
 
-public class NaiveBayesRCEApplicationFactory<E extends ClassifiedEvent, T extends AccumulatorLookupStrategy<? super E>> implements RCEApplicationFactory<E>{
-	
-	public static <E extends ClassifiedEvent> NaiveBayesRCEApplicationFactory<E, RONaiveBayesMapBasedLookupStrategy> getSyncNaiveBayesRCEApplicationFactory(EventMarshalBuffer<E> marshalBuffer, RCEConfig config, WindowManager manager, Clock clock){
+public class NaiveBayesRCEApplicationFactory<E extends ClassifiedEvent> implements RCEApplicationFactory<E>{
+
+	public static <E extends ClassifiedEvent> AccumulatorRCEApplicationFactory<E, RONaiveBayesMapBasedLookupStrategy> getSyncNaiveBayesRCEApplicationFactory(EventMarshalBuffer<E> marshalBuffer, RCEConfig config, WindowManager manager, Clock clock){
 		return getNaiveBayesRCEApplicationFactory(Mode.SYNC, marshalBuffer, config, manager, clock);
 	}
 	
-	public static <E extends ClassifiedEvent> NaiveBayesRCEApplicationFactory<E, RONaiveBayesMapBasedLookupStrategy> getASyncNaiveBayesRCEApplicationFactory(EventMarshalBuffer<E> marshalBuffer, RCEConfig config, WindowManager manager, Clock clock){
+	public static <E extends ClassifiedEvent> AccumulatorRCEApplicationFactory<E, RONaiveBayesMapBasedLookupStrategy> getASyncNaiveBayesRCEApplicationFactory(EventMarshalBuffer<E> marshalBuffer, RCEConfig config, WindowManager manager, Clock clock){
 		return getNaiveBayesRCEApplicationFactory(Mode.ASYNC, marshalBuffer, config, manager, clock);
 	}
 	
-	private static <E extends ClassifiedEvent> NaiveBayesRCEApplicationFactory<E, RONaiveBayesMapBasedLookupStrategy> getNaiveBayesRCEApplicationFactory(Mode mode, EventMarshalBuffer<E> marshalBuffer, RCEConfig config, WindowManager manager, Clock clock){
+	private static <E extends ClassifiedEvent> AccumulatorRCEApplicationFactory<E, RONaiveBayesMapBasedLookupStrategy> getNaiveBayesRCEApplicationFactory(Mode mode, EventMarshalBuffer<E> marshalBuffer, RCEConfig config, WindowManager manager, Clock clock){
 		
 		EventConsumer<AccumulatedEvent<RONaiveBayesMapBasedLookupStrategy>> windowEventConsumer = new WindowEventConsumer(manager);
 		final VolatileNaiveBayesGlobalIndexesProvider globalIndexes = new VolatileNaiveBayesGlobalIndexesProvider(new NaiveBayesGlobalIndexes());
 		
-		return new NaiveBayesRCEApplicationFactory<E, RONaiveBayesMapBasedLookupStrategy>(marshalBuffer, mode, config, windowEventConsumer, clock, new AccumulatorLookupStrategyFactory<E>() {
+		return new AccumulatorRCEApplicationFactory<E, RONaiveBayesMapBasedLookupStrategy>(marshalBuffer, mode, config, windowEventConsumer, clock, new AccumulatorLookupStrategyFactory<E>() {
 
 			@Override
 			public AccumulatorLookupStrategy<? super E> create() {
@@ -48,50 +49,53 @@ public class NaiveBayesRCEApplicationFactory<E extends ClassifiedEvent, T extend
 		});
 	}
 	
+	private final EventMarshalBuffer<E> marshalBuffer;
+	private final Mode mode;
+	private Iterable<SystemListener> startupListeners = null;
+	private RCEConfig config;
 	
-	private static enum Mode {
-		ASYNC,
-		SYNC
+	public NaiveBayesRCEApplicationFactory(EventMarshalBuffer<E> marshalBuffer, Mode mode){
+		this.marshalBuffer = marshalBuffer;
+		this.mode = mode;
 	}
 	
-	private final RCEApplicationFactory<E> defaultFactory;
-	
-	public NaiveBayesRCEApplicationFactory(EventMarshalBuffer<E> marshalBuffer, Mode mode, RCEConfig config, EventConsumer<AccumulatedEvent<RONaiveBayesMapBasedLookupStrategy>> windowEventConsumer, Clock clock, AccumulatorLookupStrategyFactory<E> lookUpStrategy){
+	@Override
+	public NaiveBayesRCEApplication<E> createApplication(String configOverrideLocation) {
 		
-		AccumulatorEventConsumerFactory<E> factory = new AccumulatorEventConsumerFactory<E>(RCEConfig.UTIL.getAccumulatorConfig(config), lookUpStrategy);
-		
-		if (mode == Mode.ASYNC){
-			defaultFactory = new DefaultASyncRCEApplicationFactory<E, RONaiveBayesMapBasedLookupStrategy>(marshalBuffer, factory, windowEventConsumer, getScheduledExecutor(), clock);
-		} else if (mode == Mode.SYNC){
-			defaultFactory = new DefaultSyncRCEApplicationFactory<E, RONaiveBayesMapBasedLookupStrategy>(marshalBuffer, factory, config, windowEventConsumer, clock);
-		} else{
-			throw new IllegalArgumentException("Unknown mode type: "+mode);
+		try {
+			
+			RCEConfig config = this.config;
+			
+			if (config == null){
+				config = RCEApplicationFactory.UTIL.loadConfig(configOverrideLocation);
+			}
+			Clock clock = Clock.SYSTEM_CLOCK;
+			
+			WindowManager manager = new WindowManager(RCEConfig.UTIL.getWindowConfig(config), clock, Iterables.filter(startupListeners, WindowUpdatedListener.class));
+			
+			NaiveBayesService classifierService = new NaiveBayesService(manager);
+			
+			RCEApplicationFactory<E> factory = NaiveBayesRCEApplicationFactory.getNaiveBayesRCEApplicationFactory(mode, marshalBuffer, config, manager, clock);
+			
+			if (startupListeners != null){
+				factory.addSystemListeners(startupListeners);
+			}
+			
+			factory.useSpecificConfig(config);
+			
+			return new NaiveBayesRCEApplication<E>(factory.createApplication(configOverrideLocation), classifierService);
+		} catch (JAXBException | IOException e) {
+			throw new RuntimeException("Unable to create test naive bayes RCE application factory", e);
 		}
 	}
 
-	private ScheduledExecutorService getScheduledExecutor() {
-		return Executors.newSingleThreadScheduledExecutor(new ThreadFactory(){
-
-			@Override
-			public Thread newThread(Runnable r) {
-				return new Thread(r, "AsyncExecutorService");
-			}
-			
-		});
-	}
-	
 	@Override
 	public void addSystemListeners(Iterable<SystemListener> startupListeners) {
-		this.defaultFactory.addSystemListeners(startupListeners);
-	}
-
-	@Override
-	public RCEApplication<E> createApplication(String configOverrideLocation) {
-		return defaultFactory.createApplication(configOverrideLocation);
+		this.startupListeners = startupListeners;
 	}
 
 	@Override
 	public void useSpecificConfig(RCEConfig config) {
-		this.defaultFactory.useSpecificConfig(config);
+		this.config = config;
 	}
 }

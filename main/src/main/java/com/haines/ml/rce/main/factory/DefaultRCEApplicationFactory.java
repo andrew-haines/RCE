@@ -69,7 +69,7 @@ public class DefaultRCEApplicationFactory<E extends Event, EC extends EventConsu
 				config = RCEApplicationFactory.UTIL.loadConfig(configOverrideLocation);
 			}
 			SelectorEventStream<?, E> eventStream = getSelectorEventStream(config);
-			RCEApplication<E> application = new DefaultRCEApplication<E>(eventStream, eventStream);
+			RCEApplication<E> application = new DefaultRCEApplication<E>(eventStream, eventStream, config);
 			
 			for(SystemStartedListener listener: Iterables.filter(systemListeners, SystemStartedListener.class)){
 				listener.systemStarted();

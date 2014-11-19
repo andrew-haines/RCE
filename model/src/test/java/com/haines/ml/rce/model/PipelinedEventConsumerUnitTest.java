@@ -62,7 +62,7 @@ public class PipelinedEventConsumerUnitTest {
 						
 						assertThat(currentLive.name+" consumer has active execution still", currentLive.hasActiveConsumerThread, is(equalTo(false))); // no other thread should still be processing
 						
-						assertThat("Not enough events consumed: "+currentLive.eventsConsumed, currentLive.eventsConsumed > 10, is(equalTo(true)));
+						assertThat("Not enough events consumed: "+currentLive.eventsConsumed, currentLive.eventsConsumed > 1, is(equalTo(true)));
 							// reset this consumer
 						
 						currentLive.eventsConsumed = 0;
@@ -110,8 +110,8 @@ public class PipelinedEventConsumerUnitTest {
 	
 	private static class TestEventConsumer implements EventConsumer<TestEvent>{
 
-		private boolean hasActiveConsumerThread;
-		private int eventsConsumed;
+		private volatile boolean hasActiveConsumerThread;
+		private volatile int eventsConsumed;
 		private final String name;
 		
 		private TestEventConsumer(String name){

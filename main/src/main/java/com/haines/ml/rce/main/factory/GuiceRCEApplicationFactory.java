@@ -4,6 +4,7 @@ import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.Module;
 import com.haines.ml.rce.main.RCEApplication;
+import com.haines.ml.rce.main.config.RCEConfig;
 import com.haines.ml.rce.model.Event;
 import com.haines.ml.rce.model.system.SystemListener;
 
@@ -29,5 +30,11 @@ public class GuiceRCEApplicationFactory<E extends Event> implements RCEApplicati
 	@Override
 	public void addSystemListeners(Iterable<SystemListener> startupListeners) {
 		// NOOP
+	}
+
+	@Override
+	public void useSpecificConfig(RCEConfig config) {
+		// TODO Auto-generated method stub
+		
 	}
 }

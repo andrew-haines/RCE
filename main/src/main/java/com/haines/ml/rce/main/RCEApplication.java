@@ -17,6 +17,7 @@ import org.apache.commons.cli.ParseException;
 
 import com.haines.ml.rce.eventstream.EventStreamController;
 import com.haines.ml.rce.eventstream.EventStreamException;
+import com.haines.ml.rce.main.config.RCEConfig;
 import com.haines.ml.rce.main.factory.RCEApplicationFactory;
 import com.haines.ml.rce.model.Event;
 import com.haines.ml.rce.model.EventConsumer;
@@ -87,6 +88,7 @@ public interface RCEApplication<E extends Event> {
 		// set the number of event worker to be 1 less than the number of CPUs on the VM
 		private String configOverrideLocation;
 		private Collection<SystemListener> startupListeners = new ArrayList<SystemListener>();
+		private RCEConfig config = null;
 		
 		public RCEApplicationBuilder(String configOverrideLocation){
 			this.configOverrideLocation = configOverrideLocation;
@@ -98,12 +100,21 @@ public interface RCEApplication<E extends Event> {
 			return this;
 		}
 		
+		public RCEApplicationBuilder<T> setConfig(RCEConfig config){
+			this.config = config;
+			
+			return this;
+		}
+		
 		public RCEApplication<T> build() throws RCEApplicationException{
 			@SuppressWarnings({ "rawtypes", "unchecked" })
 			ServiceLoader<RCEApplicationFactory<T>> loader = (ServiceLoader)ServiceLoader.load(RCEApplicationFactory.class);
 			
 			for (RCEApplicationFactory<T> factory: loader){
 				factory.addSystemListeners(startupListeners);
+				if (config != null){
+					factory.useSpecificConfig(config);
+				}
 				return factory.createApplication(configOverrideLocation);
 			}
 			

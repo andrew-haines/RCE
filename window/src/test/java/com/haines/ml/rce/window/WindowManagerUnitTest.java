@@ -5,6 +5,7 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.equalTo;
 
 import java.util.Arrays;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -14,6 +15,7 @@ import org.slf4j.LoggerFactory;
 import com.haines.ml.rce.model.system.Clock.StaticClock;
 import com.haines.ml.rce.naivebayes.NaiveBayesCountsProvider;
 import com.haines.ml.rce.naivebayes.NaiveBayesProbabilities;
+import com.haines.ml.rce.naivebayes.NaiveBayesProbabilitiesProvider;
 import com.haines.ml.rce.naivebayes.model.NaiveBayesCounts;
 import com.haines.ml.rce.naivebayes.model.NaiveBayesProperty.NaiveBayesPosteriorProperty;
 import com.haines.ml.rce.naivebayes.model.NaiveBayesProperty.NaiveBayesPriorProperty;
@@ -110,11 +112,14 @@ public class WindowManagerUnitTest {
 
 	private WindowManager candidate;
 	private StaticClock testClock;
+	private AtomicInteger numUpdatedWindows;
 	
 	@Before
 	public void before(){
 		
 		testClock = new StaticClock(TEST_START_TIME);
+		
+		numUpdatedWindows = new AtomicInteger(0);
 		
 		candidate = new WindowManager(new WindowConfig(){
 
@@ -128,7 +133,13 @@ public class WindowManagerUnitTest {
 				return TEST_NUM_WINDOWS;
 			}
 			
-		}, testClock);
+		}, testClock, Arrays.asList(new WindowUpdatedListener() {
+			
+			@Override
+			public void windowUpdated(NaiveBayesProbabilitiesProvider window) {
+				numUpdatedWindows.incrementAndGet();
+			}
+		}));
 	}
 	
 	@Test
@@ -153,10 +164,12 @@ public class WindowManagerUnitTest {
 		assertThat(candidate.getProbabilities().getPriorProbability(new TestClassification("class4")), is(equalTo(NaiveBayesProbabilities.NOMINAL_PROBABILITY)));
 		assertThat(candidate.getProbabilities().getPriorProbability(new TestClassification("class5")), is(equalTo(NaiveBayesProbabilities.NOMINAL_PROBABILITY)));
 		assertThat(candidate.getProbabilities().getPriorProbability(new TestClassification("class8")), is(equalTo(NaiveBayesProbabilities.NOMINAL_PROBABILITY)));
+		
+		assertThat(numUpdatedWindows.get(), is(equalTo(1)));
 	}
 	
 	@Test
-	public void givenCandidate_whenAddingTwoEventSets_thenCorrectProbabilitiesCalculated(){
+	public void givenCandidate_whenAddingTwoEventSetsWithinWindowPeriod_thenEventsAddedToExistingWindowCorrectProbabilitiesCalculated(){
 		candidate.addNewProvider(getTestEvents(TEST_POSTERIOR_EVENTS_1, TEST_PRIOR_EVENTS_1), WindowUpdatedListener.NO_OP_LISTENER);
 		
 		testClock.setCurrentTime(TEST_START_TIME + 1000);
@@ -180,6 +193,8 @@ public class WindowManagerUnitTest {
 		assertThat(candidate.getProbabilities().getPriorProbability(new TestClassification("class4")), is(equalTo(0.047619047619047616)));
 		assertThat(candidate.getProbabilities().getPriorProbability(new TestClassification("class5")), is(equalTo(NaiveBayesProbabilities.NOMINAL_PROBABILITY)));
 		assertThat(candidate.getProbabilities().getPriorProbability(new TestClassification("class8")), is(equalTo(0.017316017316017316)));
+		
+		assertThat(numUpdatedWindows.get(), is(equalTo(1)));
 	}
 	
 	@Test
@@ -211,6 +226,8 @@ public class WindowManagerUnitTest {
 		assertThat(candidate.getProbabilities().getPriorProbability(new TestClassification("class5")), is(equalTo(NaiveBayesProbabilities.NOMINAL_PROBABILITY)));
 		assertThat(candidate.getProbabilities().getPriorProbability(new TestClassification("class4")), is(equalTo(0.16883116883116883)));
 		assertThat(candidate.getProbabilities().getPriorProbability(new TestClassification("class8")), is(equalTo(0.01038961038961039)));
+		
+		assertThat(numUpdatedWindows.get(), is(equalTo(1)));
 	}
 	
 	@Test
@@ -256,6 +273,8 @@ public class WindowManagerUnitTest {
 		assertThat(candidate.getProbabilities().getPriorProbability(new TestClassification("class6")), is(equalTo(0.0462085308056872)));
 		assertThat(candidate.getProbabilities().getPriorProbability(new TestClassification("class7")), is(equalTo(NaiveBayesProbabilities.NOMINAL_PROBABILITY)));
 		assertThat(candidate.getProbabilities().getPriorProbability(new TestClassification("class8")), is(equalTo(0.004739336492890996)));
+		
+		assertThat(numUpdatedWindows.get(), is(equalTo(1)));
 	}
 	
 	@Test
@@ -301,6 +320,8 @@ public class WindowManagerUnitTest {
 		assertThat(candidate.getProbabilities().getPriorProbability(new TestClassification("class6")), is(equalTo(0.0462085308056872)));
 		assertThat(candidate.getProbabilities().getPriorProbability(new TestClassification("class7")), is(equalTo(NaiveBayesProbabilities.NOMINAL_PROBABILITY)));
 		assertThat(candidate.getProbabilities().getPriorProbability(new TestClassification("class8")), is(equalTo(0.004739336492890996)));
+		
+		assertThat(numUpdatedWindows.get(), is(equalTo(4)));
 	}
 	
 	@Test
@@ -346,6 +367,8 @@ public class WindowManagerUnitTest {
 		assertThat(candidate.getProbabilities().getPriorProbability(new TestClassification("class6")), is(equalTo(0.05394190871369295)));
 		assertThat(candidate.getProbabilities().getPriorProbability(new TestClassification("class7")), is(equalTo(NaiveBayesProbabilities.NOMINAL_PROBABILITY)));
 		assertThat(candidate.getProbabilities().getPriorProbability(new TestClassification("class8")), is(equalTo(0.005532503457814661)));
+		
+		assertThat(numUpdatedWindows.get(), is(equalTo(6)));
 	}
 	
 	@Test
@@ -383,6 +406,8 @@ public class WindowManagerUnitTest {
 		assertThat(candidate.getProbabilities().getPriorProbability(new TestClassification("class6")), is(equalTo(0.05394190871369295)));
 		assertThat(candidate.getProbabilities().getPriorProbability(new TestClassification("class7")), is(equalTo(NaiveBayesProbabilities.NOMINAL_PROBABILITY)));
 		assertThat(candidate.getProbabilities().getPriorProbability(new TestClassification("class8")), is(equalTo(0.005532503457814661)));
+		
+		assertThat(numUpdatedWindows.get(), is(equalTo(12)));
 	}
 	
 	@Test
@@ -404,6 +429,7 @@ public class WindowManagerUnitTest {
 		
 		candidate.addNewProvider(getTestEvents(TEST_POSTERIOR_EVENTS_2, TEST_PRIOR_EVENTS_2), WindowUpdatedListener.NO_OP_LISTENER);
 		
+		assertThat(numUpdatedWindows.get(), is(equalTo(13)));
 	}
 
 	private NaiveBayesCountsProvider getTestEvents(final Iterable<NaiveBayesCounts<NaiveBayesPosteriorProperty>> posteriorEvents, final Iterable<NaiveBayesCounts<NaiveBayesPriorProperty>> priorEvents) {

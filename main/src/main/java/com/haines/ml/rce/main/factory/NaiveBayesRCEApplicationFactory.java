@@ -89,4 +89,9 @@ public class NaiveBayesRCEApplicationFactory<E extends ClassifiedEvent, T extend
 	public RCEApplication<E> createApplication(String configOverrideLocation) {
 		return defaultFactory.createApplication(configOverrideLocation);
 	}
+
+	@Override
+	public void useSpecificConfig(RCEConfig config) {
+		this.defaultFactory.useSpecificConfig(config);
+	}
 }

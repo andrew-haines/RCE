@@ -1,29 +1,49 @@
 package com.haines.ml.rce.main;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
+
+import javax.xml.bind.JAXBException;
 
 import org.junit.Before;
 import org.junit.Test;
 
 import com.haines.ml.rce.eventstream.EventStreamListener;
+import com.haines.ml.rce.main.config.RCEConfig;
 import com.haines.ml.rce.model.Event;
+import com.haines.ml.rce.naivebayes.NaiveBayesProbabilitiesProvider;
 import com.haines.ml.rce.test.model.TestEvent;
 import com.haines.ml.rce.test.model.TestEvent.ClassificationProto;
 import com.haines.ml.rce.test.model.TestEvent.FeatureProto;
+import com.haines.ml.rce.window.WindowUpdatedListener;
+
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.equalTo;
 
 public class RCEApplicationStartupTest {
 
+	protected static final long DEFAULT_WINDOW_PERIOD = 1000;
+	protected static final long DEFAULT_PUSH_DOWNSTREAM_MS = 200; // micro batch size
 	private RCEApplication<TestEvent> candidate;
 	private CountDownLatch started;
 	private CountDownLatch finished;
+	private CountDownLatch windowUpdated;
+	private AtomicInteger eventsSeen;
 	
 	@Before
-	public void before() throws RCEApplicationException{
+	public void before() throws RCEApplicationException, JAXBException, IOException{
 		
 		started = new CountDownLatch(1);
 		finished = new CountDownLatch(1);
+		windowUpdated = new CountDownLatch(3);
+		eventsSeen = new AtomicInteger(0);
+		
+		RCEConfig defaultConfig = RCEConfig.UTIL.loadConfig(null);
 		
 		candidate = new RCEApplication.RCEApplicationBuilder<TestEvent>(null).addSystemStartedListener(new EventStreamListener() {
 
@@ -39,8 +59,29 @@ public class RCEApplicationStartupTest {
 
 			@Override
 			public void recievedEvent(Event event) {
-				// NO OP
+				eventsSeen.incrementAndGet();
 			}
+		})
+		.addSystemStartedListener(new WindowUpdatedListener() {
+			
+			@Override
+			public void windowUpdated(NaiveBayesProbabilitiesProvider window) {
+				windowUpdated.countDown();
+			}
+		})
+		.setConfig(new RCEConfig.DefaultRCEConfig(defaultConfig){
+
+			@Override
+			public long getWindowPeriod() {
+				return DEFAULT_WINDOW_PERIOD;
+			}
+
+			@Override
+			public long getAsyncPushIntervalMs() {
+				return DEFAULT_PUSH_DOWNSTREAM_MS;
+			}
+			
+			
 		}).build();
 	}
 	
@@ -67,10 +108,14 @@ public class RCEApplicationStartupTest {
 		
 		// add some test events through the system
 		
-		candidate.getEventConsumer().consume(getTestEvent(1));
-		candidate.getEventConsumer().consume(getTestEvent(2));
-		candidate.getEventConsumer().consume(getTestEvent(3));
-		candidate.getEventConsumer().consume(getTestEvent(4));
+		int eventNum;
+		
+		for (eventNum = 0; !windowUpdated.await(100, TimeUnit.MILLISECONDS); eventNum++){
+			candidate.getEventConsumer().consume(getTestEvent(eventNum));
+		}
+		
+		System.out.println("events recieved: "+eventNum);
+		assertThat(eventNum, is(equalTo(eventsSeen.get())));
 		
 		// now stop the system
 		

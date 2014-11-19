@@ -205,11 +205,12 @@ public class AccumulatorEventConsumer<T extends Event> implements EventConsumer<
 		private final int finalAccumulatorLineSize;
 		
 		public MemorySafeAccumulatorProvider(int[][][] accumulators, int maxIndex, int finalAccumulatorLineSize) {
-			this.accumulators = new int[maxIndex];
+			int[] accumulatorArray = new int[maxIndex];
 			
 			this.finalAccumulatorLineSize = finalAccumulatorLineSize;
-			deepCopy(accumulators, this.accumulators, maxIndex);
+			deepCopy(accumulators, accumulatorArray, maxIndex);
 			
+			this.accumulators = accumulatorArray; // sets the volatile semantics of all elements using this write.
 			this.maxIndex = maxIndex;
 		}
 
@@ -234,8 +235,8 @@ public class AccumulatorEventConsumer<T extends Event> implements EventConsumer<
 				secondLine = firstLine[secondIdx++];
 				
 				if (secondLine != null){	
-				
-					System.arraycopy(secondLine, 0, dest, i, Math.min(dest.length, secondLine.length));
+					
+					System.arraycopy(secondLine, 0, dest, i, Math.min((dest.length - i), secondLine.length));
 				}
 			}
 		}

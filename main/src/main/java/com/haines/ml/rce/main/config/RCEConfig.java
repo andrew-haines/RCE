@@ -205,7 +205,7 @@ public interface RCEConfig {
 
 		private final RCEConfig delegate;
 		
-		private DefaultRCEConfig(RCEConfig delegate){
+		public DefaultRCEConfig(RCEConfig delegate){
 			this.delegate = delegate;
 		}
 		

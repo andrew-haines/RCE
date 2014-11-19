@@ -29,13 +29,16 @@ public class WindowManager implements NaiveBayesProbabilitiesProvider{
 	private int currentMaxIdx = NO_WINDOW_IDX; // we can remove the need for volatile modifiers here as long as we can ensure that the single writer paradigm is enforced.
 	private int currentMinIdx = 0;
 	private final Clock clock;
+	private final Iterable<? extends WindowUpdatedListener> staticWindowListeners;
 	
-	public WindowManager(WindowConfig config, Clock clock){
+	public WindowManager(WindowConfig config, Clock clock, Iterable<? extends WindowUpdatedListener> staticWindowListeners){
 		this.clock = clock;
 		this.config = config;
 		this.cyclicWindowBuffer = new Window[config.getNumWindows()];
 		this.windowProbabilities = new WindowProbabilities(new SubtractableAggregator(new THashMap<Classification, Map<Feature, MutableNaiveBayesCounts<NaiveBayesPosteriorProperty>>>(), 
 																				new THashMap<Classification, MutableNaiveBayesCounts<NaiveBayesPriorProperty>>()));
+		
+		this.staticWindowListeners = staticWindowListeners;
 	}
 	
 	@Override
@@ -86,6 +89,10 @@ public class WindowManager implements NaiveBayesProbabilitiesProvider{
 			// update the listener only when there is a new window
 			
 			listener.windowUpdated(this);
+			
+			for (WindowUpdatedListener staticListener: staticWindowListeners){
+				staticListener.windowUpdated(this);
+			}
 			
 		} else { // add to existing window
 			Window currentWindow = cyclicWindowBuffer[currentMaxIdx];

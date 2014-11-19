@@ -47,6 +47,7 @@ public class DefaultRCEApplicationFactory<E extends Event, EC extends EventConsu
 	private final EventConsumerFactory<E, EC> eventConsumerFactory;
 	private final EventConsumer<AccumulatedEvent<T>> accumulatedEventConsumer;
 	private final Collection<SystemListener> systemListeners;
+	private RCEConfig overrideConfig;
 	private final Clock clock;
 	
 	private DefaultRCEApplicationFactory(EventMarshalBuffer<E> marshalBuffer, Clock clock, EventConsumerFactory<E, EC> eventConsumerFactory, EventConsumer<AccumulatedEvent<T>> accumulatedEventConsumer){
@@ -62,9 +63,11 @@ public class DefaultRCEApplicationFactory<E extends Event, EC extends EventConsu
 	@Override
 	public RCEApplication<E> createApplication(String configOverrideLocation) {
 		
-		RCEConfig config;
+		RCEConfig config = overrideConfig;
 		try {
-			config = RCEApplicationFactory.UTIL.loadConfig(configOverrideLocation);
+			if (config == null){
+				config = RCEApplicationFactory.UTIL.loadConfig(configOverrideLocation);
+			}
 			SelectorEventStream<?, E> eventStream = getSelectorEventStream(config);
 			RCEApplication<E> application = new DefaultRCEApplication<E>(eventStream, eventStream);
 			
@@ -228,5 +231,10 @@ public class DefaultRCEApplicationFactory<E extends Event, EC extends EventConsu
 			}
 			
 		}
+	}
+
+	@Override
+	public void useSpecificConfig(RCEConfig config) {
+		this.overrideConfig = config;
 	}
 }

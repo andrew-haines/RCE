@@ -1315,7 +1315,7 @@ public class ProtostuffEventMarshalBufferUnitTest {
 		
 		for (int i = 0; i < 20; i ++){ // attempt 20 random iterations
 			
-			int numBuffers = (int)(Math.random() * 100); // up to 100 buffers
+			int numBuffers = (int)(Math.random() * 99) + 1; // up to 100 buffers
 			
 			LOG.info("serializing random buffer attempt num : "+i+" using "+numBuffers+" buffers");
 			int bytesReadSoFar = 0;

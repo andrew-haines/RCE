@@ -3,7 +3,7 @@ package com.haines.ml.rce.naivebayes;
 import com.haines.ml.rce.naivebayes.model.NaiveBayesProperty;
 import com.haines.ml.rce.naivebayes.model.Probability;
 
-public class NaiveBayesProbability implements Comparable<NaiveBayesProbability>{
+public class NaiveBayesProbability{
 
 	private final NaiveBayesProperty property;
 	private final Probability probability;
@@ -19,10 +19,5 @@ public class NaiveBayesProbability implements Comparable<NaiveBayesProbability>{
 	
 	public Probability getProbability() {
 		return probability;
-	}
-
-	@Override
-	public int compareTo(NaiveBayesProbability o) {
-		return probability.compareTo(o.getProbability());
 	}
 }

@@ -1,6 +1,6 @@
 package com.haines.ml.rce.naivebayes.model;
 
-public class Probability implements Comparable<Probability>{
+public class Probability {
 
 	private final int outcomes;
 	private final int totals;
@@ -27,10 +27,5 @@ public class Probability implements Comparable<Probability>{
 	@Override
 	public String toString(){
 		return "p("+getOutcomes()+"/"+getTotals()+")";
-	}
-
-	@Override
-	public int compareTo(Probability o) {
-		return (int)(probability - o.probability);
 	}
 }

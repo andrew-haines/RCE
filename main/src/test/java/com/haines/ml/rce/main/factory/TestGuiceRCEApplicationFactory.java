@@ -9,7 +9,7 @@ import com.haines.ml.rce.main.guice.AsyncPipelineRCEConfigConfiguredInitiationMo
 import com.haines.ml.rce.model.EventMarshalBuffer;
 import com.haines.ml.rce.test.model.TestEvent;
 
-public class TestGuiceRCEApplicationFactory extends GuiceRCEApplicationFactory{
+public class TestGuiceRCEApplicationFactory extends GuiceRCEApplicationFactory<TestEvent>{
 
 	public TestGuiceRCEApplicationFactory() {
 		super(null);

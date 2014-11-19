@@ -4,9 +4,10 @@ import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.Module;
 import com.haines.ml.rce.main.RCEApplication;
+import com.haines.ml.rce.model.Event;
 import com.haines.ml.rce.model.system.SystemListener;
 
-public class GuiceRCEApplicationFactory implements RCEApplicationFactory{
+public class GuiceRCEApplicationFactory<E extends Event> implements RCEApplicationFactory<E>{
 	
 	private final Module initiationModule;
 	
@@ -19,7 +20,7 @@ public class GuiceRCEApplicationFactory implements RCEApplicationFactory{
 	}
 
 	@Override
-	public RCEApplication createApplication(String configOverrideLocation) {
+	public RCEApplication<E> createApplication(String configOverrideLocation) {
 		Injector injector = Guice.createInjector(getInitialisationModule(configOverrideLocation));
 		
 		return injector.getInstance(RCEApplication.class);

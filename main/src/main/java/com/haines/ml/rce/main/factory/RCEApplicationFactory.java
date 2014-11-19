@@ -8,13 +8,14 @@ import javax.xml.bind.JAXBException;
 
 import com.haines.ml.rce.main.RCEApplication;
 import com.haines.ml.rce.main.config.RCEConfig;
+import com.haines.ml.rce.model.Event;
 import com.haines.ml.rce.model.system.SystemListener;
 
-public interface RCEApplicationFactory {
+public interface RCEApplicationFactory<E extends Event> {
 	
 	public static final Util UTIL = new Util();
 
-	RCEApplication createApplication(String configOverrideLocation);
+	RCEApplication<E> createApplication(String configOverrideLocation);
 	
 	public static class Util{
 		

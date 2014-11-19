@@ -15,54 +15,74 @@ import org.apache.commons.cli.OptionBuilder;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 
-import com.haines.ml.rce.eventstream.EventStream;
+import com.haines.ml.rce.eventstream.EventStreamController;
 import com.haines.ml.rce.eventstream.EventStreamException;
 import com.haines.ml.rce.main.factory.RCEApplicationFactory;
+import com.haines.ml.rce.model.Event;
+import com.haines.ml.rce.model.EventConsumer;
 import com.haines.ml.rce.model.system.SystemListener;
-import com.haines.ml.rce.model.system.SystemStartedListener;
-public class RCEApplication {
-	
-	private final EventStream eventStream;
-	
-	@Inject
-	public RCEApplication(EventStream eventStream){
-		this.eventStream = eventStream;
-	}
 
-	public void start() throws RCEApplicationException {
-		try {
-			eventStream.start();
-		} catch (EventStreamException e) {
-			throw new RCEApplicationException("Unable to start RCE", e);
+public interface RCEApplication<E extends Event> {
+	
+	void start() throws RCEApplicationException;
+	
+	void stop() throws RCEApplicationException;
+	
+	EventConsumer<E> getEventConsumer();
+
+	public static class DefaultRCEApplication<E extends Event> implements RCEApplication<E>{
+		
+		private final EventStreamController eventStream;
+		private final EventConsumer<E> consumer;
+		
+		@Inject
+		public DefaultRCEApplication(EventStreamController eventStream, EventConsumer<E> consumer){
+			this.eventStream = eventStream;
+			this.consumer = consumer;
+		}
+	
+		@Override
+		public void start() throws RCEApplicationException {
+			try {
+				eventStream.start();
+			} catch (EventStreamException e) {
+				throw new RCEApplicationException("Unable to start RCE", e);
+			}
+		}
+		
+		@Override
+		public void stop() throws RCEApplicationException{
+			try {
+				eventStream.stop();
+			} catch (EventStreamException e) {
+				throw new RCEApplicationException("Unable to stop RCE", e);
+			}
+		}
+		
+		private static final String CONFIG_OVERRIDE_OPTION_KEY = "configOverrideLocation";
+	
+		@SuppressWarnings("static-access")
+		public static void main(String[] args) throws ParseException, RCEApplicationException, JAXBException, IOException{
+			Options options = new Options();
+	        options.addOption(OptionBuilder.hasArg(true).withDescription("Config Override Location").isRequired(false).create(CONFIG_OVERRIDE_OPTION_KEY));
+	
+	        CommandLineParser parser = new GnuParser();
+	        CommandLine cmd = parser.parse(options, args);
+	
+	        @SuppressWarnings("rawtypes")
+			RCEApplicationBuilder<?> builder = new RCEApplicationBuilder(cmd.getOptionValue(CONFIG_OVERRIDE_OPTION_KEY));
+	        
+	        RCEApplication<?> application = builder.build();
+	        
+	        application.start();
+		}
+
+		@Override
+		public EventConsumer<E> getEventConsumer() {
+			return consumer;
 		}
 	}
-	
-	public void stop() throws RCEApplicationException{
-		try {
-			eventStream.stop();
-		} catch (EventStreamException e) {
-			throw new RCEApplicationException("Unable to stop RCE", e);
-		}
-	}
-	
-	private static final String CONFIG_OVERRIDE_OPTION_KEY = "configOverrideLocation";
-
-	@SuppressWarnings("static-access")
-	public static void main(String[] args) throws ParseException, RCEApplicationException, JAXBException, IOException{
-		Options options = new Options();
-        options.addOption(OptionBuilder.hasArg(true).withDescription("Config Override Location").isRequired(false).create(CONFIG_OVERRIDE_OPTION_KEY));
-
-        CommandLineParser parser = new GnuParser();
-        CommandLine cmd = parser.parse(options, args);
-
-        RCEApplicationBuilder builder = new RCEApplicationBuilder(cmd.getOptionValue(CONFIG_OVERRIDE_OPTION_KEY));
-        
-        RCEApplication application = builder.build();
-        
-        application.start();
-	}
-
-	public static class RCEApplicationBuilder {
+	public static class RCEApplicationBuilder<T extends Event> {
 		
 		// set the number of event worker to be 1 less than the number of CPUs on the VM
 		private String configOverrideLocation;
@@ -72,16 +92,17 @@ public class RCEApplication {
 			this.configOverrideLocation = configOverrideLocation;
 		}
 		
-		public RCEApplicationBuilder addSystemStartedListener(SystemListener listener){
+		public RCEApplicationBuilder<T> addSystemStartedListener(SystemListener listener){
 			this.startupListeners.add(listener);
 			
 			return this;
 		}
 		
-		public RCEApplication build() throws RCEApplicationException{
-			ServiceLoader<RCEApplicationFactory> loader = ServiceLoader.load(RCEApplicationFactory.class);
+		public RCEApplication<T> build() throws RCEApplicationException{
+			@SuppressWarnings({ "rawtypes", "unchecked" })
+			ServiceLoader<RCEApplicationFactory<T>> loader = (ServiceLoader)ServiceLoader.load(RCEApplicationFactory.class);
 			
-			for (RCEApplicationFactory factory: loader){
+			for (RCEApplicationFactory<T> factory: loader){
 				factory.addSystemListeners(startupListeners);
 				return factory.createApplication(configOverrideLocation);
 			}

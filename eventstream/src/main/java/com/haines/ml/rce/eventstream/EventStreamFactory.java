@@ -5,5 +5,5 @@ import com.haines.ml.rce.model.Event;
 
 public interface EventStreamFactory<E extends Event> {
 
-	EventStream create(Dispatcher<E> dispatcher);
+	EventStreamController create(Dispatcher<E> dispatcher);
 }

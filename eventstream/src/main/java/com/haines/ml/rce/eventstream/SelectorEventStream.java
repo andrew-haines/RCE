@@ -17,6 +17,7 @@ import org.slf4j.LoggerFactory;
 
 import com.haines.ml.rce.dispatcher.Dispatcher;
 import com.haines.ml.rce.model.Event;
+import com.haines.ml.rce.model.EventConsumer;
 import com.haines.ml.rce.model.EventMarshalBuffer;
 
 /**
@@ -26,7 +27,7 @@ import com.haines.ml.rce.model.EventMarshalBuffer;
  * @author haines
  *
  */
-public class SelectorEventStream<T extends SelectableChannel & NetworkChannel, E extends Event> implements EventStream{
+public class SelectorEventStream<T extends SelectableChannel & NetworkChannel, E extends Event> implements EventStreamController, EventConsumer<E>{
 
 	private static final Logger LOG = LoggerFactory.getLogger(SelectorEventStream.class);
 	
@@ -138,7 +139,7 @@ public class SelectorEventStream<T extends SelectableChannel & NetworkChannel, E
 						if (totalRead > 0){
 							E event = eventBuffer.buildEventAndResetBuffer();
 							
-							dispatcher.dispatchEvent(event);
+							this.consume(event);
 						}
 					}
 				}
@@ -204,5 +205,12 @@ public class SelectorEventStream<T extends SelectableChannel & NetworkChannel, E
 		}
 		
 		
+	}
+
+	@Override
+	public void consume(E event) {
+		
+		listener.recievedEvent(event);
+		dispatcher.dispatchEvent(event);
 	}
 }

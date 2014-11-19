@@ -333,6 +333,11 @@ public abstract class AbstractSelectorEventStreamIT<T extends SelectableChannel 
 		public void streamStopped() {
 			shutdownLatch.countDown();
 		}
+
+		@Override
+		public void recievedEvent(Event event) {
+			// NO OP
+		}
 		
 	}
 }

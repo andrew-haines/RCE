@@ -5,6 +5,7 @@ import javax.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.haines.ml.rce.model.Event;
 import com.haines.ml.rce.model.system.SystemListener;
 
 public interface EventStreamListener extends SystemListener{
@@ -16,6 +17,8 @@ public interface EventStreamListener extends SystemListener{
 	void streamStarted();
 	
 	void streamStopped();
+	
+	void recievedEvent(Event event);
 	
 	public static class MultipleEventStreamListener implements EventStreamListener{
 
@@ -36,6 +39,13 @@ public interface EventStreamListener extends SystemListener{
 		public void streamStopped() {
 			for (EventStreamListener listener: listeners){
 				listener.streamStopped();
+			}
+		}
+
+		@Override
+		public void recievedEvent(Event event) {
+			for (EventStreamListener listener: listeners){
+				listener.recievedEvent(event);
 			}
 		}
 	}
@@ -59,6 +69,9 @@ public interface EventStreamListener extends SystemListener{
 
 		@Override
 		public void streamStopped() {}
+
+		@Override
+		public void recievedEvent(Event event) {}
 		
 	}
 	
@@ -77,6 +90,11 @@ public interface EventStreamListener extends SystemListener{
 		@Override
 		public void streamStopped() {
 			LOG.info("Stream stopped. Stream ran for "+(System.currentTimeMillis() - timeStarted)+" ms");
+		}
+
+		@Override
+		public void recievedEvent(Event event) {
+			LOG.debug("Event received: "+event);
 		}
 	}
 }

@@ -23,7 +23,7 @@ import com.haines.ml.rce.dispatcher.Dispatcher;
 import com.haines.ml.rce.dispatcher.DispatcherConsumer;
 import com.haines.ml.rce.dispatcher.DisruptorConfig;
 import com.haines.ml.rce.dispatcher.DisruptorConsumer;
-import com.haines.ml.rce.eventstream.EventStream;
+import com.haines.ml.rce.eventstream.EventStreamController;
 import com.haines.ml.rce.eventstream.EventStreamListener;
 import com.haines.ml.rce.eventstream.NetworkChannelProcessor;
 import com.haines.ml.rce.eventstream.SelectorEventStream;
@@ -63,7 +63,7 @@ public abstract class RCEConfigConfiguredInitiationModule<T extends SelectableCh
 			bind(RCEConfig.class).toInstance(RCEApplicationFactory.UTIL.loadConfig(overrideLocation));
 			bind(Clock.class).to(getClockType());
 			bind(EventStreamListener.class).to(getEventStreamListenerType());
-			bind(EventStream.class).to(getSelectorEventStreamType()).in(Scopes.SINGLETON); // TODO maybe not singleton if we want multiple selectors but lets think about this some more
+			bind(EventStreamController.class).to(getSelectorEventStreamType()).in(Scopes.SINGLETON); // TODO maybe not singleton if we want multiple selectors but lets think about this some more
 			bind(TypeLiteral.get(Types.newParameterizedType(NetworkChannelProcessor.class, networkChannelType))).toProvider((Class)getNetworkChannelProcessorProviderType()).in(Scopes.SINGLETON);
 			bind(TypeLiteral.get(Types.newParameterizedType(EventMarshalBuffer.class, eventType))).toProvider((Provider)eventMarshallerProvider);
 			bind(TypeLiteral.get(Types.newParameterizedType(Iterable.class, Types.newParameterizedType(DispatcherConsumer.class, eventType)))).toProvider((Class)getDispatcherConsumersProviderType()).in(Scopes.SINGLETON);

@@ -1,6 +1,6 @@
 package com.haines.ml.rce.eventstream;
 
-public interface EventStream {
+public interface EventStreamController {
 
 	void start() throws EventStreamException;
 	

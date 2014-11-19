@@ -30,6 +30,7 @@ import com.haines.ml.rce.eventstream.SelectorEventStream;
 import com.haines.ml.rce.eventstream.NetworkChannelProcessor.NetworkChannelProcessorProvider;
 import com.haines.ml.rce.eventstream.SelectorEventStreamFactory;
 import com.haines.ml.rce.main.RCEApplication;
+import com.haines.ml.rce.main.RCEApplication.DefaultRCEApplication;
 import com.haines.ml.rce.main.config.RCEConfig;
 import com.haines.ml.rce.model.Event;
 import com.haines.ml.rce.model.EventConsumer;
@@ -40,7 +41,7 @@ import com.haines.ml.rce.model.system.Clock;
 import com.haines.ml.rce.model.system.SystemListener;
 import com.haines.ml.rce.model.system.SystemStartedListener;
 
-public class DefaultRCEApplicationFactory<E extends Event, EC extends EventConsumer<E>, T extends AccumulatorLookupStrategy<? super E>> implements RCEApplicationFactory{
+public class DefaultRCEApplicationFactory<E extends Event, EC extends EventConsumer<E>, T extends AccumulatorLookupStrategy<? super E>> implements RCEApplicationFactory<E>{
 
 	private final EventMarshalBuffer<E> marshalBuffer;
 	private final EventConsumerFactory<E, EC> eventConsumerFactory;
@@ -59,12 +60,13 @@ public class DefaultRCEApplicationFactory<E extends Event, EC extends EventConsu
 	}
 
 	@Override
-	public RCEApplication createApplication(String configOverrideLocation) {
+	public RCEApplication<E> createApplication(String configOverrideLocation) {
 		
 		RCEConfig config;
 		try {
 			config = RCEApplicationFactory.UTIL.loadConfig(configOverrideLocation);
-			RCEApplication application = new RCEApplication(getSelectorEventStream(config));
+			SelectorEventStream<?, E> eventStream = getSelectorEventStream(config);
+			RCEApplication<E> application = new DefaultRCEApplication<E>(eventStream, eventStream);
 			
 			for(SystemStartedListener listener: Iterables.filter(systemListeners, SystemStartedListener.class)){
 				listener.systemStarted();

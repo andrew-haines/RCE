@@ -24,7 +24,7 @@ import com.haines.ml.rce.naivebayes.NaiveBayesLocalIndexes;
 import com.haines.ml.rce.window.WindowEventConsumer;
 import com.haines.ml.rce.window.WindowManager;
 
-public class NaiveBayesRCEApplicationFactory<E extends ClassifiedEvent, T extends AccumulatorLookupStrategy<? super E>> implements RCEApplicationFactory{
+public class NaiveBayesRCEApplicationFactory<E extends ClassifiedEvent, T extends AccumulatorLookupStrategy<? super E>> implements RCEApplicationFactory<E>{
 	
 	public static <E extends ClassifiedEvent> NaiveBayesRCEApplicationFactory<E, RONaiveBayesMapBasedLookupStrategy> getSyncNaiveBayesRCEApplicationFactory(EventMarshalBuffer<E> marshalBuffer, RCEConfig config, WindowManager manager, Clock clock){
 		return getNaiveBayesRCEApplicationFactory(Mode.SYNC, marshalBuffer, config, manager, clock);
@@ -35,7 +35,6 @@ public class NaiveBayesRCEApplicationFactory<E extends ClassifiedEvent, T extend
 	}
 	
 	private static <E extends ClassifiedEvent> NaiveBayesRCEApplicationFactory<E, RONaiveBayesMapBasedLookupStrategy> getNaiveBayesRCEApplicationFactory(Mode mode, EventMarshalBuffer<E> marshalBuffer, RCEConfig config, WindowManager manager, Clock clock){
-		
 		
 		EventConsumer<AccumulatedEvent<RONaiveBayesMapBasedLookupStrategy>> windowEventConsumer = new WindowEventConsumer(manager);
 		final VolatileNaiveBayesGlobalIndexesProvider globalIndexes = new VolatileNaiveBayesGlobalIndexesProvider(new NaiveBayesGlobalIndexes());
@@ -55,7 +54,7 @@ public class NaiveBayesRCEApplicationFactory<E extends ClassifiedEvent, T extend
 		SYNC
 	}
 	
-	private final RCEApplicationFactory defaultFactory;
+	private final RCEApplicationFactory<E> defaultFactory;
 	
 	public NaiveBayesRCEApplicationFactory(EventMarshalBuffer<E> marshalBuffer, Mode mode, RCEConfig config, EventConsumer<AccumulatedEvent<RONaiveBayesMapBasedLookupStrategy>> windowEventConsumer, Clock clock, AccumulatorLookupStrategyFactory<E> lookUpStrategy){
 		
@@ -87,7 +86,7 @@ public class NaiveBayesRCEApplicationFactory<E extends ClassifiedEvent, T extend
 	}
 
 	@Override
-	public RCEApplication createApplication(String configOverrideLocation) {
+	public RCEApplication<E> createApplication(String configOverrideLocation) {
 		return defaultFactory.createApplication(configOverrideLocation);
 	}
 }

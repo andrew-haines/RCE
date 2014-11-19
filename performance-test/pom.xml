@@ -20,6 +20,12 @@
 			<groupId>com.google.guava</groupId>
 			<artifactId>guava</artifactId>
 		</dependency>
+		<dependency>
+		    <groupId>${project.groupId}</groupId>
+		    <artifactId>rce-main</artifactId>
+		    <version>${project.version}</version>
+		    <type>test-jar</type>
+		</dependency>
     </dependencies>
     <build>
     	<plugins>

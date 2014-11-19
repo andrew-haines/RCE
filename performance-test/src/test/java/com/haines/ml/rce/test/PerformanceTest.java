@@ -1,5 +1,8 @@
 package com.haines.ml.rce.test;
 
-public class PerformanceTest {
+import com.haines.ml.rce.main.RCEApplicationStartupTest;
 
+public class PerformanceTest extends RCEApplicationStartupTest{
+
+	
 }

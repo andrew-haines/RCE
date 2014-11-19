@@ -1,0 +1,89 @@
+group java_bean_with_equals_hashcode : java_bean;
+
+message_block(message, module, options, nested) ::= <<
+<if(!nested)>
+<message:message_header(message=it, module=module, options=options)>
+<endif>
+
+public <if(nested)>static <endif>final class <message.name> <options.(message.name + ".extends_declaration"); format=" "><message:message_impl_declaration(message=it, options=options)>
+{
+    <message.nestedMessages:message_block(message=it, module=module, options=options, nested="true")>
+    <message.nestedEnumGroups:enum_block(eg=it, module=module, options=options, nested="true")>
+    <message:message_default_instance(message=it, options=options)>
+    <message.fields:field_defaults_declaration(field=it, options=options); separator="\n">
+    
+    <message.fields:field_declaration(field=it, options=options, modifier="private"); separator="\n">
+    <message:message_constructor(message=it, options=options)>
+    <message:message_getters_and_setters(message=it, options=options)>
+    <message:message_impl_serializable(message=it, options=options)>
+    <message:message_impl_message(message=it, options=options)>
+    <message:message_impl_schema(message=it, options=options)>
+    <message:message_field_equals(message=it, options=options)>
+	<message:message_field_hashcode(message=it, options=options)>
+    
+    <if(options.generate_pipe_schema)>
+    <message:message_pipe_schema(message=it, options=options)>
+    <endif>
+}
+
+>>
+
+message_field_equals(message, options) ::= <<
+@Override
+public boolean equals(Object obj){
+    if (this == obj){
+        return true;
+    }
+    if (obj == null || !(obj instanceof <message.name>)){
+        return false;
+    }
+    <message.name> other = (<message.name>) obj;
+    
+    <message.fields:field_equals(field=it, options=options); separator="\n\n">
+    
+    return true;
+}
+
+>>
+
+field_equals(field, options) ::= <<
+
+<if(field.numberField)>
+if( <var(val=field.name, fmt="CC", options=options)> != other.<var(val=field.name, fmt="CC", options=options)>){
+	return false;
+}
+<else>
+if (this.<var(val=field.name, fmt="CC", options=options)> != null && other.<var(val=field.name, fmt="CC", options=options)> != null) 
+{
+    if (!this.<var(val=field.name, fmt="CC", options=options)>.equals(other.<var(val=field.name, fmt="CC", options=options)>)) {
+        return false;
+    }
+}
+else if (this.<var(val=field.name, fmt="CC", options=options)> == null ^ other.<var(val=field.name, fmt="CC", options=options)> == null) {
+    return false;
+}
+<endif>
+>>
+
+message_field_hashcode(message, options) ::= <<
+@Override
+public int hashCode() {
+
+	int hash = 13;
+    <message.fields:field_hashcode(field=it, options=options); separator="\n">
+    
+    return hash;
+}
+
+>>
+
+field_hashcode(field, options) ::= <<
+<if(field.numberField)>
+hash ^= this.<var(val=field.name, fmt="CC", options=options)>;
+    <else>
+if (this.<var(val=field.name, fmt="CC", options=options)> != null) {
+	hash ^= this.<var(val=field.name, fmt="CC", options=options)>.hashCode();
+}
+    <endif>
+
+>>

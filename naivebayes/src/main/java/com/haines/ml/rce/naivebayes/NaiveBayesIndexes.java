@@ -5,9 +5,7 @@ import java.util.Map;
 
 import com.google.common.base.Function;
 import com.google.common.collect.Iterables;
-import com.haines.ml.rce.accumulator.AccumulatorEventConsumer;
 import com.haines.ml.rce.model.Classification;
-import com.haines.ml.rce.model.ClassifiedEvent;
 import com.haines.ml.rce.model.Feature;
 import com.haines.ml.rce.naivebayes.model.NaiveBayesProperty.NaiveBayesPosteriorProperty;
 import com.haines.ml.rce.naivebayes.model.NaiveBayesProperty.NaiveBayesPriorProperty;

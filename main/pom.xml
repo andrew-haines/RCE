@@ -24,7 +24,7 @@
 		            <protoModule>
 		              <source>src/test/resources/protobuf/testevent.proto</source>
 		              <outputDir>${protostuff-output-directory}</outputDir>
-		              <output>java_bean</output>
+		              <output>${project.build.resources[0].directory}/protobuf/java_bean_with_equals_hashcode.java.stg</output>
 		              <encoding>UTF-8</encoding>
 		              <options>
 		                <property>
@@ -44,6 +44,10 @@
 		                </property>
 		                <property>
 		                  <name>generate_field_map</name>
+		                </property>
+		                <property>
+		                    <name>primitive_numbers_if_optional</name>
+		                    <value>true</value>
 		                </property>
 		              </options>
 		            </protoModule>

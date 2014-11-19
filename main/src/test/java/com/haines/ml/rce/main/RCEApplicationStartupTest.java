@@ -130,9 +130,9 @@ public class RCEApplicationStartupTest {
 		List<ClassificationProto> classifications = new ArrayList<ClassificationProto>();
 		List<FeatureProto> features = new ArrayList<FeatureProto>();
 		
-		FeatureProto feature1 = new FeatureProto("feature1_"+value);
-		FeatureProto feature2 = new FeatureProto("feature2_"+value);
-		FeatureProto feature3 = new FeatureProto("feature3_"+value);
+		FeatureProto feature1 = getFeature("feature1_"+value, 1);
+		FeatureProto feature2 = getFeature("feature2_"+value, 1);
+		FeatureProto feature3 = getFeature("feature3_"+value, 1);
 		
 		features.add(feature1);
 		features.add(feature2);
@@ -148,5 +148,14 @@ public class RCEApplicationStartupTest {
 		event.setFeaturesList(features);
 		
 		return event;
+	}
+	
+	private FeatureProto getFeature(String value, int type){
+		
+		FeatureProto feature = new FeatureProto();
+		
+		feature.setType(type);
+		feature.setValue(value);
+		return feature;
 	}
 }

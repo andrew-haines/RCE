@@ -4,10 +4,17 @@ import com.haines.ml.rce.model.Feature;
 
 public class TestFeature implements Feature {
 	
+	private static final int DEFAULT_TYPE = 0;
 	private final String featureStr;
+	private final int type;
+	
+	public TestFeature(String featureStr, int type){
+		this.featureStr = featureStr;
+		this.type = type;
+	}
 	
 	public TestFeature(String featureStr){
-		this.featureStr = featureStr;
+		this(featureStr, DEFAULT_TYPE);
 	}
 	
 	@Override
@@ -22,6 +29,16 @@ public class TestFeature implements Feature {
 	
 	@Override
 	public String toString(){
+		return featureStr;
+	}
+
+	@Override
+	public int getType() {
+		return type;
+	}
+
+	@Override
+	public Object getValue() {
 		return featureStr;
 	}
 }

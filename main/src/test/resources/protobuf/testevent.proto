@@ -6,7 +6,8 @@ option java_outer_classname = "TestEventProtos";
 message TestEvent {
 
 	message FeatureProto {
-		required string featureId = 1;
+		optional string value = 1;
+		optional int32 type = 2;
 	}
 	
 	message ClassificationProto {

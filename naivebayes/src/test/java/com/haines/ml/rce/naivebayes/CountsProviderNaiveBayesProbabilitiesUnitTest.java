@@ -18,6 +18,7 @@ import com.haines.ml.rce.test.TestFeature;
 public class CountsProviderNaiveBayesProbabilitiesUnitTest {
 	
 	private static final Iterable<NaiveBayesCounts<NaiveBayesPosteriorProperty>> POSTERIOR_COUNTS = getTestPosteriorCounts(); 
+	private static final Iterable<NaiveBayesCounts<NaiveBayesPosteriorProperty>> POSTERIOR_DIFFERENT_FEATURE_TYPE_COUNTS = getTestDifferentFeatureTypePosteriorCounts(); 
 	private static final Iterable<NaiveBayesCounts<NaiveBayesPosteriorProperty>> POSTERIOR_DUP_COUNTS = getTestPosteriorDupCounts(); 
 	private static final Iterable<NaiveBayesCounts<NaiveBayesPriorProperty>> PRIOR_COUNTS = getTestPriorCounts(); 
 
@@ -38,7 +39,7 @@ public class CountsProviderNaiveBayesProbabilitiesUnitTest {
 			}
 		});
 	}
-	
+
 	@Test
 	public void givenCandidate_whenCallingGetPosteriorProbabilities_thenCorrectProbabilitiesReturned(){
 		assertThat(candidate.getPosteriorProbability(new TestFeature("feature1"), new TestClassification("class1")), is(equalTo(0.30275229357798167)));
@@ -75,6 +76,30 @@ public class CountsProviderNaiveBayesProbabilitiesUnitTest {
 	}
 	
 	@Test
+	public void givenCandidate_whenCallingGetPosteriorProbabilitiesWithDifferentFeatureTypes_thenCorrectProbabilitiesReturned(){
+		this.candidate = new CountsProviderNaiveBayesProbabilities(new NaiveBayesCountsProvider() {
+			
+			@Override
+			public Iterable<NaiveBayesCounts<NaiveBayesPriorProperty>> getPriorCounts() {
+				return PRIOR_COUNTS;
+			}
+			
+			@Override
+			public Iterable<NaiveBayesCounts<NaiveBayesPosteriorProperty>> getPosteriorCounts() {
+				return POSTERIOR_DIFFERENT_FEATURE_TYPE_COUNTS;
+			}
+		});
+		
+		assertThat(candidate.getPosteriorProbability(new TestFeature("feature1", 1), new TestClassification("class1")), is(equalTo(0.30275229357798167)));
+		assertThat(candidate.getPosteriorProbability(new TestFeature("feature2", 1), new TestClassification("class1")), is(equalTo(0.6972477064220184)));
+		assertThat(candidate.getPosteriorProbability(new TestFeature("feature1", 1), new TestClassification("class2")), is(equalTo(0.5116279069767442)));
+		assertThat(candidate.getPosteriorProbability(new TestFeature("feature2", 1), new TestClassification("class2")), is(equalTo(0.4883720930232558)));
+		assertThat(candidate.getPosteriorProbability(new TestFeature("feature1", 2), new TestClassification("class1")), is(equalTo(0.6538461538461539)));
+		assertThat(candidate.getPosteriorProbability(new TestFeature("feature2", 2), new TestClassification("class1")), is(equalTo(0.34615384615384615)));
+
+	}
+	
+	@Test
 	public void givenCandidate_whenCallingGetPriorProbabilities_thenCorrectProbabilitiesReturned(){
 		assertThat(candidate.getPriorProbability(new TestClassification("class1")), is(equalTo(0.09774436090225563)));
 		assertThat(candidate.getPriorProbability(new TestClassification("class2")), is(equalTo(0.3383458646616541)));
@@ -89,6 +114,16 @@ public class CountsProviderNaiveBayesProbabilitiesUnitTest {
 				new NaiveBayesCounts<NaiveBayesPriorProperty>(new NaiveBayesPriorProperty(new TestClassification("class3")), 2),
 				new NaiveBayesCounts<NaiveBayesPriorProperty>(new NaiveBayesPriorProperty(new TestClassification("class4")), 65),
 				new NaiveBayesCounts<NaiveBayesPriorProperty>(new NaiveBayesPriorProperty(new TestClassification("class5")), 8));
+	}
+	
+	private static Iterable<NaiveBayesCounts<NaiveBayesPosteriorProperty>> getTestDifferentFeatureTypePosteriorCounts() {
+		return Arrays.asList(new NaiveBayesCounts<NaiveBayesPosteriorProperty>(new NaiveBayesPosteriorProperty(new TestFeature("feature1", 1), new TestClassification("class1")), 33),
+				new NaiveBayesCounts<NaiveBayesPosteriorProperty>(new NaiveBayesPosteriorProperty(new TestFeature("feature2", 1), new TestClassification("class1")), 76),
+				new NaiveBayesCounts<NaiveBayesPosteriorProperty>(new NaiveBayesPosteriorProperty(new TestFeature("feature1", 1), new TestClassification("class2")), 22),
+				new NaiveBayesCounts<NaiveBayesPosteriorProperty>(new NaiveBayesPosteriorProperty(new TestFeature("feature2", 1), new TestClassification("class2")), 21),
+				new NaiveBayesCounts<NaiveBayesPosteriorProperty>(new NaiveBayesPosteriorProperty(new TestFeature("feature1", 2), new TestClassification("class1")), 85),
+				new NaiveBayesCounts<NaiveBayesPosteriorProperty>(new NaiveBayesPosteriorProperty(new TestFeature("feature2", 2), new TestClassification("class1")), 45)
+				);
 	}
 
 	private static Iterable<NaiveBayesCounts<NaiveBayesPosteriorProperty>> getTestPosteriorDupCounts() {

@@ -51,7 +51,12 @@ public class WindowEventConsumer implements EventConsumer<AccumulatedEvent<RONai
 				
 				NaiveBayesProbabilities probabilities = window.getProbabilities();
 				
-				Map<Classification, Map<Feature, Integer>> posteriors = new THashMap<Classification, Map<Feature, Integer>>();
+				/*
+				 * represents the classification/feature mapping. This does not need to be broken down to feature type as this 
+				 * is simply used for sorting the indexes by the frequency of each feature value. As long as .equals and .hasCode 
+				 * are implemented properly with the type, this will work
+				 */
+				Map<Classification, Map<Feature, Integer>> posteriors = new THashMap<Classification, Map<Feature, Integer>>(); 
 				Map<Classification, Integer> priors = new THashMap<Classification, Integer>();
 				
 				int indexLocation = 0;

@@ -1,6 +1,12 @@
 package com.haines.ml.rce.main;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.net.SocketAddress;
+import java.net.StandardProtocolFamily;
+import java.nio.ByteBuffer;
+import java.nio.channels.DatagramChannel;
+import java.nio.channels.spi.SelectorProvider;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
@@ -12,6 +18,8 @@ import javax.xml.bind.JAXBException;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.dyuproject.protostuff.LinkedBuffer;
+import com.dyuproject.protostuff.ProtostuffIOUtil;
 import com.haines.ml.rce.eventstream.EventStreamListener;
 import com.haines.ml.rce.main.config.RCEConfig;
 import com.haines.ml.rce.model.Event;
@@ -34,6 +42,7 @@ public class RCEApplicationStartupTest {
 	private CountDownLatch finished;
 	private CountDownLatch windowUpdated;
 	private AtomicInteger eventsSeen;
+	private SocketAddress serverAddress;
 	
 	@Before
 	public void before() throws RCEApplicationException, JAXBException, IOException{
@@ -44,6 +53,8 @@ public class RCEApplicationStartupTest {
 		eventsSeen = new AtomicInteger(0);
 		
 		RCEConfig defaultConfig = RCEConfig.UTIL.loadConfig(null);
+		
+		serverAddress = defaultConfig.getEventStreamSocketAddress();
 		
 		candidate = new RCEApplication.RCEApplicationBuilder<TestEvent>(null).addSystemStartedListener(new EventStreamListener() {
 
@@ -122,6 +133,71 @@ public class RCEApplicationStartupTest {
 		candidate.stop();
 		
 		finished.await();
+	}
+	
+	@Test
+	public void givenCandidate_whenCallingStartAndSendingEventsViaSelector_thenApplicationStartsUpCorrectly() throws RCEApplicationException, InterruptedException, IOException{
+		
+		
+		Thread server = new Thread(new Runnable(){
+
+			@Override
+			public void run() {
+				try {
+					candidate.start();
+				} catch (RCEApplicationException e) {
+					throw new RuntimeException("Unable to start test", e);
+				}
+			}
+			
+		});
+		
+		server.start();
+		
+		started.await();
+		
+		// add some test events through the system
+		
+		int eventNum;
+		
+		for (eventNum = 0; !windowUpdated.await(100, TimeUnit.MILLISECONDS); eventNum++){
+			
+			sendViaSelector(getTestEvent(eventNum));
+		}
+		
+		System.out.println("events recieved: "+eventNum);
+		assertThat(eventNum, is(equalTo(eventsSeen.get())));
+		
+		// now stop the system
+		
+		candidate.stop();
+		
+		finished.await();
+	}
+	
+	private void sendViaSelector(TestEvent testEvent) throws IOException, InterruptedException {
+		DatagramChannel channel = getClientChannel(serverAddress);
+		//LOG.debug("Sending event: "+event.testString1+"("+Integer.toBinaryString(event.testInt1)+"##"+event.testInt1+")");
+		// dont need to worry about efficiency in test case...
+		ByteArrayOutputStream out = new ByteArrayOutputStream();
+		
+		ProtostuffIOUtil.writeTo(out, testEvent, testEvent.cachedSchema(), LinkedBuffer.allocate(LinkedBuffer.DEFAULT_BUFFER_SIZE));
+		
+		out.flush();
+		out.close();
+		
+		
+		channel.send(ByteBuffer.wrap(out.toByteArray()), serverAddress);
+		
+		channel.close();
+	}
+
+	protected DatagramChannel getClientChannel(SocketAddress address) throws IOException, InterruptedException {
+		DatagramChannel channel = SelectorProvider.provider().openDatagramChannel(StandardProtocolFamily.INET);
+		
+		channel.connect(address);
+		
+		return channel;
 	}
 
 	private TestEvent getTestEvent(int value) {

@@ -40,13 +40,28 @@ public class NaiveBayesAccumulatorBackedCountsProvider implements NaiveBayesCoun
 		};
 	}
 
-	@Override
 	public Iterable<NaiveBayesCounts<NaiveBayesPosteriorProperty>> getPosteriorCounts() {
 		return Iterables.transform(indexes.getPosteriors(), posteriorPropertyToCountsFunction);
 	}
 
-	@Override
 	public Iterable<NaiveBayesCounts<NaiveBayesPriorProperty>> getPriorCounts() {
 		return Iterables.transform(indexes.getPriors(), priorPropertyToCountsFunction);
+	}
+
+	@Override
+	public Counts getCounts() {
+		return new Counts(){
+
+			@Override
+			public Iterable<NaiveBayesCounts<NaiveBayesPriorProperty>> getPriors() {
+				return getPriorCounts();
+			}
+
+			@Override
+			public Iterable<NaiveBayesCounts<NaiveBayesPosteriorProperty>> getPosteriors() {
+				return getPosteriorCounts();
+			}
+			
+		};
 	}
 }

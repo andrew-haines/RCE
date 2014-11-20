@@ -17,6 +17,7 @@ import java.util.TreeSet;
 
 import com.haines.ml.rce.model.Classification;
 import com.haines.ml.rce.model.Feature;
+import com.haines.ml.rce.naivebayes.NaiveBayesCountsProvider.Counts;
 import com.haines.ml.rce.naivebayes.model.NaiveBayesCounts;
 import com.haines.ml.rce.naivebayes.model.Probability;
 import com.haines.ml.rce.naivebayes.model.NaiveBayesProperty.NaiveBayesPosteriorProperty;
@@ -39,17 +40,16 @@ public class CountsProviderNaiveBayesProbabilities implements NaiveBayesProbabil
 	
 	public CountsProviderNaiveBayesProbabilities(NaiveBayesCountsProvider provider){
 		
-		Iterable<NaiveBayesCounts<NaiveBayesPosteriorProperty>> posteriorsIt = provider.getPosteriorCounts(); //TODO check whether these two not being atomic is ok
-		Iterable<NaiveBayesCounts<NaiveBayesPriorProperty>> priorsIt = provider.getPriorCounts();
+		Counts counts = provider.getCounts();
 		
-		Map<Classification, TIntIntMap> postertiorTotals = getPosteriorTotals(posteriorsIt);
+		Map<Classification, TIntIntMap> postertiorTotals = getPosteriorTotals(counts.getPosteriors());
 		
-		int priorTotal = getPriorTotal(priorsIt); // TODO check that classification priors are calculated by instance seen and not feature seen
+		int priorTotal = getPriorTotal(counts.getPriors()); // TODO check that classification priors are calculated by instance seen and not feature seen
 		
 		posteriorProbabilities = new THashMap<Classification, TIntObjectMap<Probabilities>>();
 		priorProbabilities = new THashMap<Classification, Probability>();
 		
-		for (NaiveBayesCounts<NaiveBayesPosteriorProperty> posteriors: posteriorsIt){
+		for (NaiveBayesCounts<NaiveBayesPosteriorProperty> posteriors: counts.getPosteriors()){
 			TIntObjectMap<Probabilities> features = posteriorProbabilities.get(posteriors.getProperty().getClassification());
 			
 			if (features == null){
@@ -81,7 +81,7 @@ public class CountsProviderNaiveBayesProbabilities implements NaiveBayesProbabil
 			
 		}
 		
-		for (NaiveBayesCounts<NaiveBayesPriorProperty> prior: priorsIt){
+		for (NaiveBayesCounts<NaiveBayesPriorProperty> prior: counts.getPriors()){
 			priorProbabilities.put(prior.getProperty().getClassification(), new Probability(prior.getCounts(), priorTotal));
 		}
 		
@@ -127,7 +127,7 @@ public class CountsProviderNaiveBayesProbabilities implements NaiveBayesProbabil
 		};
 	}
 	
-	private int getPriorTotal(Iterable<NaiveBayesCounts<NaiveBayesPriorProperty>> priorsIt) {
+	private int getPriorTotal(Iterable<? extends NaiveBayesCounts<NaiveBayesPriorProperty>> priorsIt) {
 		int priorTotal = 0;
 		
 		for (NaiveBayesCounts<NaiveBayesPriorProperty> prior: priorsIt){
@@ -137,7 +137,7 @@ public class CountsProviderNaiveBayesProbabilities implements NaiveBayesProbabil
 		return priorTotal;
 	}
 
-	private Map<Classification, TIntIntMap> getPosteriorTotals(Iterable<NaiveBayesCounts<NaiveBayesPosteriorProperty>> posteriorsIt) {
+	private Map<Classification, TIntIntMap> getPosteriorTotals(Iterable<? extends NaiveBayesCounts<NaiveBayesPosteriorProperty>> posteriorsIt) {
 		Map<Classification, TIntIntMap> postertiorTotals = new HashMap<Classification, TIntIntMap>();
 		
 		for (NaiveBayesCounts<NaiveBayesPosteriorProperty> posteriors: posteriorsIt){

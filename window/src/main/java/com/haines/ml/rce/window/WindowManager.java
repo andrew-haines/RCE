@@ -11,6 +11,7 @@ import com.haines.ml.rce.model.Feature;
 import com.haines.ml.rce.model.system.Clock;
 import com.haines.ml.rce.naivebayes.CountsProviderNaiveBayesProbabilities;
 import com.haines.ml.rce.naivebayes.NaiveBayesCountsProvider;
+import com.haines.ml.rce.naivebayes.NaiveBayesCountsProvider.Counts;
 import com.haines.ml.rce.naivebayes.NaiveBayesProbabilities;
 import com.haines.ml.rce.naivebayes.NaiveBayesProbabilitiesProvider;
 import com.haines.ml.rce.naivebayes.model.NaiveBayesCounts;
@@ -99,11 +100,14 @@ public class WindowManager implements NaiveBayesProbabilitiesProvider{
 			
 			Aggregator aggregatedWindow = Aggregator.newInstance();
 			
-			aggregatedWindow.aggregate(Iterables.concat(currentWindow.getProvider().getPosteriorCounts(), 
-														currentWindow.getProvider().getPriorCounts()));
+			Counts currentWindowCounts = currentWindow.getProvider().getCounts();
+			Counts newCounts = provider.getCounts();
 			
-			aggregatedWindow.aggregate(Iterables.concat(provider.getPosteriorCounts(), 
-														provider.getPriorCounts()));
+			aggregatedWindow.aggregate(Iterables.concat(currentWindowCounts.getPosteriors(), 
+														currentWindowCounts.getPriors()));
+			
+			aggregatedWindow.aggregate(Iterables.concat(newCounts.getPosteriors(), 
+														newCounts.getPriors()));
 			
 			
 			Window newAggregatedWindow = new Window(cyclicWindowBuffer[currentMaxIdx].getExpires(), aggregatedWindow);
@@ -120,12 +124,14 @@ public class WindowManager implements NaiveBayesProbabilitiesProvider{
 		
 		builder.append("Windows: \n");
 		int idx = 0;
+		
 		for (int i = currentMaxIdx; i != currentMinIdx; i = getPreviousIdxInBuffer(i)){
 			builder.append("\tw[").append(idx++).append("] - ");
 			if (cyclicWindowBuffer[i] != null){
-				builder.append(Iterables.size(cyclicWindowBuffer[i].getProvider().getPosteriorCounts()));
+				Counts counts = cyclicWindowBuffer[i].getProvider().getCounts();
+				builder.append(Iterables.size(counts.getPosteriors()));
 				builder.append(":");
-				builder.append(Iterables.size(cyclicWindowBuffer[i].getProvider().getPriorCounts()));
+				builder.append(Iterables.size(counts.getPriors()));
 				builder.append(" e=");
 				builder.append(cyclicWindowBuffer[i].getExpires());
 			} else{
@@ -178,12 +184,15 @@ public class WindowManager implements NaiveBayesProbabilitiesProvider{
 		
 		private void processWindows(NaiveBayesCountsProvider newWindow, NaiveBayesCountsProvider oldWindow){
 
-			aggregator.add(newWindow.getPosteriorCounts());
-			aggregator.add(newWindow.getPriorCounts());
+			Counts newWindowCounts = newWindow.getCounts();
+			
+			aggregator.add(newWindowCounts.getPosteriors());
+			aggregator.add(newWindowCounts.getPriors());
 			
 			if (oldWindow != null){ // if the buffer has wrapped all the way around and we have all windows full then subtract the first element in cyclic window buffer
-				aggregator.subtract(oldWindow.getPosteriorCounts());
-				aggregator.subtract(oldWindow.getPriorCounts());
+				Counts oldWindowCounts = oldWindow.getCounts();
+				aggregator.subtract(oldWindowCounts.getPosteriors());
+				aggregator.subtract(oldWindowCounts.getPriors());
 			}
 			
 			probabilities = new CountsProviderNaiveBayesProbabilities(aggregator);

@@ -6,7 +6,12 @@ import com.haines.ml.rce.naivebayes.model.NaiveBayesProperty.NaiveBayesPriorProp
 
 public interface NaiveBayesCountsProvider {
 
-	Iterable<NaiveBayesCounts<NaiveBayesPosteriorProperty>> getPosteriorCounts();
+	Counts getCounts();
 	
-	Iterable<NaiveBayesCounts<NaiveBayesPriorProperty>> getPriorCounts();
+	public interface Counts{
+
+		public Iterable<NaiveBayesCounts<NaiveBayesPriorProperty>> getPriors();
+
+		public Iterable<NaiveBayesCounts<NaiveBayesPosteriorProperty>> getPosteriors();
+	}
 }

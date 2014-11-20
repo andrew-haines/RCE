@@ -436,15 +436,20 @@ public class WindowManagerUnitTest {
 		return new NaiveBayesCountsProvider(){
 
 			@Override
-			public Iterable<NaiveBayesCounts<NaiveBayesPosteriorProperty>> getPosteriorCounts() {
-				return posteriorEvents;
-			}
+			public Counts getCounts() {
+				return new Counts(){
 
-			@Override
-			public Iterable<NaiveBayesCounts<NaiveBayesPriorProperty>> getPriorCounts() {
-				return priorEvents;
+					@Override
+					public Iterable<NaiveBayesCounts<NaiveBayesPriorProperty>> getPriors() {
+						return priorEvents;
+					}
+
+					@Override
+					public Iterable<NaiveBayesCounts<NaiveBayesPosteriorProperty>> getPosteriors() {
+						return posteriorEvents;
+					}
+				};
 			}
-			
 		};
 	}
 }

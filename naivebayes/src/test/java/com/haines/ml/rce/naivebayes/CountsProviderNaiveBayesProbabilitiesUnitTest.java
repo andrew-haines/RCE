@@ -27,15 +27,22 @@ public class CountsProviderNaiveBayesProbabilitiesUnitTest {
 	@Before
 	public void before(){
 		this.candidate = new CountsProviderNaiveBayesProbabilities(new NaiveBayesCountsProvider() {
-			
+
 			@Override
-			public Iterable<NaiveBayesCounts<NaiveBayesPriorProperty>> getPriorCounts() {
-				return PRIOR_COUNTS;
-			}
-			
-			@Override
-			public Iterable<NaiveBayesCounts<NaiveBayesPosteriorProperty>> getPosteriorCounts() {
-				return POSTERIOR_COUNTS;
+			public Counts getCounts() {
+				return new Counts(){
+
+					@Override
+					public Iterable<NaiveBayesCounts<NaiveBayesPriorProperty>> getPriors() {
+						return PRIOR_COUNTS;
+					}
+
+					@Override
+					public Iterable<NaiveBayesCounts<NaiveBayesPosteriorProperty>> getPosteriors() {
+						return POSTERIOR_COUNTS;
+					}
+					
+				};
 			}
 		});
 	}
@@ -62,15 +69,22 @@ public class CountsProviderNaiveBayesProbabilitiesUnitTest {
 	@Test(expected=IllegalStateException.class)
 	public void givenCandidate_whenCallingGetPosteriorProbabilitiesWithDuplicates_thenIllegalStateExceptionThrown(){
 		this.candidate = new CountsProviderNaiveBayesProbabilities(new NaiveBayesCountsProvider() {
-			
+
 			@Override
-			public Iterable<NaiveBayesCounts<NaiveBayesPriorProperty>> getPriorCounts() {
-				return PRIOR_COUNTS;
-			}
-			
-			@Override
-			public Iterable<NaiveBayesCounts<NaiveBayesPosteriorProperty>> getPosteriorCounts() {
-				return POSTERIOR_DUP_COUNTS;
+			public Counts getCounts() {
+				return new Counts(){
+
+					@Override
+					public Iterable<NaiveBayesCounts<NaiveBayesPriorProperty>> getPriors() {
+						return PRIOR_COUNTS;
+					}
+
+					@Override
+					public Iterable<NaiveBayesCounts<NaiveBayesPosteriorProperty>> getPosteriors() {
+						return POSTERIOR_DUP_COUNTS;
+					}
+					
+				};
 			}
 		});
 	}
@@ -80,13 +94,20 @@ public class CountsProviderNaiveBayesProbabilitiesUnitTest {
 		this.candidate = new CountsProviderNaiveBayesProbabilities(new NaiveBayesCountsProvider() {
 			
 			@Override
-			public Iterable<NaiveBayesCounts<NaiveBayesPriorProperty>> getPriorCounts() {
-				return PRIOR_COUNTS;
-			}
-			
-			@Override
-			public Iterable<NaiveBayesCounts<NaiveBayesPosteriorProperty>> getPosteriorCounts() {
-				return POSTERIOR_DIFFERENT_FEATURE_TYPE_COUNTS;
+			public Counts getCounts() {
+				return new Counts(){
+
+					@Override
+					public Iterable<NaiveBayesCounts<NaiveBayesPriorProperty>> getPriors() {
+						return PRIOR_COUNTS;
+					}
+
+					@Override
+					public Iterable<NaiveBayesCounts<NaiveBayesPosteriorProperty>> getPosteriors() {
+						return POSTERIOR_DIFFERENT_FEATURE_TYPE_COUNTS;
+					}
+					
+				};
 			}
 		});
 		

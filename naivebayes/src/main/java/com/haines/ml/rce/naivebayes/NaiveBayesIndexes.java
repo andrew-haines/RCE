@@ -1,5 +1,7 @@
 package com.haines.ml.rce.naivebayes;
 
+import gnu.trove.map.hash.THashMap;
+
 import java.util.Iterator;
 import java.util.Map;
 
@@ -73,7 +75,7 @@ public abstract class NaiveBayesIndexes {
 			@Override
 			public Iterator<NaiveBayesPosteriorProperty> iterator() {
 				
-				final Iterator<Map.Entry<Classification, Map<Feature, Integer>>> keySetIt = posteriorProbabilityIndexes.entrySet().iterator();
+				final Iterator<Map.Entry<Classification, Map<Feature, Integer>>> keySetIt = new THashMap<Classification, Map<Feature, Integer>>(posteriorProbabilityIndexes).entrySet().iterator();
 				return new Iterator<NaiveBayesPosteriorProperty>(){
 
 					private Iterator<Feature> currentPosteriorFeatureForClassification;
@@ -101,15 +103,13 @@ public abstract class NaiveBayesIndexes {
 					public void remove() {
 						throw new UnsupportedOperationException("Backing array is immutable");
 					}
-					
 				};
 			}
-			
 		};
 	}
 
 	public Iterable<NaiveBayesPriorProperty> getPriors() {
-		return Iterables.transform(priorProbabilityIndexes.keySet(), CLASSIFICATION_TO_PRIOR_PROPERTY_FUNC);
+		return Iterables.transform(new THashMap<>(priorProbabilityIndexes).keySet(), CLASSIFICATION_TO_PRIOR_PROPERTY_FUNC);
 	}
 
 	public void clear() {

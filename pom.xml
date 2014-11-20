@@ -17,5 +17,6 @@
 		<module>dispatcher</module>
 		<module>eventstream</module>
 		<module>main</module>
+		<module>performance-test</module>
 	</modules>
 </project>

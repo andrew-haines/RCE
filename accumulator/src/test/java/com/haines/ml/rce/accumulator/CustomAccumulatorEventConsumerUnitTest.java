@@ -29,11 +29,32 @@ public class CustomAccumulatorEventConsumerUnitTest {
 		}
 	};
 	
+	private static final AccumulatorConfig LARGE_TEST_CONFIG = new AccumulatorConfig() {
+		
+		@Override
+		public int getSecondAccumulatorLineBitDepth() {
+			return 6;
+		}
+		
+		@Override
+		public int getFirstAccumulatorLineBitDepth() {
+			return 6;
+		}
+		
+		@Override
+		public int getFinalAccumulatorLineBitDepth() {
+			return 12;
+		}
+	};
+	
 	private AccumulatorEventConsumer<AccumulatorEventConsumerUnitTest.TestEvent> candidate;
+	private AccumulatorEventConsumer<AccumulatorEventConsumerUnitTest.TestEvent> candidateLarge;
 	
 	@Before
 	public void before(){
 		candidate = new AccumulatorEventConsumer<AccumulatorEventConsumerUnitTest.TestEvent>(TEST_CONFIG, new AccumulatorEventConsumerUnitTest.TestEventAccumulatorLookupStrategy());
+		candidateLarge = new AccumulatorEventConsumer<AccumulatorEventConsumerUnitTest.TestEvent>(LARGE_TEST_CONFIG, new AccumulatorEventConsumerUnitTest.TestEventAccumulatorLookupStrategy());
+
 	}
 	
 	@Test
@@ -161,6 +182,51 @@ public class CustomAccumulatorEventConsumerUnitTest {
 		assertThat(provider.getAccumulatorValue(2095), is(equalTo(1))); // only updated once
 		assertThat(provider.getAccumulatorValue(3), is(equalTo(0))); // never updated
 		assertThat(provider.getAccumulatorValue(4094), is(equalTo(2))); 
+	}
+	
+	@Test
+	public void givenCandidateWithLargeConfiguredAccumulatorSizese_whenConsumingMultipleEventsAcrossAllLines2_thenAccumulatorsUpdatedCorrectly(){
+		assertThat(candidateLarge.getAccumulatorProvider().getAccumulatorValue(1), is(equalTo(0)));
+		
+		for (int i = 0; i < 16777216; i++){
+			for (int j = 0; j < 10; j++){
+				candidateLarge.consume(new TestEvent(new int[]{i}));
+			}
+		}
+		
+		AccumulatorProvider provider = candidateLarge.getAccumulatorProvider();
+		
+		assertThat(provider.getAccumulatorValue(16777215), is(equalTo(10)));
+	}
+	
+	@Test
+	public void givenCandidateWithLargeConfiguredAccumulatorSizes_whenClearedAndThenConsumingMultipleEventsAcrossAllLines2_thenAccumulatorsUpdatedCorrectly(){
+		assertThat(candidateLarge.getAccumulatorProvider().getAccumulatorValue(1), is(equalTo(0)));
+		
+		for (int i = 0; i < 4096; i++){
+			for (int j = 0; j < 10; j++){
+				candidateLarge.consume(new TestEvent(new int[]{i}));
+			}
+		}
+		
+		AccumulatorProvider provider = candidateLarge.getAccumulatorProvider();
+		
+		assertThat(provider.getAccumulatorValue(4095), is(equalTo(10)));
+		candidateLarge.clear();
+		
+		provider = candidateLarge.getAccumulatorProvider();
+		
+		assertThat(provider.getAccumulatorValue(4095), is(equalTo(0)));
+		
+		for (int i = 0; i < 4096; i++){
+			for (int j = 0; j < 10; j++){
+				candidateLarge.consume(new TestEvent(new int[]{i}));
+			}
+		}
+		
+		provider = candidateLarge.getAccumulatorProvider();
+		
+		assertThat(provider.getAccumulatorValue(4095), is(equalTo(10)));
 	}
 }
 	

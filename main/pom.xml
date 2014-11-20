@@ -22,7 +22,7 @@
 		        <configuration>
 		          <protoModules>
 		            <protoModule>
-		              <source>src/test/resources/protobuf/testevent.proto</source>
+		              <source>${project.build.resources[0].directory}/protobuf/event.proto</source>
 		              <outputDir>${protostuff-output-directory}</outputDir>
 		              <output>${project.build.resources[0].directory}/protobuf/java_bean_with_equals_hashcode.java.stg</output>
 		              <encoding>UTF-8</encoding>
@@ -31,15 +31,15 @@
 		                  <name>separate_schema</name>
 		                </property>
 		                <property>
-		                    <name>FeatureProto.implements_declaration</name>
+		                    <name>Feature.implements_declaration</name>
 		                    <value>implements com.haines.ml.rce.model.Feature</value>
 		                </property>
 		                 <property>
-		                    <name>ClassificationProto.implements_declaration</name>
+		                    <name>Classification.implements_declaration</name>
 		                    <value>implements com.haines.ml.rce.model.Classification</value>
 		                </property>
 		                 <property>
-		                    <name>TestEvent.implements_declaration</name>
+		                    <name>Event.implements_declaration</name>
 		                    <value>implements com.haines.ml.rce.model.ClassifiedEvent</value>
 		                </property>
 		                <property>
@@ -56,7 +56,7 @@
 		        <executions>
 		          <execution>
 		            <id>generate-sources</id>
-		            <phase>generate-test-sources</phase>
+		            <phase>generate-sources</phase>
 		            <goals>
 		              <goal>compile</goal>
 		            </goals>
@@ -111,13 +111,11 @@
 		    <groupId>com.dyuproject.protostuff</groupId>
 		    <artifactId>protostuff-api</artifactId>
 		    <version>1.0.8</version>
-		    <scope>test</scope>
 		</dependency>
 		<dependency>
 		    <groupId>com.dyuproject.protostuff</groupId>
 		    <artifactId>protostuff-core</artifactId>
 		    <version>1.0.8</version>
-		    <scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.hamcrest</groupId>
@@ -169,7 +167,6 @@
 		<dependency>
 		    <groupId>com.google.inject</groupId>
 		    <artifactId>guice</artifactId>
-		    <version>${guice.version}</version>
 		</dependency>
     </dependencies>
 </project>

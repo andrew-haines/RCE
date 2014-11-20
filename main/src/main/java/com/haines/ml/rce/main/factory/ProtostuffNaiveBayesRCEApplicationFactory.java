@@ -5,17 +5,17 @@ import com.haines.ml.rce.main.config.RCEConfig;
 import com.haines.ml.rce.main.factory.AccumulatorRCEApplicationFactory.Mode;
 import com.haines.ml.rce.model.system.SystemListener;
 import com.haines.ml.rce.naivebayes.NaiveBayesRCEApplication;
-import com.haines.ml.rce.test.model.TestEvent;
+import com.haines.ml.rce.transport.Event;
 
-public class TestNaiveBayesRCEApplicationFactory implements RCEApplicationFactory<TestEvent>{
+public class ProtostuffNaiveBayesRCEApplicationFactory implements RCEApplicationFactory<Event>{
 	
 	private Iterable<SystemListener> startupListeners = null;
 	private RCEConfig testConfig;
 
 	@Override
-	public NaiveBayesRCEApplication<TestEvent> createApplication(String configOverrideLocation) {
+	public NaiveBayesRCEApplication<Event> createApplication(String configOverrideLocation) {
 		
-		NaiveBayesRCEApplicationFactory<TestEvent> factory = new NaiveBayesRCEApplicationFactory<>(new ProtostuffEventMarshalBuffer<TestEvent>(TestEvent.getSchema()), Mode.SYNC);
+		NaiveBayesRCEApplicationFactory<Event> factory = new NaiveBayesRCEApplicationFactory<>(new ProtostuffEventMarshalBuffer<Event>(Event.getSchema()), Mode.SYNC);
 	
 		factory.addSystemListeners(startupListeners);
 		factory.useSpecificConfig(testConfig);

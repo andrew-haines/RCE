@@ -8,6 +8,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ThreadFactory;
 
 import javax.inject.Inject;
 
@@ -43,6 +44,15 @@ import com.haines.ml.rce.model.system.SystemStartedListener;
 
 public class DefaultRCEApplicationFactory<E extends Event, EC extends EventConsumer<E>, T extends AccumulatorLookupStrategy<? super E>> implements RCEApplicationFactory<E>{
 
+	private static final ThreadFactory SELECTOR_THREAD_FACTORY = new ThreadFactory(){
+
+		private int threadNum = 0;
+		@Override
+		public Thread newThread(Runnable r) {
+			return new Thread(r, "DisruptorSelectorThread_"+threadNum++);
+		}
+	};
+	
 	private final EventMarshalBuffer<E> marshalBuffer;
 	private final EventConsumerFactory<E, EC> eventConsumerFactory;
 	private final EventConsumer<AccumulatedEvent<T>> accumulatedEventConsumer;
@@ -134,7 +144,7 @@ public class DefaultRCEApplicationFactory<E extends Event, EC extends EventConsu
 		List<DispatcherConsumer<E>> workers = new ArrayList<DispatcherConsumer<E>>();
 		
 		for (EC consumer: consumers){ // create a new disptcher for each down stream consumer
-			workers.add(new DisruptorConsumer.Builder<E>(Executors.newSingleThreadExecutor(), disruptorConfig)
+			workers.add(new DisruptorConsumer.Builder<E>(Executors.newSingleThreadExecutor(SELECTOR_THREAD_FACTORY), disruptorConfig)
 						.addConsumer(consumer)
 						.build());
 		}

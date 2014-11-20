@@ -1,0 +1,19 @@
+package events;
+
+option java_package = "com.haines.ml.rce.transport";
+option java_outer_classname = "TestEventProtos";
+
+message Event {
+
+	message Feature {
+		required string value = 1;
+		optional int32 type = 2 [default = 1];
+	}
+	
+	message Classification {
+		required string value = 1;
+	}
+
+	repeated Feature features = 1;
+	repeated Classification classifications = 2;
+}

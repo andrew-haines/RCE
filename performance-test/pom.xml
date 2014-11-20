@@ -25,7 +25,18 @@
 		    <artifactId>rce-main</artifactId>
 		    <version>${project.version}</version>
 		    <type>test-jar</type>
+		    <scope>test</scope>
 		</dependency>
+		<dependency>
+		    <groupId>${project.groupId}</groupId>
+		    <artifactId>rce-main</artifactId>
+		    <version>${project.version}</version>
+		</dependency>
+		<dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-csv</artifactId>
+            <version>1.0</version>
+        </dependency>
     </dependencies>
     <build>
     	<plugins>

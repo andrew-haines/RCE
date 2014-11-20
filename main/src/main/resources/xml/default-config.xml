@@ -12,7 +12,7 @@
     <accumulator>
         <firstLineBitDepth>4</firstLineBitDepth>
         <secondLineBitDepth>4</secondLineBitDepth>
-        <finalLineBitDepth>4</finalLineBitDepth>
+        <finalLineBitDepth>16</finalLineBitDepth>
     </accumulator>
     <window> <!-- 8.3 minutes in total -->
         <windowSizeMs>5000</windowSizeMs>

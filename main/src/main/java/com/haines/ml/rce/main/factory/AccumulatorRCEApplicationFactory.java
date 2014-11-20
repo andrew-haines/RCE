@@ -6,8 +6,10 @@ import java.util.concurrent.ThreadFactory;
 
 import com.haines.ml.rce.accumulator.AccumulatorLookupStrategy;
 import com.haines.ml.rce.accumulator.AccumulatorLookupStrategy.AccumulatorLookupStrategyFactory;
+import com.haines.ml.rce.accumulator.SyncPipelineEventConsumer;
 import com.haines.ml.rce.accumulator.lookups.RONaiveBayesMapBasedLookupStrategy;
 import com.haines.ml.rce.accumulator.model.AccumulatedEvent;
+import com.haines.ml.rce.dispatcher.DisruptorConsumer;
 import com.haines.ml.rce.main.RCEApplication;
 import com.haines.ml.rce.model.ClassifiedEvent;
 import com.haines.ml.rce.model.EventConsumer;
@@ -20,6 +22,14 @@ import com.haines.ml.rce.main.factory.DefaultRCEApplicationFactory.DefaultASyncR
 import com.haines.ml.rce.main.factory.DefaultRCEApplicationFactory.DefaultSyncRCEApplicationFactory;
 
 public class AccumulatorRCEApplicationFactory<E extends ClassifiedEvent, T extends AccumulatorLookupStrategy<? super E>> implements RCEApplicationFactory<E>{
+	
+	private static final ThreadFactory ACCUMULATED_EVENT_THREAD_FACTORY = new ThreadFactory(){
+
+		@Override
+		public Thread newThread(Runnable r) {
+			return new Thread(r, "DisruptorAccumulatorThread");
+		}
+	};
 	
 	public static enum Mode {
 		ASYNC,
@@ -35,6 +45,11 @@ public class AccumulatorRCEApplicationFactory<E extends ClassifiedEvent, T exten
 		if (mode == Mode.ASYNC){
 			defaultFactory = new DefaultASyncRCEApplicationFactory<E, RONaiveBayesMapBasedLookupStrategy>(marshalBuffer, factory, windowEventConsumer, getScheduledExecutor(), clock);
 		} else if (mode == Mode.SYNC){
+			
+			windowEventConsumer = new SyncPipelineEventConsumer.DisruptorEventConsumer<RONaiveBayesMapBasedLookupStrategy>(new DisruptorConsumer.Builder<AccumulatedEvent<RONaiveBayesMapBasedLookupStrategy>>(Executors.newSingleThreadExecutor(ACCUMULATED_EVENT_THREAD_FACTORY), RCEConfig.UTIL.getDisruptorConfig(config))
+					.addConsumer(windowEventConsumer)
+					.build());
+			
 			defaultFactory = new DefaultSyncRCEApplicationFactory<E, RONaiveBayesMapBasedLookupStrategy>(marshalBuffer, factory, config, windowEventConsumer, clock);
 		} else{
 			throw new IllegalArgumentException("Unknown mode type: "+mode);

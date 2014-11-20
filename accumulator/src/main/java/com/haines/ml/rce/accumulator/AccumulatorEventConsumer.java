@@ -33,7 +33,7 @@ public class AccumulatorEventConsumer<T extends Event> implements EventConsumer<
 		
 		@Override
 		public int getFinalAccumulatorLineBitDepth() {
-			return (int)(Math.log(DEFAULT_SECOND_LINE_LENGTH) / Math.log(2)); // 12?
+			return (int)(Math.log(DEFAULT_SECOND_LINE_LENGTH) / Math.log(2)); // 2^12
 		}
 
 		@Override
@@ -122,11 +122,10 @@ public class AccumulatorEventConsumer<T extends Event> implements EventConsumer<
 	}
 	
 	public void clear(){
-		int firstLineLength = getFirstLineMaxIndex(config);
 		int secondLineLength = getSecondLineMaxIndex(config);
 		for (int i = 0; i < accumulators.length; i++){
 			if (accumulators[i] != null){
-				accumulators[i] = new int[firstLineLength][secondLineLength];
+				accumulators[i] = new int[secondLineLength][];
 			}
 		}
 	}
@@ -171,7 +170,11 @@ public class AccumulatorEventConsumer<T extends Event> implements EventConsumer<
 	private void incrementAccumulator(int slot) {
 		int accumulatorIdx = getAccumulatorIdx(slot);
 		
-		getAccumulatorLine(slot)[accumulatorIdx]++;
+		try{
+			getAccumulatorLine(slot)[accumulatorIdx]++;
+		} catch (ArrayIndexOutOfBoundsException e){
+			throw e;
+		}
 		
 	}
 

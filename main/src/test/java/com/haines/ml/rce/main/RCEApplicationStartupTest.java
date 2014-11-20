@@ -11,10 +11,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.locks.ReentrantLock;
 
 import javax.xml.bind.JAXBException;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -22,11 +25,11 @@ import com.dyuproject.protostuff.LinkedBuffer;
 import com.dyuproject.protostuff.ProtostuffIOUtil;
 import com.haines.ml.rce.eventstream.EventStreamListener;
 import com.haines.ml.rce.main.config.RCEConfig;
-import com.haines.ml.rce.model.Event;
 import com.haines.ml.rce.naivebayes.NaiveBayesProbabilitiesProvider;
-import com.haines.ml.rce.test.model.TestEvent;
-import com.haines.ml.rce.test.model.TestEvent.ClassificationProto;
-import com.haines.ml.rce.test.model.TestEvent.FeatureProto;
+import com.haines.ml.rce.naivebayes.NaiveBayesRCEApplication;
+import com.haines.ml.rce.transport.Event;
+import com.haines.ml.rce.transport.Event.Classification;
+import com.haines.ml.rce.transport.Event.Feature;
 import com.haines.ml.rce.window.WindowUpdatedListener;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -37,26 +40,30 @@ public class RCEApplicationStartupTest {
 
 	protected static final long DEFAULT_WINDOW_PERIOD = 1000;
 	protected static final long DEFAULT_PUSH_DOWNSTREAM_MS = 200; // micro batch size
-	private RCEApplication<TestEvent> candidate;
-	private CountDownLatch started;
-	private CountDownLatch finished;
-	private CountDownLatch windowUpdated;
-	private AtomicInteger eventsSeen;
-	private SocketAddress serverAddress;
+	protected NaiveBayesRCEApplication<Event> candidate;
+	protected CountDownLatch started;
+	protected CountDownLatch finished;
+	protected CountDownLatch windowUpdated;
+	protected CountDownLatch nextWindowUpdated;
+	protected AtomicBoolean waitingForNextWindow;
+	protected AtomicInteger eventsSeen;
+	protected SocketAddress serverAddress;
 	
 	@Before
-	public void before() throws RCEApplicationException, JAXBException, IOException{
+	public void before() throws RCEApplicationException, JAXBException, IOException, InterruptedException{
 		
 		started = new CountDownLatch(1);
 		finished = new CountDownLatch(1);
 		windowUpdated = new CountDownLatch(3);
 		eventsSeen = new AtomicInteger(0);
+		waitingForNextWindow = new AtomicBoolean(false);
+		nextWindowUpdated = new CountDownLatch(1);
 		
 		RCEConfig defaultConfig = RCEConfig.UTIL.loadConfig(null);
 		
 		serverAddress = defaultConfig.getEventStreamSocketAddress();
 		
-		candidate = new RCEApplication.RCEApplicationBuilder<TestEvent>(null).addSystemStartedListener(new EventStreamListener() {
+		candidate = (NaiveBayesRCEApplication<Event>)new RCEApplication.RCEApplicationBuilder<Event>(null).addSystemStartedListener(new EventStreamListener() {
 
 			@Override
 			public void streamStarted() {
@@ -69,7 +76,7 @@ public class RCEApplicationStartupTest {
 			}
 
 			@Override
-			public void recievedEvent(Event event) {
+			public void recievedEvent(com.haines.ml.rce.model.Event event) {
 				eventsSeen.incrementAndGet();
 			}
 		})
@@ -78,6 +85,10 @@ public class RCEApplicationStartupTest {
 			@Override
 			public void windowUpdated(NaiveBayesProbabilitiesProvider window) {
 				windowUpdated.countDown();
+				
+				if (waitingForNextWindow.get()){
+					nextWindowUpdated.countDown();
+				}
 			}
 		})
 		.setConfig(new RCEConfig.DefaultRCEConfig(defaultConfig){
@@ -94,28 +105,17 @@ public class RCEApplicationStartupTest {
 			
 			
 		}).build();
+		
+		startServerAndWait();
+	}
+	
+	@After
+	public void after() throws RCEApplicationException, InterruptedException{
+		shutdownAndWait();
 	}
 	
 	@Test
-	public void givenCandidate_whenCallingStart_thenApplicationStartsUpCorrectly() throws RCEApplicationException, InterruptedException{
-		
-		
-		Thread server = new Thread(new Runnable(){
-
-			@Override
-			public void run() {
-				try {
-					candidate.start();
-				} catch (RCEApplicationException e) {
-					throw new RuntimeException("Unable to start test", e);
-				}
-			}
-			
-		});
-		
-		server.start();
-		
-		started.await();
+	public void givenCandidate_whenCallingStart_thenApplicationStartsUpCorrectly() throws RCEApplicationException, InterruptedException {
 		
 		// add some test events through the system
 		
@@ -127,6 +127,9 @@ public class RCEApplicationStartupTest {
 		
 		System.out.println("events recieved: "+eventNum);
 		assertThat(eventNum, is(equalTo(eventsSeen.get())));
+	}
+	
+	private void shutdownAndWait() throws RCEApplicationException, InterruptedException {
 		
 		// now stop the system
 		
@@ -134,11 +137,8 @@ public class RCEApplicationStartupTest {
 		
 		finished.await();
 	}
-	
-	@Test
-	public void givenCandidate_whenCallingStartAndSendingEventsViaSelector_thenApplicationStartsUpCorrectly() throws RCEApplicationException, InterruptedException, IOException{
-		
-		
+
+	protected void startServerAndWait() throws InterruptedException{
 		Thread server = new Thread(new Runnable(){
 
 			@Override
@@ -155,6 +155,10 @@ public class RCEApplicationStartupTest {
 		server.start();
 		
 		started.await();
+	}
+	
+	@Test
+	public void givenCandidate_whenCallingStartAndSendingEventsViaSelector_thenApplicationStartsUpCorrectly() throws RCEApplicationException, InterruptedException, IOException{
 		
 		// add some test events through the system
 		
@@ -167,15 +171,9 @@ public class RCEApplicationStartupTest {
 		
 		System.out.println("events recieved: "+eventNum);
 		assertThat(eventNum, is(equalTo(eventsSeen.get())));
-		
-		// now stop the system
-		
-		candidate.stop();
-		
-		finished.await();
 	}
 	
-	private void sendViaSelector(TestEvent testEvent) throws IOException, InterruptedException {
+	protected void sendViaSelector(Event testEvent) throws IOException, InterruptedException {
 		DatagramChannel channel = getClientChannel(serverAddress);
 		//LOG.debug("Sending event: "+event.testString1+"("+Integer.toBinaryString(event.testInt1)+"##"+event.testInt1+")");
 		// dont need to worry about efficiency in test case...
@@ -200,22 +198,22 @@ public class RCEApplicationStartupTest {
 		return channel;
 	}
 
-	private TestEvent getTestEvent(int value) {
-		TestEvent event = new TestEvent();
+	private Event getTestEvent(int value) {
+		Event event = new Event();
 		
-		List<ClassificationProto> classifications = new ArrayList<ClassificationProto>();
-		List<FeatureProto> features = new ArrayList<FeatureProto>();
+		List<Classification> classifications = new ArrayList<Classification>();
+		List<Feature> features = new ArrayList<Feature>();
 		
-		FeatureProto feature1 = getFeature("feature1_"+value, 1);
-		FeatureProto feature2 = getFeature("feature2_"+value, 1);
-		FeatureProto feature3 = getFeature("feature3_"+value, 1);
+		Feature feature1 = getFeature("feature1_"+value, 1);
+		Feature feature2 = getFeature("feature2_"+value, 1);
+		Feature feature3 = getFeature("feature3_"+value, 1);
 		
 		features.add(feature1);
 		features.add(feature2);
 		features.add(feature3);
 		
-		ClassificationProto class1 = new ClassificationProto(value+"");
-		ClassificationProto class2 = new ClassificationProto((value+10)+"");
+		Classification class1 = new Classification(value+"");
+		Classification class2 = new Classification((value+10)+"");
 		
 		classifications.add(class1);
 		classifications.add(class2);
@@ -226,9 +224,9 @@ public class RCEApplicationStartupTest {
 		return event;
 	}
 	
-	private FeatureProto getFeature(String value, int type){
+	private Feature getFeature(String value, int type){
 		
-		FeatureProto feature = new FeatureProto();
+		Feature feature = new Feature();
 		
 		feature.setType(type);
 		feature.setValue(value);

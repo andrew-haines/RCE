@@ -34,14 +34,13 @@ public class Aggregator implements NaiveBayesCountsProvider{
 		public Iterable<? extends NaiveBayesCounts<NaiveBayesPosteriorProperty>> apply(Map<Feature, ? extends NaiveBayesCounts<NaiveBayesPosteriorProperty>> input) {
 			return input.values();
 		}
-	
 	};
 	
 	/*
 	 * We don't need to break out feature into feature types as this is just storing the types. As long as feature implementations
 	 * have appropriate .equals and .hashcode methods that include the type parameter.
 	 */
-	private volatile MutableCounts counts;
+	private final MutableCounts counts;
 	
 	public Aggregator(Map<Classification, Map<Feature, MutableNaiveBayesCounts<NaiveBayesPosteriorProperty>>> posteriorCounts, Map<Classification, MutableNaiveBayesCounts<NaiveBayesPriorProperty>> priorCounts){
 		
@@ -50,11 +49,6 @@ public class Aggregator implements NaiveBayesCountsProvider{
 	
 	public void aggregate(Iterable<? extends NaiveBayesCounts<? extends NaiveBayesProperty>> counts){
 		aggregate(counts, false);
-	}
-	
-	public void clear(){
-		
-		this.counts = new MutableCounts(new THashMap<Classification, Map<Feature, MutableNaiveBayesCounts<NaiveBayesPosteriorProperty>>>(), new THashMap<Classification, MutableNaiveBayesCounts<NaiveBayesPriorProperty>>());
 	}
 	
 	protected void aggregate(Iterable<? extends NaiveBayesCounts<? extends NaiveBayesProperty>> counts, boolean subtract){
@@ -136,7 +130,7 @@ public class Aggregator implements NaiveBayesCountsProvider{
 
 	@Override
 	public Counts getCounts() {
-		return new MutableCounts(counts);
+		return counts;
 	}
 	
 	private static class MutableCounts implements Counts {
@@ -151,10 +145,6 @@ public class Aggregator implements NaiveBayesCountsProvider{
 		protected MutableCounts(Map<Classification, Map<Feature, MutableNaiveBayesCounts<NaiveBayesPosteriorProperty>>> posteriorCounts, Map<Classification, MutableNaiveBayesCounts<NaiveBayesPriorProperty>> priorCounts){
 			this.posteriorCounts = posteriorCounts;
 			this.priorCounts = priorCounts;
-		}
-
-		public MutableCounts(MutableCounts counts) { // copy constructor
-			this(new THashMap<>(counts.posteriorCounts), new THashMap<>(counts.priorCounts));
 		}
 
 		@Override

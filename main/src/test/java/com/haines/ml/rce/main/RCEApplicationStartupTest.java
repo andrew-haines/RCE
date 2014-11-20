@@ -121,7 +121,7 @@ public class RCEApplicationStartupTest {
 		
 		int eventNum;
 		
-		for (eventNum = 0; !windowUpdated.await(100, TimeUnit.MILLISECONDS); eventNum++){
+		for (eventNum = 0; !windowUpdated.await(10, TimeUnit.MILLISECONDS); eventNum++){
 			candidate.getEventConsumer().consume(getTestEvent(eventNum));
 		}
 		
@@ -160,7 +160,7 @@ public class RCEApplicationStartupTest {
 		
 		int eventNum;
 		
-		for (eventNum = 0; !windowUpdated.await(100, TimeUnit.MILLISECONDS); eventNum++){
+		for (eventNum = 0; !windowUpdated.await(10, TimeUnit.MILLISECONDS); eventNum++){
 			
 			sendViaSelector(getTestEvent(eventNum));
 		}

@@ -39,14 +39,17 @@ public class CountsProviderNaiveBayesProbabilities implements NaiveBayesProbabil
 	
 	public CountsProviderNaiveBayesProbabilities(NaiveBayesCountsProvider provider){
 		
-		Map<Classification, TIntIntMap> postertiorTotals = getPosteriorTotals(provider);
+		Iterable<NaiveBayesCounts<NaiveBayesPosteriorProperty>> posteriorsIt = provider.getPosteriorCounts(); //TODO check whether these two not being atomic is ok
+		Iterable<NaiveBayesCounts<NaiveBayesPriorProperty>> priorsIt = provider.getPriorCounts();
 		
-		int priorTotal = getPriorTotal(provider); // TODO check that classification priors are calculated by instance seen and not feature seen
+		Map<Classification, TIntIntMap> postertiorTotals = getPosteriorTotals(posteriorsIt);
+		
+		int priorTotal = getPriorTotal(priorsIt); // TODO check that classification priors are calculated by instance seen and not feature seen
 		
 		posteriorProbabilities = new THashMap<Classification, TIntObjectMap<Probabilities>>();
 		priorProbabilities = new THashMap<Classification, Probability>();
 		
-		for (NaiveBayesCounts<NaiveBayesPosteriorProperty> posteriors: provider.getPosteriorCounts()){
+		for (NaiveBayesCounts<NaiveBayesPosteriorProperty> posteriors: posteriorsIt){
 			TIntObjectMap<Probabilities> features = posteriorProbabilities.get(posteriors.getProperty().getClassification());
 			
 			if (features == null){
@@ -62,18 +65,23 @@ public class CountsProviderNaiveBayesProbabilities implements NaiveBayesProbabil
 				probabilities = new Probabilities(new THashMap<Feature, Probability>());
 			}
 			
-			Probability probability = new Probability(posteriors.getCounts(), postertiorTotals.get(posteriors.getProperty().getClassification()).get(feature.getType()));
-			
-			if (probabilities.probabilities.containsKey(feature)){
-				throw new IllegalStateException("posterior feature/class pairing should be unique. Multiple counts supplied for: "+posteriors.getProperty());
+			try{
+				Probability probability = new Probability(posteriors.getCounts(), postertiorTotals.get(posteriors.getProperty().getClassification()).get(feature.getType()));
+				if (probabilities.probabilities.containsKey(feature)){
+					throw new IllegalStateException("posterior feature/class pairing should be unique. Multiple counts supplied for: "+posteriors.getProperty());
+				}
+				
+				probabilities.probabilities.put(feature, probability);
+				
+				features.put(feature.getType(), probabilities);
+			} catch (NullPointerException e){
+				System.out.println(postertiorTotals.get(posteriors.getProperty().getClassification()));
+				throw e;
 			}
 			
-			probabilities.probabilities.put(feature, probability);
-			
-			features.put(feature.getType(), probabilities);
 		}
 		
-		for (NaiveBayesCounts<NaiveBayesPriorProperty> prior: provider.getPriorCounts()){
+		for (NaiveBayesCounts<NaiveBayesPriorProperty> prior: priorsIt){
 			priorProbabilities.put(prior.getProperty().getClassification(), new Probability(prior.getCounts(), priorTotal));
 		}
 		
@@ -119,20 +127,20 @@ public class CountsProviderNaiveBayesProbabilities implements NaiveBayesProbabil
 		};
 	}
 	
-	private int getPriorTotal(NaiveBayesCountsProvider provider) {
+	private int getPriorTotal(Iterable<NaiveBayesCounts<NaiveBayesPriorProperty>> priorsIt) {
 		int priorTotal = 0;
 		
-		for (NaiveBayesCounts<NaiveBayesPriorProperty> prior: provider.getPriorCounts()){
+		for (NaiveBayesCounts<NaiveBayesPriorProperty> prior: priorsIt){
 			priorTotal += prior.getCounts();
 		}
 		
 		return priorTotal;
 	}
 
-	private Map<Classification, TIntIntMap> getPosteriorTotals(NaiveBayesCountsProvider provider) {
+	private Map<Classification, TIntIntMap> getPosteriorTotals(Iterable<NaiveBayesCounts<NaiveBayesPosteriorProperty>> posteriorsIt) {
 		Map<Classification, TIntIntMap> postertiorTotals = new HashMap<Classification, TIntIntMap>();
 		
-		for (NaiveBayesCounts<NaiveBayesPosteriorProperty> posteriors: provider.getPosteriorCounts()){
+		for (NaiveBayesCounts<NaiveBayesPosteriorProperty> posteriors: posteriorsIt){
 			
 			TIntIntMap classificationTotal = postertiorTotals.get(posteriors.getProperty().getClassification());
 			

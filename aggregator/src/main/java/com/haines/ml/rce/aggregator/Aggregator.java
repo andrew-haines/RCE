@@ -36,12 +36,16 @@ public class Aggregator implements NaiveBayesCountsProvider{
 		}
 	
 	};
-	private final Map<Classification, Map<Feature, MutableNaiveBayesCounts<NaiveBayesPosteriorProperty>>> posteriorCounts;
-	private final Map<Classification, MutableNaiveBayesCounts<NaiveBayesPriorProperty>> priorCounts;
+	
+	/*
+	 * We don't need to break out feature into feature types as this is just storing the types. As long as feature implementations
+	 * have appropriate .equals and .hashcode methods that include the type parameter.
+	 */
+	private volatile Counts counts;
 	
 	public Aggregator(Map<Classification, Map<Feature, MutableNaiveBayesCounts<NaiveBayesPosteriorProperty>>> posteriorCounts, Map<Classification, MutableNaiveBayesCounts<NaiveBayesPriorProperty>> priorCounts){
-		this.posteriorCounts = posteriorCounts;
-		this.priorCounts = priorCounts;
+		
+		this.counts = new Counts(posteriorCounts, priorCounts);
 	}
 	
 	public void aggregate(Iterable<? extends NaiveBayesCounts<? extends NaiveBayesProperty>> counts){
@@ -49,8 +53,8 @@ public class Aggregator implements NaiveBayesCountsProvider{
 	}
 	
 	public void clear(){
-		posteriorCounts.clear();
-		priorCounts.clear();
+		
+		this.counts = new Counts(new THashMap<Classification, Map<Feature, MutableNaiveBayesCounts<NaiveBayesPosteriorProperty>>>(), new THashMap<Classification, MutableNaiveBayesCounts<NaiveBayesPriorProperty>>());
 	}
 	
 	protected void aggregate(Iterable<? extends NaiveBayesCounts<? extends NaiveBayesProperty>> counts, boolean subtract){
@@ -59,19 +63,19 @@ public class Aggregator implements NaiveBayesCountsProvider{
 			if (count.getProperty().getType() == PropertyType.POSTERIOR_TYPE){
 				NaiveBayesPosteriorProperty posterior = PropertyType.POSTERIOR_TYPE.cast(count.getProperty());
 				
-				updatePosterior(posterior, PropertyType.POSTERIOR_TYPE.cast(count), subtract);
+				updatePosterior(posterior, PropertyType.POSTERIOR_TYPE.cast(count), subtract, this.counts.posteriorCounts);
 				
 			} else if (count.getProperty().getType() == PropertyType.PRIOR_TYPE){
 				NaiveBayesPriorProperty prior = PropertyType.PRIOR_TYPE.cast(count.getProperty());
 				
-				updatePrior(prior, PropertyType.PRIOR_TYPE.cast(count), subtract);
+				updatePrior(prior, PropertyType.PRIOR_TYPE.cast(count), subtract, this.counts.priorCounts);
 			} else{
 				throw new IllegalStateException("unknown naive bayes property type: "+count.getProperty().getType());
 			}
 		}
 	}
 
-	private void updatePrior(NaiveBayesPriorProperty prior, NaiveBayesCounts<NaiveBayesPriorProperty> counts, boolean subtract) {
+	private void updatePrior(NaiveBayesPriorProperty prior, NaiveBayesCounts<NaiveBayesPriorProperty> counts, boolean subtract, Map<Classification, MutableNaiveBayesCounts<NaiveBayesPriorProperty>> priorCounts) {
 		createOrIncrement(priorCounts, prior.getClassification(), counts, subtract);
 	}
 	
@@ -97,7 +101,7 @@ public class Aggregator implements NaiveBayesCountsProvider{
 		}
 	}
 
-	private void updatePosterior(NaiveBayesPosteriorProperty posterior, NaiveBayesCounts<NaiveBayesPosteriorProperty> counts, boolean subtract) {
+	private void updatePosterior(NaiveBayesPosteriorProperty posterior, NaiveBayesCounts<NaiveBayesPosteriorProperty> counts, boolean subtract, Map<Classification, Map<Feature, MutableNaiveBayesCounts<NaiveBayesPosteriorProperty>>> posteriorCounts) {
 		Map<Feature, MutableNaiveBayesCounts<NaiveBayesPosteriorProperty>> conditionalFeatureCounts = posteriorCounts.get(posterior.getClassification());
 		
 		if (conditionalFeatureCounts == null){
@@ -109,12 +113,12 @@ public class Aggregator implements NaiveBayesCountsProvider{
 	}
 	
 	public Iterable<NaiveBayesCounts<NaiveBayesPosteriorProperty>> getAccumulatedPosteriorCounts(){
-		return Iterables.concat(Iterables.transform(posteriorCounts.values(), FLATTEN_POSTERIOR_MAP_FUNC));
+		return Iterables.concat(Iterables.transform(this.counts.getPosteriors(), FLATTEN_POSTERIOR_MAP_FUNC));
 	}
 	
 	@SuppressWarnings("unchecked")
 	public Iterable<NaiveBayesCounts<NaiveBayesPriorProperty>> getAccumulatedPriorCounts(){
-		return (Iterable<NaiveBayesCounts<NaiveBayesPriorProperty>>)(Iterable<?>)priorCounts.values();
+		return (Iterable<NaiveBayesCounts<NaiveBayesPriorProperty>>)(Iterable<?>)this.counts.getPriors();
 	}
 
 	@Override
@@ -130,5 +134,28 @@ public class Aggregator implements NaiveBayesCountsProvider{
 	public static Aggregator newInstance(){
 		return new Aggregator(new THashMap<Classification, Map<Feature, MutableNaiveBayesCounts<NaiveBayesPosteriorProperty>>>(),
 				new THashMap<Classification, MutableNaiveBayesCounts<NaiveBayesPriorProperty>>());
+	}
+	
+	private static class Counts{
+		
+		/*
+		 * We don't need to break out feature into feature types as this is just storing the types. As long as feature implementations
+		 * have appropriate .equals and .hashcode methods that include the type parameter.
+		 */
+		private final Map<Classification, Map<Feature, MutableNaiveBayesCounts<NaiveBayesPosteriorProperty>>> posteriorCounts;
+		private final Map<Classification, MutableNaiveBayesCounts<NaiveBayesPriorProperty>> priorCounts;
+		
+		private Counts(Map<Classification, Map<Feature, MutableNaiveBayesCounts<NaiveBayesPosteriorProperty>>> posteriorCounts, Map<Classification, MutableNaiveBayesCounts<NaiveBayesPriorProperty>> priorCounts){
+			this.posteriorCounts = posteriorCounts;
+			this.priorCounts = priorCounts;
+		}
+
+		public Iterable<MutableNaiveBayesCounts<NaiveBayesPriorProperty>> getPriors() {
+			return new THashMap<>(priorCounts).values();
+		}
+
+		public Iterable<Map<Feature, MutableNaiveBayesCounts<NaiveBayesPosteriorProperty>>> getPosteriors() {
+			return new THashMap<>(posteriorCounts).values();
+		}
 	}
 }

@@ -31,7 +31,7 @@ public class RCEConfigJAXB implements RCEConfig{
 	
 	private int disruptorRingSize;
 	
-	private long asyncPushIntervalMs;
+	private long microBatchIntervalMs;
 	
 	private WindowConfigJaxB window;
 
@@ -129,13 +129,13 @@ public class RCEConfigJAXB implements RCEConfig{
 	}
 
 	@Override
-	@XmlElement(name="aysyncPushIntervalMs")
-	public long getMicorBatchIntervalMs() {
-		return asyncPushIntervalMs;
+	@XmlElement(name="microBatchIntervalMs")
+	public long getMicroBatchIntervalMs() {
+		return microBatchIntervalMs;
 	}
-	
-	public void setAsyncPushIntervalMs(long asyncPushIntervalMs){
-		this.asyncPushIntervalMs = asyncPushIntervalMs;
+
+	public void setMicroBatchIntervalMs(long asyncPushIntervalMs){
+		this.microBatchIntervalMs = asyncPushIntervalMs;
 	}
 
 	@XmlElement(name="accumulator")

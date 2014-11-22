@@ -91,20 +91,7 @@ public class RCEApplicationStartupTest {
 				}
 			}
 		})
-		.setConfig(new RCEConfig.DefaultRCEConfig(defaultConfig){
-
-			@Override
-			public long getWindowPeriod() {
-				return DEFAULT_WINDOW_PERIOD;
-			}
-
-			@Override
-			public long getMicorBatchIntervalMs() {
-				return DEFAULT_PUSH_DOWNSTREAM_MS;
-			}
-			
-			
-		}).build();
+		.setConfig(new RCEConfig.DefaultRCEConfig(defaultConfig)).build();
 		
 		startServerAndWait();
 	}

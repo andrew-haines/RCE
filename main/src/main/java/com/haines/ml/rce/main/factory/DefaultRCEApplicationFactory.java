@@ -67,6 +67,10 @@ public class DefaultRCEApplicationFactory<E extends Event, EC extends EventConsu
 		
 		this.systemListeners = new ArrayList<SystemListener>();
 		
+		if (eventConsumerFactory instanceof SystemStartedListener){
+			systemListeners.add((SystemStartedListener)eventConsumerFactory);
+		}
+		
 		this.clock = clock;
 	}
 
@@ -78,7 +82,7 @@ public class DefaultRCEApplicationFactory<E extends Event, EC extends EventConsu
 			if (config == null){
 				config = RCEApplicationFactory.UTIL.loadConfig(configOverrideLocation);
 			}
-			SelectorEventStream<?, E> eventStream = getSelectorEventStream(config);
+			SelectorEventStream<?, E> eventStream = getSelectorEventStream(config, clock);
 			RCEApplication<E> application = new DefaultRCEApplication<E>(eventStream, eventStream, config);
 			
 			for(SystemStartedListener listener: Iterables.filter(systemListeners, SystemStartedListener.class)){
@@ -106,7 +110,7 @@ public class DefaultRCEApplicationFactory<E extends Event, EC extends EventConsu
 		return clock;
 	}
 
-	private <S extends SelectableChannel & NetworkChannel> SelectorEventStream<S, E> getSelectorEventStream(RCEConfig config){
+	private <S extends SelectableChannel & NetworkChannel> SelectorEventStream<S, E> getSelectorEventStream(RCEConfig config, Clock clock){
 		
 		Dispatcher<E> dispatcher = getDispatcher(config);
 		
@@ -118,7 +122,7 @@ public class DefaultRCEApplicationFactory<E extends Event, EC extends EventConsu
 		EventMarshalBuffer<E> eventBuffer = this.marshalBuffer;
 		EventStreamListener streamListener = EventStreamListener.UTIL.chainListeners(Iterables.concat(Arrays.asList(new EventStreamListener.SLF4JStreamListener()), Iterables.filter(systemListeners, EventStreamListener.class)));
 		
-		SelectorEventStreamFactory<S, E> factory = new SelectorEventStreamFactory<S, E>(RCEConfig.UTIL.getSelectorEventStreamConfig(config), channelProcessor, eventBuffer, streamListener);
+		SelectorEventStreamFactory<S, E> factory = new SelectorEventStreamFactory<S, E>(clock, RCEConfig.UTIL.getSelectorEventStreamConfig(config), channelProcessor, eventBuffer, streamListener);
 		
 		return factory.create(dispatcher);
 	}
@@ -220,10 +224,11 @@ public class DefaultRCEApplicationFactory<E extends Event, EC extends EventConsu
 		}
 		
 		private static <E extends Event, T extends AccumulatorLookupStrategy<? super E>> EventConsumerFactory<E, SyncPipelineEventConsumer<E, T>> getSynEventConsumerFactory(Clock clock, RCEConfig config, EventConsumerFactory<E, AccumulatorEventConsumer<E>> factory, EventConsumer<AccumulatedEvent<T>> windowEventConsumer) {
+			
 			return new SyncEventConsumerFactory<E, T>(new PipelineAccumulatorController(clock, RCEConfig.UTIL.getPipelineAccumulatorConfig(config)), factory, windowEventConsumer);
 		}
 		
-		private static class SyncEventConsumerFactory<E extends Event, T extends AccumulatorLookupStrategy<? super E>> implements EventConsumerFactory<E, SyncPipelineEventConsumer<E, T>>{
+		private static class SyncEventConsumerFactory<E extends Event, T extends AccumulatorLookupStrategy<? super E>> implements EventConsumerFactory<E, SyncPipelineEventConsumer<E, T>>, SystemStartedListener{
 
 			private final PipelineAccumulatorController controller;
 			private final EventConsumerFactory<E, AccumulatorEventConsumer<E>> eventConsumerFactory;
@@ -238,6 +243,11 @@ public class DefaultRCEApplicationFactory<E extends Event, EC extends EventConsu
 			@Override
 			public SyncPipelineEventConsumer<E, T> create() {
 				return new SyncPipelineEventConsumer<E, T>(controller, eventConsumerFactory.create(), accumulatedEventConsumer);
+			}
+
+			@Override
+			public void systemStarted() {
+				controller.systemStarted();
 			}
 			
 		}

@@ -99,7 +99,7 @@ public class RCEApplicationStartupTest {
 			}
 
 			@Override
-			public long getAsyncPushIntervalMs() {
+			public long getMicorBatchIntervalMs() {
 				return DEFAULT_PUSH_DOWNSTREAM_MS;
 			}
 			

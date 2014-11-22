@@ -8,6 +8,7 @@ import javax.inject.Inject;
 import com.haines.ml.rce.dispatcher.Dispatcher;
 import com.haines.ml.rce.model.Event;
 import com.haines.ml.rce.model.EventMarshalBuffer;
+import com.haines.ml.rce.model.system.Clock;
 
 public class SelectorEventStreamFactory<T extends SelectableChannel & NetworkChannel, E extends Event> implements EventStreamFactory<E>{
 
@@ -15,17 +16,19 @@ public class SelectorEventStreamFactory<T extends SelectableChannel & NetworkCha
 	private final SelectorEventStreamConfig config;
 	private final EventMarshalBuffer<E> eventBuffer;
 	private final EventStreamListener listener;
+	private final Clock clock;
 	
 	@Inject
-	public SelectorEventStreamFactory(SelectorEventStreamConfig config, NetworkChannelProcessor<T> channelFactory, EventMarshalBuffer<E> eventBuffer, EventStreamListener listener){
+	public SelectorEventStreamFactory(Clock clock, SelectorEventStreamConfig config, NetworkChannelProcessor<T> channelFactory, EventMarshalBuffer<E> eventBuffer, EventStreamListener listener){
 		this.channelFactory = channelFactory;
 		this.config = config;
 		this.eventBuffer = eventBuffer;
 		this.listener = listener;
+		this.clock = clock;
 	}
 	
-	public SelectorEventStreamFactory(SelectorEventStreamConfig config, NetworkChannelProcessor<T> channelFactory, EventMarshalBuffer<E> eventBuffer){
-		this(config, channelFactory, eventBuffer, EventStreamListener.NO_OP_LISTENER);
+	public SelectorEventStreamFactory(Clock clock, SelectorEventStreamConfig config, NetworkChannelProcessor<T> channelFactory, EventMarshalBuffer<E> eventBuffer){
+		this(clock, config, channelFactory, eventBuffer, EventStreamListener.NO_OP_LISTENER);
 	}
 	
 	@Override
@@ -34,7 +37,7 @@ public class SelectorEventStreamFactory<T extends SelectableChannel & NetworkCha
 	}
 	
 	private SelectorEventStream<T, E> genericCreate(Dispatcher<E> dispatcher){
-		return new SelectorEventStream<T, E>(dispatcher, config, channelFactory, (EventMarshalBuffer<E>)eventBuffer, listener);
+		return new SelectorEventStream<T, E>(clock, dispatcher, config, channelFactory, (EventMarshalBuffer<E>)eventBuffer, listener);
 	}
 
 }

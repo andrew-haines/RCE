@@ -23,4 +23,11 @@ public class Dispatcher<E extends Event> {
 	public void dispatchEvent(E event) {
 		consumers[randomGenerator.nextInt(consumers.length)].consumeEvent(event);
 	}
+	
+	@SuppressWarnings("unchecked")
+	public void sendHeartBeat(){
+		for (DispatcherConsumer<E> consumer: consumers){
+			consumer.consumeEvent((E)Event.HEARTBEAT);
+		}
+	}
 }

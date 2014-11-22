@@ -2,6 +2,9 @@ package com.haines.ml.rce.accumulator;
 
 import javax.inject.Inject;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.haines.ml.rce.accumulator.model.AccumulatedEvent;
 import com.haines.ml.rce.dispatcher.DisruptorConsumer;
 import com.haines.ml.rce.model.Event;
@@ -9,6 +12,8 @@ import com.haines.ml.rce.model.EventConsumer;
 
 public class SyncPipelineEventConsumer<E extends Event, T extends AccumulatorLookupStrategy<? super E>> implements EventConsumer<E>  {
 
+	private static final Logger LOG = LoggerFactory.getLogger(SyncPipelineEventConsumer.class);
+	
 	private final PipelineAccumulatorController controller;
 	private final EventConsumer<AccumulatedEvent<T>> nextStageConsumer;
 	private final AccumulatorEventConsumer<E> eventConsumer;
@@ -22,7 +27,11 @@ public class SyncPipelineEventConsumer<E extends Event, T extends AccumulatorLoo
 	
 	@Override
 	public void consume(E event) {
-		eventConsumer.consume(event);
+		if (event != Event.HEARTBEAT){ // dont actually send heart beat to consumer. Only send it to the controller.
+			eventConsumer.consume(event);
+		} else{
+			LOG.info("Recieved heart beat.");
+		}
 		
 		controller.pushIfRequired(eventConsumer, nextStageConsumer);
 	}

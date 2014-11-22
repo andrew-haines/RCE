@@ -28,6 +28,7 @@ import com.haines.ml.rce.eventstream.SelectorEventStreamConfig.BufferType;
 import com.haines.ml.rce.model.Event;
 import com.haines.ml.rce.model.EventMarshalBuffer;
 import com.haines.ml.rce.model.UnMarshalableException;
+import com.haines.ml.rce.model.system.Clock;
 
 import static org.junit.Assert.assertThat;
 import static org.hamcrest.CoreMatchers.is;
@@ -70,7 +71,7 @@ public abstract class AbstractSelectorEventStreamIT<T extends SelectableChannel 
 		startupLatch = new CountDownLatch(1);
 		shutdownLatch = new CountDownLatch(1);
 		
-		SelectorEventStreamFactory<T, TestEvent> streamFactory = new SelectorEventStreamFactory<T, TestEvent>(config, createNetworkChannelProcessor(), new TestEventBuffer(), new LatchNotifierEventStreamListener(startupLatch, shutdownLatch));
+		SelectorEventStreamFactory<T, TestEvent> streamFactory = new SelectorEventStreamFactory<T, TestEvent>(Clock.SYSTEM_CLOCK, config, createNetworkChannelProcessor(), new TestEventBuffer(), new LatchNotifierEventStreamListener(startupLatch, shutdownLatch));
 		candidate = streamFactory.create(dispatcher);
 	}
 	

@@ -146,12 +146,12 @@ public class OverrideRCEConfig implements RCEConfig{
 	}
 
 	@Override
-	public long getAsyncPushIntervalMs() {
+	public long getMicorBatchIntervalMs() {
 		return doOverride(new ValueGetter<Long>(){
 
 			@Override
 			public Long getValue(RCEConfig config) {
-				return config.getAsyncPushIntervalMs();
+				return config.getMicorBatchIntervalMs();
 			}
 			
 		});

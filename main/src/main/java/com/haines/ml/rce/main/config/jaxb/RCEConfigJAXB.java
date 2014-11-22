@@ -130,7 +130,7 @@ public class RCEConfigJAXB implements RCEConfig{
 
 	@Override
 	@XmlElement(name="aysyncPushIntervalMs")
-	public long getAsyncPushIntervalMs() {
+	public long getMicorBatchIntervalMs() {
 		return asyncPushIntervalMs;
 	}
 	

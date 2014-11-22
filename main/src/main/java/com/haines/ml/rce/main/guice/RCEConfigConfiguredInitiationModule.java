@@ -139,23 +139,26 @@ public abstract class RCEConfigConfiguredInitiationModule<T extends SelectableCh
 		private final Dispatcher<E> dispatcher;
 		private final EventMarshalBuffer<E> marshalBuffer;
 		private final EventStreamListener listener;
+		private final Clock clock;
 		
 		@Inject
 		public SelectorEventStreamProvider(SelectorEventStreamConfig config, 
 										   NetworkChannelProcessorProvider<T> networkProcessorProvider,
 										   Dispatcher<E> dispatcher,
 										   EventMarshalBuffer<E> marshalBuffer,
-										   EventStreamListener listener){
+										   EventStreamListener listener,
+										   Clock clock){
 			this.config = config;
 			this.networkProcessorProvider = networkProcessorProvider;
 			this.dispatcher = dispatcher;
 			this.marshalBuffer = marshalBuffer;
 			this.listener = listener;
+			this.clock = clock;
 		}
 		
 		@Override
 		public SelectorEventStream<T, E> get() {
-			SelectorEventStreamFactory<T, E> streamFactory = new SelectorEventStreamFactory<T, E>(config, networkProcessorProvider.get(), marshalBuffer, listener);
+			SelectorEventStreamFactory<T, E> streamFactory = new SelectorEventStreamFactory<T, E>(clock, config, networkProcessorProvider.get(), marshalBuffer, listener);
 			return streamFactory.create(dispatcher);
 		}	
 	}

@@ -70,7 +70,7 @@ public interface RCEConfig {
 	
 	Integer getFinalAccumulatorLineBitDepth();
 	
-	long getAsyncPushIntervalMs();
+	long getMicorBatchIntervalMs();
 	
 	public static class Util{
 		
@@ -113,7 +113,8 @@ public interface RCEConfig {
 		
 		public SelectorEventStreamConfig getSelectorEventStreamConfig(RCEConfig config){
 			SelectorEventStreamConfigBuilder configBuilder = new SelectorEventStreamConfigBuilder()
-			.socketAddress(config.getEventStreamSocketAddress());
+			.socketAddress(config.getEventStreamSocketAddress())
+			.heartBeatPeriod(config.getMicorBatchIntervalMs()); // if this is a sync call, we use the heart beat to trigger the microbatch if no events have been seen
 
 			if (config.getEventBufferCapacity() != null){
 			configBuilder.bufferCapacity(config.getEventBufferCapacity());
@@ -126,6 +127,8 @@ public interface RCEConfig {
 			if (config.getByteOrder() != null){
 			configBuilder.byteOrder(config.getByteOrder());
 			}
+			
+	
 			
 			return configBuilder.build();
 		}
@@ -152,7 +155,7 @@ public interface RCEConfig {
 				
 				@Override
 				public long getPushIntervalTimeMs() {
-					return config.getAsyncPushIntervalMs();
+					return config.getMicorBatchIntervalMs();
 				}
 			};
 		}
@@ -260,8 +263,8 @@ public interface RCEConfig {
 		}
 
 		@Override
-		public long getAsyncPushIntervalMs() {
-			return delegate.getAsyncPushIntervalMs();
+		public long getMicorBatchIntervalMs() {
+			return delegate.getMicorBatchIntervalMs();
 		}
 
 		@Override

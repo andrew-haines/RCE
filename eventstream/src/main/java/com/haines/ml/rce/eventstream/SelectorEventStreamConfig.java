@@ -14,12 +14,14 @@ public class SelectorEventStreamConfig {
 	private final int bufferCapacity;
 	private final SocketAddress socketAddress;
 	private final ByteOrder byteOrder;
+	private final long heartBeatPeriod;
 	
-	private SelectorEventStreamConfig(BufferType bufferType, int bufferCapacity, SocketAddress socketAddress, ByteOrder byteOrder){
+	private SelectorEventStreamConfig(BufferType bufferType, int bufferCapacity, SocketAddress socketAddress, ByteOrder byteOrder, long heartBeatPeriod){
 		this.bufferType = bufferType;
 		this.bufferCapacity = bufferCapacity;
 		this.socketAddress = socketAddress;
 		this.byteOrder = byteOrder;
+		this.heartBeatPeriod = heartBeatPeriod;
 	}
 	
 	public BufferType getBufferType(){
@@ -28,6 +30,14 @@ public class SelectorEventStreamConfig {
 	
 	public ByteOrder getByteOrder(){
 		return byteOrder;
+	}
+	
+	/**
+	 * Returns the milliseconds that each window represents
+	 * @return
+	 */
+	public long getHeartBeatPeriod(){
+		return heartBeatPeriod;
 	}
 	
 	public int getBufferCapacity() {
@@ -44,6 +54,7 @@ public class SelectorEventStreamConfig {
 		private int bufferCapacity = 8192;
 		private SocketAddress socketAddress;
 		private ByteOrder byteOrder = ByteOrder.BIG_ENDIAN;
+		private long heartBeatPeriod = SelectorEventStream.DO_NOT_SEND_HEART_BEAT;
 
 		public SelectorEventStreamConfigBuilder bufferType(BufferType bufferType) {
 			this.bufferType = bufferType;
@@ -69,8 +80,14 @@ public class SelectorEventStreamConfig {
 			return this;
 		}
 		
+		public SelectorEventStreamConfigBuilder heartBeatPeriod(long heartBeatPeriod){
+			this.heartBeatPeriod = heartBeatPeriod;
+			
+			return this;
+		}
+		
 		public SelectorEventStreamConfig build(){
-			return new SelectorEventStreamConfig(bufferType, bufferCapacity, socketAddress, byteOrder);
+			return new SelectorEventStreamConfig(bufferType, bufferCapacity, socketAddress, byteOrder, heartBeatPeriod);
 		}
 	}
 }

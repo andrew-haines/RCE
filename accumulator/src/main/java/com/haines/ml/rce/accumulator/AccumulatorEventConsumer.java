@@ -169,13 +169,8 @@ public class AccumulatorEventConsumer<T extends Event> implements EventConsumer<
 
 	private void incrementAccumulator(int slot) {
 		int accumulatorIdx = getAccumulatorIdx(slot);
-		
-		try{
-			getAccumulatorLine(slot)[accumulatorIdx]++;
-		} catch (ArrayIndexOutOfBoundsException e){
-			throw e;
-		}
-		
+
+		getAccumulatorLine(slot)[accumulatorIdx]++;
 	}
 
 	private int getAccumulatorIdx(int slot) {

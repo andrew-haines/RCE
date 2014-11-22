@@ -44,7 +44,7 @@ public class PerformanceTest extends RCEApplicationStartupTest{
 	private static final String HOURS_PER_WEEK_COLUMN_NAME = "hours-per-week";
 	private static final String NATIVE_COUNTRY_COLUMN_NAME = "native-country";
 	
-	//@Test
+	@Test
 	public void givenRCEApplication_whenTrained_thenGetAndReportClassifierPerformance() throws IOException, InterruptedException {
 		Iterable<Event> trainingEvents = loadTrainingEvents();
 		
@@ -54,7 +54,7 @@ public class PerformanceTest extends RCEApplicationStartupTest{
 		
 		waitingForNextWindow.set(true);
 		
-		nextWindowUpdated.await();
+		Thread.sleep(5000);
 		
 		NaiveBayesService classifierService = super.candidate.getNaiveBayesService();
 		
@@ -71,7 +71,7 @@ public class PerformanceTest extends RCEApplicationStartupTest{
 			
 			com.haines.ml.rce.model.Classification classification = classifierService.getMaximumLikelihoodClassification(event.getFeaturesList());
 			
-			if (classification.getValue().equals(event.getClassificationsList().get(0))){
+			if (classification.getValue().equals(event.getClassificationsList().get(0).getValue())){
 				if (classification.getValue().equals(POSITIVE_CLASS)){
 					tp++;
 				} else{

@@ -78,23 +78,25 @@ public class PipelinedEventConsumer<E extends Event, T extends EventConsumer<? s
 	@Override
 	public void consume(E event) {
 		
-		byte liveConsumerState = this.liveConsumerState; // copies to local variable obtaining atomicity
-		int liveConsumer = getLiveConsumer(liveConsumerState);
-		
-		/*
-		 *  set active consumer to be active. marks that there is a consumer thread 
-		 *  currently working in the live consumer. Note the shift by what is considered a
-		 *  live consumer so that the relevant active bit for the 'live' consumer is set
-		 */
-		
-		int activeConsumerBitMask = (LIVE_CONSUMER_ACTIVE_MASK << liveConsumer);
-		this.liveConsumerState |= activeConsumerBitMask; //write to main memory
-			try{
-				consumers[liveConsumer].consume(event);
-		} finally{
+		if (event != Event.HEARTBEAT){ // ignore heart beat events on async consumers
+			byte liveConsumerState = this.liveConsumerState; // copies to local variable obtaining atomicity
+			int liveConsumer = getLiveConsumer(liveConsumerState);
 			
-			this.liveConsumerState ^= activeConsumerBitMask; // unset active consumer
+			/*
+			 *  set active consumer to be active. marks that there is a consumer thread 
+			 *  currently working in the live consumer. Note the shift by what is considered a
+			 *  live consumer so that the relevant active bit for the 'live' consumer is set
+			 */
 			
+			int activeConsumerBitMask = (LIVE_CONSUMER_ACTIVE_MASK << liveConsumer);
+			this.liveConsumerState |= activeConsumerBitMask; //write to main memory
+				try{
+					consumers[liveConsumer].consume(event);
+			} finally{
+				
+				this.liveConsumerState ^= activeConsumerBitMask; // unset active consumer
+				
+			}
 		}
 	}
 	

@@ -19,6 +19,7 @@ import com.haines.ml.rce.dispatcher.Dispatcher;
 import com.haines.ml.rce.model.Event;
 import com.haines.ml.rce.model.EventConsumer;
 import com.haines.ml.rce.model.EventMarshalBuffer;
+import com.haines.ml.rce.model.system.Clock;
 
 /**
  * A nio selector event stream for processing io events to the dispatcher. This selector is
@@ -29,6 +30,8 @@ import com.haines.ml.rce.model.EventMarshalBuffer;
  */
 public class SelectorEventStream<T extends SelectableChannel & NetworkChannel, E extends Event> implements EventStreamController, EventConsumer<E>{
 
+	public static final long DO_NOT_SEND_HEART_BEAT = 0;
+	
 	private static final Logger LOG = LoggerFactory.getLogger(SelectorEventStream.class);
 	
 	private volatile boolean isAlive;
@@ -38,15 +41,19 @@ public class SelectorEventStream<T extends SelectableChannel & NetworkChannel, E
 	private final EventMarshalBuffer<E> eventBuffer;
 	private final EventStreamListener listener;
 	private volatile Thread executingThread;
+	private long nextHeartBeatTime;
+	private final Clock clock;
 	
 	@Inject
-	public SelectorEventStream(Dispatcher<E> dispatcher, SelectorEventStreamConfig config, NetworkChannelProcessor<T> processor, EventMarshalBuffer<E> eventBuffer, EventStreamListener listener){
+	public SelectorEventStream(Clock clock, Dispatcher<E> dispatcher, SelectorEventStreamConfig config, NetworkChannelProcessor<T> processor, EventMarshalBuffer<E> eventBuffer, EventStreamListener listener){
 		this.isAlive = false;
 		this.dispatcher = dispatcher;
 		this.config = config;
 		this.processor = processor;
 		this.eventBuffer = eventBuffer;
 		this.listener = listener;
+		this.clock = clock;
+		this.nextHeartBeatTime = clock.getCurrentTime(); 
 	}
 	
 	@Override
@@ -61,17 +68,19 @@ public class SelectorEventStream<T extends SelectableChannel & NetworkChannel, E
 		LOG.info("Server selector ("+channelDetails.getSelector().getClass().getName()+") started on address: "+config.getAddress().toString()); 		
 		listener.streamStarted();
 		
-		while(isAlive){
-			try{
-				select(channelDetails.getSelector(), buffer);
+		try(Selector selector = channelDetails.getSelector()){
+			while(isAlive){
+			
+				select(selector, buffer);
 				
 				if (executingThread.isInterrupted()){ // we have been interrupted so stop the stream
 					isAlive = false;
 					executingThread = null;
 				}
-			} catch (IOException e){
-				LOG.error("Error selecting event from stream", e);
+			
 			}
+		} catch (IOException e){
+			LOG.error("Error selecting event from stream", e);
 		}
 		
 		try {
@@ -102,45 +111,61 @@ public class SelectorEventStream<T extends SelectableChannel & NetworkChannel, E
 	}
 	
 	private void select(Selector selector, ByteBuffer buffer) throws IOException{
-		if (selector.select() > 0){
 		
-			Iterator<SelectionKey> selectedKeys = selector.selectedKeys().iterator();
-			while (selectedKeys.hasNext()){
-				SelectionKey key = selectedKeys.next();
-				selectedKeys.remove();
-				if (key.isValid()){
+		// select from the channel until the heart beat timeout. We check the selected keys and if there is no selected key and the thread
+		// is not interrupted, we send the heart beat.
+		
+		long heartBeatPeriod = config.getHeartBeatPeriod();
+		long currentTime = clock.getCurrentTime();
+		
+		selector.select(heartBeatPeriod); 
+		
+		Iterator<SelectionKey> selectedKeys = selector.selectedKeys().iterator();
+		
+		if (!selectedKeys.hasNext() && !Thread.interrupted() && nextHeartBeatTime < currentTime){
+			LOG.debug("Sending heart beats...");
+			
+			nextHeartBeatTime = currentTime + heartBeatPeriod;
+			
+			dispatcher.sendHeartBeat();
+			return;
+		}
+		
+		while (selectedKeys.hasNext()){
+			SelectionKey key = selectedKeys.next();
+			selectedKeys.remove();
+			if (key.isValid()){
+				
+				@SuppressWarnings("unchecked")
+				T channel = (T)key.channel();
+				
+				if(key.isAcceptable()){
 					
-					@SuppressWarnings("unchecked")
-					T channel = (T)key.channel();
+					processor.acceptChannel(selector, channel);
+				} else if (key.isReadable()){
+					buffer.clear();
 					
-					if(key.isAcceptable()){
+					ScatteringByteChannel readerChannel = (ScatteringByteChannel)key.channel();
+				
+					int totalRead = 0;
+					int tmpBytesRead = 0;
+					boolean enoughBuffersReadToBuildEvent = false;
+					while(!enoughBuffersReadToBuildEvent && (tmpBytesRead = processor.readFromChannel(readerChannel, buffer)) > 0){
+						totalRead += tmpBytesRead;
+						buffer.flip();
 						
-						processor.acceptChannel(selector, channel);
-					} else if (key.isReadable()){
-						buffer.clear();
+						enoughBuffersReadToBuildEvent = eventBuffer.marshal(buffer);
 						
-						ScatteringByteChannel readerChannel = (ScatteringByteChannel)key.channel();
+						buffer.flip();
+					}
 					
-						int totalRead = 0;
-						int tmpBytesRead = 0;
-						boolean enoughBuffersReadToBuildEvent = false;
-						while(!enoughBuffersReadToBuildEvent && (tmpBytesRead = processor.readFromChannel(readerChannel, buffer)) > 0){
-							totalRead += tmpBytesRead;
-							buffer.flip();
-							
-							enoughBuffersReadToBuildEvent = eventBuffer.marshal(buffer);
-							
-							buffer.flip();
-						}
+					// now close the connection
+					processor.closeAccept(readerChannel);					
+					
+					if (totalRead > 0){
+						E event = eventBuffer.buildEventAndResetBuffer();
 						
-						// now close the connection
-						processor.closeAccept(readerChannel);					
-						
-						if (totalRead > 0){
-							E event = eventBuffer.buildEventAndResetBuffer();
-							
-							this.consume(event);
-						}
+						this.consume(event);
 					}
 				}
 			}

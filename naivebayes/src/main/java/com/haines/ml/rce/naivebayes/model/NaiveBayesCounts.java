@@ -7,6 +7,9 @@ public class NaiveBayesCounts<T extends NaiveBayesProperty> {
 	
 	public NaiveBayesCounts(T property, int counts){
 		this.property = property;
+		if (counts == 0){
+			throw new IllegalArgumentException("counts cannot be 0");
+		}
 		this.counts = counts;
 	}
 

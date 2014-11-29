@@ -1,6 +1,7 @@
 package com.haines.ml.rce.naivebayes;
 
 import com.google.common.base.Function;
+import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
 import com.haines.ml.rce.accumulator.AccumulatorProvider;
 import com.haines.ml.rce.naivebayes.model.NaiveBayesCounts;
@@ -9,12 +10,19 @@ import com.haines.ml.rce.naivebayes.model.NaiveBayesProperty.NaiveBayesPriorProp
 
 public class NaiveBayesAccumulatorBackedCountsProvider implements NaiveBayesCountsProvider{
 
+	private static final Predicate<NaiveBayesCounts<?>> NON_NULL_PREDICATE = new Predicate<NaiveBayesCounts<?>>(){
+
+		@Override
+		public boolean apply(NaiveBayesCounts<?> input) {
+			return input != null;
+		}
+	};
 	private final Function<NaiveBayesPosteriorProperty, NaiveBayesCounts<NaiveBayesPosteriorProperty>> posteriorPropertyToCountsFunction;
 	private final Function<NaiveBayesPriorProperty, NaiveBayesCounts<NaiveBayesPriorProperty>> priorPropertyToCountsFunction;
 	
 	private final NaiveBayesIndexes indexes;
 	
-	public NaiveBayesAccumulatorBackedCountsProvider(final AccumulatorProvider accumulator, NaiveBayesIndexes indexes){
+	public NaiveBayesAccumulatorBackedCountsProvider(final AccumulatorProvider<?> accumulator, NaiveBayesIndexes indexes){
 		this.indexes = indexes;
 		
 		this.posteriorPropertyToCountsFunction = new Function<NaiveBayesPosteriorProperty, NaiveBayesCounts<NaiveBayesPosteriorProperty>>(){
@@ -24,7 +32,14 @@ public class NaiveBayesAccumulatorBackedCountsProvider implements NaiveBayesCoun
 				
 				int slot = NaiveBayesAccumulatorBackedCountsProvider.this.indexes.getPosteriorIndex(input.getFeature(), input.getClassification());
 				
-				return new NaiveBayesCounts<NaiveBayesPosteriorProperty>(input, accumulator.getAccumulatorValue(slot));
+				int count = accumulator.getAccumulatorValue(slot);
+				
+				if (count > 0){
+				
+					return new NaiveBayesCounts<NaiveBayesPosteriorProperty>(input, count);
+				} else{
+					return null;
+				}
 			}
 		};
 		
@@ -34,18 +49,24 @@ public class NaiveBayesAccumulatorBackedCountsProvider implements NaiveBayesCoun
 			public NaiveBayesCounts<NaiveBayesPriorProperty> apply(NaiveBayesPriorProperty input) {
 				
 				int slot = NaiveBayesAccumulatorBackedCountsProvider.this.indexes.getPriorIndex(input.getClassification());
-
-				return new NaiveBayesCounts<NaiveBayesPriorProperty>(input, accumulator.getAccumulatorValue(slot));
+				
+				int count = accumulator.getAccumulatorValue(slot);
+				
+				if (count > 0){
+					return new NaiveBayesCounts<NaiveBayesPriorProperty>(input, count);
+				} else{
+					return null;
+				}
 			}
 		};
 	}
 
 	public Iterable<NaiveBayesCounts<NaiveBayesPosteriorProperty>> getPosteriorCounts() {
-		return Iterables.transform(indexes.getPosteriors(), posteriorPropertyToCountsFunction);
+		return Iterables.filter(Iterables.transform(indexes.getPosteriors(), posteriorPropertyToCountsFunction), NON_NULL_PREDICATE);
 	}
 
 	public Iterable<NaiveBayesCounts<NaiveBayesPriorProperty>> getPriorCounts() {
-		return Iterables.transform(indexes.getPriors(), priorPropertyToCountsFunction);
+		return Iterables.filter(Iterables.transform(indexes.getPriors(), priorPropertyToCountsFunction), NON_NULL_PREDICATE);
 	}
 
 	@Override

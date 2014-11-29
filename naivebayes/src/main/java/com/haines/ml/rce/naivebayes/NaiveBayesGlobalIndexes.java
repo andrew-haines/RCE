@@ -23,7 +23,7 @@ import com.haines.ml.rce.model.Feature;
  * @author haines
  *
  */
-public class NaiveBayesGlobalIndexes extends NaiveBayesIndexes{
+public class NaiveBayesGlobalIndexes extends DefaultNaiveBayesIndexes{
 
 	/**
 	 * Enables constructions of this class to use a more fitting map (such as EnumMap) if

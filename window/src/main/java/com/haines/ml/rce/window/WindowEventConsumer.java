@@ -10,6 +10,7 @@ import com.haines.ml.rce.accumulator.AccumulatorProvider;
 import com.haines.ml.rce.accumulator.lookups.RONaiveBayesMapBasedLookupStrategy;
 import com.haines.ml.rce.accumulator.model.AccumulatedEvent;
 import com.haines.ml.rce.model.Classification;
+import com.haines.ml.rce.model.ClassifiedEvent;
 import com.haines.ml.rce.model.EventConsumer;
 import com.haines.ml.rce.model.Feature;
 import com.haines.ml.rce.naivebayes.NaiveBayesAccumulatorBackedCountsProvider;
@@ -23,7 +24,7 @@ import com.haines.ml.rce.naivebayes.model.NaiveBayesProperty.NaiveBayesPosterior
 import com.haines.ml.rce.naivebayes.model.NaiveBayesProperty.NaiveBayesPriorProperty;
 import com.haines.ml.rce.naivebayes.model.NaiveBayesProperty.PropertyType;
 
-public class WindowEventConsumer implements EventConsumer<AccumulatedEvent<RONaiveBayesMapBasedLookupStrategy>>{
+public class WindowEventConsumer<E extends ClassifiedEvent> implements EventConsumer<AccumulatedEvent<RONaiveBayesMapBasedLookupStrategy<E>>>{
 
 	private final WindowManager aggregator;
 	
@@ -33,11 +34,11 @@ public class WindowEventConsumer implements EventConsumer<AccumulatedEvent<RONai
 	}
 	
 	@Override
-	public void consume(AccumulatedEvent<RONaiveBayesMapBasedLookupStrategy> event) {
+	public void consume(AccumulatedEvent<RONaiveBayesMapBasedLookupStrategy<E>> event) {
 		
-		AccumulatorProvider accumulatorProvider = event.getAccumulatorProvider();
+		AccumulatorProvider<?> accumulatorProvider = event.getAccumulatorProvider();
 		
-		final RONaiveBayesMapBasedLookupStrategy strategy = event.getLookupStrategy();
+		final RONaiveBayesMapBasedLookupStrategy<E> strategy = event.getLookupStrategy();
 		
 		NaiveBayesCountsProvider countsProvider = new NaiveBayesAccumulatorBackedCountsProvider(accumulatorProvider, strategy.getIndexes());
 		

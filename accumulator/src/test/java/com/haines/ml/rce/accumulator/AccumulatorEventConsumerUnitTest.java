@@ -23,7 +23,7 @@ public class AccumulatorEventConsumerUnitTest {
 		assertThat(candidate.getAccumulatorProvider().getAccumulatorValue(1), is(equalTo(0)));
 		candidate.consume(new TestEvent(new int[]{1}));
 		
-		AccumulatorProvider provider = candidate.getAccumulatorProvider();
+		AccumulatorProvider<TestEvent> provider = candidate.getAccumulatorProvider();
 		
 		assertThat(provider.getAccumulatorValue(1), is(equalTo(1)));
 		assertThat(provider.getAccumulatorValue(0), is(equalTo(0)));
@@ -35,7 +35,7 @@ public class AccumulatorEventConsumerUnitTest {
 		candidate.consume(new TestEvent(new int[]{1}));
 		candidate.consume(new TestEvent(new int[]{1}));
 		
-		AccumulatorProvider provider = candidate.getAccumulatorProvider();
+		AccumulatorProvider<TestEvent> provider = candidate.getAccumulatorProvider();
 		
 		assertThat(provider.getAccumulatorValue(1), is(equalTo(2)));
 		assertThat(provider.getAccumulatorValue(0), is(equalTo(0)));
@@ -52,7 +52,7 @@ public class AccumulatorEventConsumerUnitTest {
 			candidate.consume(new TestEvent(new int[]{4}));
 		}
 		
-		AccumulatorProvider provider = candidate.getAccumulatorProvider();
+		AccumulatorProvider<TestEvent> provider = candidate.getAccumulatorProvider();
 		
 		assertThat(provider.getAccumulatorValue(1), is(equalTo(10)));
 		assertThat(provider.getAccumulatorValue(4), is(equalTo(10)));
@@ -70,7 +70,7 @@ public class AccumulatorEventConsumerUnitTest {
 			candidate.consume(new TestEvent(new int[]{257}));
 		}
 		
-		AccumulatorProvider provider = candidate.getAccumulatorProvider();
+		AccumulatorProvider<TestEvent> provider = candidate.getAccumulatorProvider();
 		
 		assertThat(provider.getAccumulatorValue(1), is(equalTo(10)));
 		assertThat(provider.getAccumulatorValue(257), is(equalTo(10)));
@@ -87,7 +87,7 @@ public class AccumulatorEventConsumerUnitTest {
 			}
 		}
 		
-		AccumulatorProvider provider = candidate.getAccumulatorProvider();
+		AccumulatorProvider<TestEvent> provider = candidate.getAccumulatorProvider();
 		
 		for (int j = 4096; j < 16777216; j++){
 			assertThat("j="+j, provider.getAccumulatorValue(j), is(equalTo(3)));
@@ -102,7 +102,7 @@ public class AccumulatorEventConsumerUnitTest {
 			candidate.consume(new TestEvent(new int[]{16777215}));
 		}
 		
-		AccumulatorProvider provider = candidate.getAccumulatorProvider();
+		AccumulatorProvider<TestEvent> provider = candidate.getAccumulatorProvider();
 		
 		assertThat(provider.getAccumulatorValue(16777215), is(equalTo(16777216)));
 	}
@@ -116,7 +116,7 @@ public class AccumulatorEventConsumerUnitTest {
 		candidate.consume(new TestEvent(new int[]{16777215, 16777215, 16777214}));
 		candidate.consume(new TestEvent(new int[]{16777215, 16777214}));
 		
-		AccumulatorProvider provider = candidate.getAccumulatorProvider();
+		AccumulatorProvider<TestEvent> provider = candidate.getAccumulatorProvider();
 		
 		assertThat(provider.getAccumulatorValue(0), is(equalTo(1)));
 		assertThat(provider.getAccumulatorValue(1), is(equalTo(1)));
@@ -134,7 +134,7 @@ public class AccumulatorEventConsumerUnitTest {
 		
 		candidate.consume(new TestEvent(new int[]{1, 5, 7,8 ,3 ,4}));
 		
-		AccumulatorProvider provider = candidate.getAccumulatorProvider();
+		AccumulatorProvider<TestEvent> provider = candidate.getAccumulatorProvider();
 		
 		assertThat(provider.getAccumulatorValue(0), is(equalTo(0)));
 		assertThat(provider.getAccumulatorValue(1), is(equalTo(1)));
@@ -151,7 +151,7 @@ public class AccumulatorEventConsumerUnitTest {
 		assertThat(candidate.getAccumulatorProvider().getAccumulatorValue(1), is(equalTo(0)));
 		candidate.consume(new TestEvent(new int[]{1}));
 		
-		AccumulatorProvider provider = candidate.getAccumulatorProvider();
+		AccumulatorProvider<TestEvent> provider = candidate.getAccumulatorProvider();
 		
 		assertThat(provider.getAccumulatorValue(1), is(equalTo(1)));
 		assertThat(provider.getAccumulatorValue(0), is(equalTo(0)));
@@ -196,6 +196,11 @@ public class AccumulatorEventConsumerUnitTest {
 		@Override
 		public void clear() {
 			// NoOp
+		}
+
+		@Override
+		public AccumulatorLookupStrategy<TestEvent> copy() {
+			return null;
 		}
 	}
 }

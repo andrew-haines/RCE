@@ -11,7 +11,7 @@ import com.haines.ml.rce.model.ClassifiedEvent;
 import com.haines.ml.rce.model.Feature;
 import com.haines.ml.rce.naivebayes.NaiveBayesIndexes;
 
-public class RONaiveBayesMapBasedLookupStrategy implements AccumulatorLookupStrategy<ClassifiedEvent>{
+public class RONaiveBayesMapBasedLookupStrategy<E extends ClassifiedEvent> implements AccumulatorLookupStrategy<E>{
 
 	public static final String LOOKUP_STRATEGY_INDEXES = "com.haines.ml.rce.accumulator.lookups.indexes";
 	private final NaiveBayesIndexes indexes;
@@ -22,7 +22,7 @@ public class RONaiveBayesMapBasedLookupStrategy implements AccumulatorLookupStra
 	}
 	
 	@Override
-	public int[] getSlots(ClassifiedEvent event) {
+	public int[] getSlots(E event) {
 		
 		// accumulator for all feature->classification pairs and then all classifications
 		int[] accumulatorIndexesToUpdate = new int[(event.getFeaturesList().size() * event.getClassificationsList().size()) + event.getClassificationsList().size()];
@@ -74,6 +74,12 @@ public class RONaiveBayesMapBasedLookupStrategy implements AccumulatorLookupStra
 	@Override
 	public void clear() {
 		indexes.clear();
+	}
+
+	@Override
+	public AccumulatorLookupStrategy<E> copy() {
+		
+		return new RONaiveBayesMapBasedLookupStrategy<E>(indexes.copy());
 	}
 
 }

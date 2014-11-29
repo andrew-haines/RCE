@@ -69,10 +69,10 @@ public class PipelineAccumulatorController implements SystemStartedListener{
 	protected <E extends Event, T extends AccumulatorLookupStrategy<?>> void pushToPipe(AccumulatorEventConsumer<E> sourceConsumer, EventConsumer<AccumulatedEvent<T>> nextStageConsumer) {
 		LOG.debug("Pushing to downstream consumer at push time: "+nextPushToPipe);
 
-		AccumulatorProvider provider = sourceConsumer.getAccumulatorProvider(); // we now control this accumulator. All operations are now atomic.
+		AccumulatorProvider<E> provider = sourceConsumer.getAccumulatorProvider(); // we now control this accumulator. All operations are now atomic.
 
 		@SuppressWarnings("unchecked")
-		T lookupStrategy = (T)sourceConsumer.getLookupStrategy();
+		T lookupStrategy = (T)provider.getLookupStrategy();
 		
 		sourceConsumer.clear();
 		nextStageConsumer.consume(new AccumulatedEvent<T>(provider, lookupStrategy));

@@ -58,5 +58,10 @@ public class PipelineAccumulatorControllerUnitTest {
 		public void clear() {
 			// NoOp
 		}
+
+		@Override
+		public AccumulatorLookupStrategy<TestEvent> copy() {
+			return null;
+		}
 	}
 }

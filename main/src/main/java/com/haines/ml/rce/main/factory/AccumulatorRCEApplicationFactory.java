@@ -38,19 +38,19 @@ public class AccumulatorRCEApplicationFactory<E extends ClassifiedEvent, T exten
 	
 	private final RCEApplicationFactory<E> defaultFactory;
 	
-	public AccumulatorRCEApplicationFactory(EventMarshalBuffer<E> marshalBuffer, Mode mode, RCEConfig config, EventConsumer<AccumulatedEvent<RONaiveBayesMapBasedLookupStrategy>> windowEventConsumer, Clock clock, AccumulatorLookupStrategyFactory<E> lookUpStrategy){
+	public AccumulatorRCEApplicationFactory(EventMarshalBuffer<E> marshalBuffer, Mode mode, RCEConfig config, EventConsumer<AccumulatedEvent<RONaiveBayesMapBasedLookupStrategy<E>>> windowEventConsumer, Clock clock, AccumulatorLookupStrategyFactory<E> lookUpStrategy){
 		
 		AccumulatorEventConsumerFactory<E> factory = new AccumulatorEventConsumerFactory<E>(RCEConfig.UTIL.getAccumulatorConfig(config), lookUpStrategy);
 		
 		if (mode == Mode.ASYNC){
-			defaultFactory = new DefaultASyncRCEApplicationFactory<E, RONaiveBayesMapBasedLookupStrategy>(marshalBuffer, factory, windowEventConsumer, getScheduledExecutor(), clock);
+			defaultFactory = new DefaultASyncRCEApplicationFactory<E, RONaiveBayesMapBasedLookupStrategy<E>>(marshalBuffer, factory, windowEventConsumer, getScheduledExecutor(), clock);
 		} else if (mode == Mode.SYNC){
 			
-			windowEventConsumer = new SyncPipelineEventConsumer.DisruptorEventConsumer<RONaiveBayesMapBasedLookupStrategy>(new DisruptorConsumer.Builder<AccumulatedEvent<RONaiveBayesMapBasedLookupStrategy>>(Executors.newSingleThreadExecutor(ACCUMULATED_EVENT_THREAD_FACTORY), RCEConfig.UTIL.getDisruptorConfig(config))
+			windowEventConsumer = new SyncPipelineEventConsumer.DisruptorEventConsumer<E, RONaiveBayesMapBasedLookupStrategy<E>>(new DisruptorConsumer.Builder<AccumulatedEvent<RONaiveBayesMapBasedLookupStrategy<E>>>(Executors.newSingleThreadExecutor(ACCUMULATED_EVENT_THREAD_FACTORY), RCEConfig.UTIL.getDisruptorConfig(config))
 					.addConsumer(windowEventConsumer)
 					.build());
 			
-			defaultFactory = new DefaultSyncRCEApplicationFactory<E, RONaiveBayesMapBasedLookupStrategy>(marshalBuffer, factory, config, windowEventConsumer, clock);
+			defaultFactory = new DefaultSyncRCEApplicationFactory<E, RONaiveBayesMapBasedLookupStrategy<E>>(marshalBuffer, factory, config, windowEventConsumer, clock);
 		} else{
 			throw new IllegalArgumentException("Unknown mode type: "+mode);
 		}

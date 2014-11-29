@@ -36,7 +36,7 @@ public class SyncPipelineEventConsumer<E extends Event, T extends AccumulatorLoo
 		controller.pushIfRequired(eventConsumer, nextStageConsumer);
 	}
 
-	public static class DisruptorEventConsumer<T extends AccumulatorLookupStrategy<?>> implements EventConsumer<AccumulatedEvent<T>>{
+	public static class DisruptorEventConsumer<E extends Event, T extends AccumulatorLookupStrategy<E>> implements EventConsumer<AccumulatedEvent<T>>{
 
 		private final DisruptorConsumer<AccumulatedEvent<T>> nextStageConsumer;
 		

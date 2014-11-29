@@ -10,6 +10,8 @@ public interface AccumulatorLookupStrategy<T extends Event> {
 	
 	void clear();
 	
+	AccumulatorLookupStrategy<T> copy();
+	
 	public static interface AccumulatorLookupStrategyFactory<E extends Event>{
 		
 		AccumulatorLookupStrategy<? super E> create();

@@ -1,6 +1,8 @@
 package com.haines.ml.rce.accumulator;
 
-public interface AccumulatorProvider {
+import com.haines.ml.rce.model.Event;
+
+public interface AccumulatorProvider<E extends Event> {
 
 	/**
 	 * Returns the accumulator value at a particular slot.
@@ -8,4 +10,6 @@ public interface AccumulatorProvider {
 	 * @return
 	 */
 	int getAccumulatorValue(int slot);
+	
+	AccumulatorLookupStrategy<? super E> getLookupStrategy();
 }

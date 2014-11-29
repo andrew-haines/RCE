@@ -9,6 +9,11 @@ public interface Classification {
 			return "Unknown";
 		}
 		
+		@Override
+		public String toString(){
+			return getValue();
+		}
+		
 	};
 	
 	String getValue();

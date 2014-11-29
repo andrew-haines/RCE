@@ -6,15 +6,15 @@ import com.haines.ml.rce.model.Event;
 
 public class AccumulatedEvent<T extends AccumulatorLookupStrategy<?>> implements Event {
 
-	private final AccumulatorProvider provider;
+	private final AccumulatorProvider<?> provider;
 	private final T lookupStrategy;
 	
-	public AccumulatedEvent(AccumulatorProvider provider, T lookupStrategy) {
+	public AccumulatedEvent(AccumulatorProvider<?> provider, T lookupStrategy) {
 		this.provider = provider;
 		this.lookupStrategy = lookupStrategy;
 	}
 
-	public AccumulatorProvider getAccumulatorProvider(){
+	public AccumulatorProvider<?> getAccumulatorProvider(){
 		return provider;
 	}
 

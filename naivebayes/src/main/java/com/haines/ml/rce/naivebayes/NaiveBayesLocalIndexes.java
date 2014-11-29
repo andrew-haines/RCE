@@ -10,7 +10,7 @@ import javax.inject.Named;
 import com.haines.ml.rce.model.Classification;
 import com.haines.ml.rce.model.Feature;
 
-public class NaiveBayesLocalIndexes extends NaiveBayesIndexes{
+public class NaiveBayesLocalIndexes extends DefaultNaiveBayesIndexes{
 
 	public static final String INJECT_BINDING_GLOBAL_INDEXES_KEY = "com.haines.ml.rce.naivebayes.globalIndexes";
 	private final NaiveBayesIndexesProvider globalIndexes;

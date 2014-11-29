@@ -124,9 +124,7 @@ public class AccumulatorEventConsumer<T extends Event> implements EventConsumer<
 	public void clear(){
 		int secondLineLength = getSecondLineMaxIndex(config);
 		for (int i = 0; i < accumulators.length; i++){
-			if (accumulators[i] != null){
-				accumulators[i] = new int[secondLineLength][];
-			}
+			accumulators[i] = new int[secondLineLength][];
 		}
 	}
 	
@@ -177,17 +175,13 @@ public class AccumulatorEventConsumer<T extends Event> implements EventConsumer<
 		return (slot & finalAccumulatorMask);
 	}
 
-	public AccumulatorProvider getAccumulatorProvider() {
+	public AccumulatorProvider<T> getAccumulatorProvider() {
 		
-		return new MemorySafeAccumulatorProvider(accumulators, getMaxIndex()+1, finalAccumulatorLineSize);
+		return new MemorySafeAccumulatorProvider<T>(accumulators, getMaxIndex()+1, finalAccumulatorLineSize, lookup);
 	}
 	
 	private int getMaxIndex() {
 		return Ordering.natural().min(lookup.getMaxIndex(), phyisicalLimitOfAccumulator);
-	}
-	
-	AccumulatorLookupStrategy<? super T> getLookupStrategy(){
-		return lookup;
 	}
 
 	/**
@@ -196,13 +190,14 @@ public class AccumulatorEventConsumer<T extends Event> implements EventConsumer<
 	 * @author haines
 	 *
 	 */
-	private static class MemorySafeAccumulatorProvider implements AccumulatorProvider{
+	private static class MemorySafeAccumulatorProvider<E extends Event> implements AccumulatorProvider<E>{
 
 		private volatile int[] accumulators;
 		private final int maxIndex;
 		private final int finalAccumulatorLineSize;
+		private final AccumulatorLookupStrategy<? super E> lookupStrategy;
 		
-		public MemorySafeAccumulatorProvider(int[][][] accumulators, int maxIndex, int finalAccumulatorLineSize) {
+		public MemorySafeAccumulatorProvider(int[][][] accumulators, int maxIndex, int finalAccumulatorLineSize, AccumulatorLookupStrategy<? super E> lookupStrategy) {
 			int[] accumulatorArray = new int[maxIndex];
 			
 			this.finalAccumulatorLineSize = finalAccumulatorLineSize;
@@ -210,6 +205,7 @@ public class AccumulatorEventConsumer<T extends Event> implements EventConsumer<
 			
 			this.accumulators = accumulatorArray; // sets the volatile semantics of all elements using this write.
 			this.maxIndex = maxIndex;
+			this.lookupStrategy = lookupStrategy.copy();
 		}
 
 		private void deepCopy(int[][][] src, int[] dest, int maxIdx) {
@@ -245,6 +241,11 @@ public class AccumulatorEventConsumer<T extends Event> implements EventConsumer<
 				return accumulators[slot];
 			}
 			return 0;
+		}
+
+		@Override
+		public AccumulatorLookupStrategy<? super E> getLookupStrategy() {
+			return lookupStrategy;
 		}
 	}
 

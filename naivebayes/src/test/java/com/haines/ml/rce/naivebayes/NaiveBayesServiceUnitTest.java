@@ -91,14 +91,14 @@ public class NaiveBayesServiceUnitTest {
 	
 	@Test
 	public void givenCandidate_whenCallingGetMaximumLikelihoodClassification_thenCorrectClassReturned(){
-		Classification classification = candidate.getMaximumLikelihoodClassification(TEST_FEATURE_CLASSIFICATION);
+		Classification classification = candidate.getMaximumLikelihoodClassification(TEST_FEATURE_CLASSIFICATION).getClassification();
 		
 		assertThat(classification.toString(), is(equalTo("class4")));
 	}
 	
 	@Test
 	public void givenCandidate_whenCallingGetMaximumLikelihoodClassification2_thenCorrectClassReturned(){
-		Classification classification = candidate.getMaximumLikelihoodClassification(TEST_FEATURE_CLASSIFICATION2);
+		Classification classification = candidate.getMaximumLikelihoodClassification(TEST_FEATURE_CLASSIFICATION2).getClassification();
 		
 		assertThat(classification.toString(), is(equalTo("class1")));
 	}

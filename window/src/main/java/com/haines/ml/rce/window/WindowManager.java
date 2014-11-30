@@ -167,6 +167,11 @@ public class WindowManager implements NaiveBayesProbabilitiesProvider{
 		public NaiveBayesCountsProvider getProvider() {
 			return provider;
 		}
+		
+		@Override
+		public String toString(){
+			return "exp: "+expires+" - "+provider.toString();
+		}
 	}
 	
 	private static class WindowProbabilities{

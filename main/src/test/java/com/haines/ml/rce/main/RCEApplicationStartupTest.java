@@ -8,12 +8,12 @@ import java.nio.ByteBuffer;
 import java.nio.channels.DatagramChannel;
 import java.nio.channels.spi.SelectorProvider;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.locks.ReentrantLock;
 
 import javax.xml.bind.JAXBException;
 
@@ -23,6 +23,7 @@ import org.junit.Test;
 
 import com.dyuproject.protostuff.LinkedBuffer;
 import com.dyuproject.protostuff.ProtostuffIOUtil;
+import com.google.common.collect.Lists;
 import com.haines.ml.rce.eventstream.EventStreamListener;
 import com.haines.ml.rce.main.config.RCEConfig;
 import com.haines.ml.rce.naivebayes.NaiveBayesProbabilitiesProvider;
@@ -35,11 +36,16 @@ import com.haines.ml.rce.window.WindowUpdatedListener;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.closeTo;
 
 public class RCEApplicationStartupTest {
 
 	protected static final long DEFAULT_WINDOW_PERIOD = 1000;
 	protected static final long DEFAULT_PUSH_DOWNSTREAM_MS = 200; // micro batch size
+	
+	private static final Classification TEST_CLASS_1 = new Classification("true");
+	private static final Classification TEST_CLASS_2 = new Classification("false");
+	
 	protected NaiveBayesRCEApplication<Event> candidate;
 	protected CountDownLatch started;
 	protected CountDownLatch finished;
@@ -99,6 +105,36 @@ public class RCEApplicationStartupTest {
 	@After
 	public void after() throws RCEApplicationException, InterruptedException{
 		shutdownAndWait();
+	}
+	
+	private Event getTestEvent(Classification classification, Feature... features) {
+		
+		Event event = new Event();
+		
+		event.setClassificationsList(Arrays.asList(classification));
+		event.setFeaturesList(Lists.newArrayList(features));
+		
+		return event;
+	}
+	
+	@Test
+	public void givenRCEApplication_whenTrainedWithSimpleSyntheticData_thenClassifierWorksAsExpected() throws IOException, InterruptedException{
+		sendViaSelector(getTestEvent(TEST_CLASS_2, getFeature("true", 1), getFeature("false", 2), getFeature("mild", 3), getFeature("true", 4)));
+		sendViaSelector(getTestEvent(TEST_CLASS_1, getFeature("true", 1), getFeature("true", 2), getFeature("no", 3), getFeature("false", 4)));
+		sendViaSelector(getTestEvent(TEST_CLASS_1, getFeature("true", 1), getFeature("false", 2), getFeature("strong", 3), getFeature("true", 4)));
+		sendViaSelector(getTestEvent(TEST_CLASS_1, getFeature("false", 1), getFeature("true", 2), getFeature("mild", 3), getFeature("true", 4)));
+		sendViaSelector(getTestEvent(TEST_CLASS_2, getFeature("false", 1), getFeature("false", 2), getFeature("no", 3), getFeature("false", 4)));
+		sendViaSelector(getTestEvent(TEST_CLASS_1, getFeature("false", 1), getFeature("true", 2), getFeature("strong", 3), getFeature("true", 4)));
+		sendViaSelector(getTestEvent(TEST_CLASS_2, getFeature("false", 1), getFeature("true", 2), getFeature("strong", 3), getFeature("false", 4)));
+		sendViaSelector(getTestEvent(TEST_CLASS_1, getFeature("true", 1), getFeature("true", 2), getFeature("mild", 3), getFeature("true", 4)));
+		
+		waitingForNextWindow.set(true);
+		nextWindowUpdated.await();
+		
+		Thread.sleep(2000);
+		
+		assertThat((Classification)candidate.getNaiveBayesService().getMaximumLikelihoodClassification(Arrays.asList(getFeature("true", 1), getFeature("false", 2), getFeature("mild", 3), getFeature("false", 4))).getClassification(), is(equalTo(TEST_CLASS_2)));
+		assertThat(candidate.getNaiveBayesService().getMaximumLikelihoodClassification(Arrays.asList(getFeature("true", 1), getFeature("false", 2), getFeature("mild", 3), getFeature("false", 4))).getCertainty(), is(closeTo(0.0185, 0.0001)));
 	}
 	
 	@Test

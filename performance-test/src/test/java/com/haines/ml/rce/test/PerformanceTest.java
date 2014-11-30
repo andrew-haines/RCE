@@ -21,6 +21,10 @@ import com.haines.ml.rce.transport.Event;
 import com.haines.ml.rce.transport.Event.Classification;
 import com.haines.ml.rce.transport.Event.Feature;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.equalTo;
+
 public class PerformanceTest extends RCEApplicationStartupTest{
 	
 	private static final Logger LOG = LoggerFactory.getLogger(PerformanceTest.class);
@@ -43,7 +47,7 @@ public class PerformanceTest extends RCEApplicationStartupTest{
 	private static final String CAPITAL_LOSS_COLUMN_NAME = "capital-loss";
 	private static final String HOURS_PER_WEEK_COLUMN_NAME = "hours-per-week";
 	private static final String NATIVE_COUNTRY_COLUMN_NAME = "native-country";
-	
+
 	@Test
 	public void givenRCEApplication_whenTrained_thenGetAndReportClassifierPerformance() throws IOException, InterruptedException {
 		Iterable<Event> trainingEvents = loadTrainingEvents();

@@ -68,6 +68,11 @@ public class Aggregator implements NaiveBayesCountsProvider{
 			}
 		}
 	}
+	
+	@Override
+	public String toString() {
+		return "counts: "+counts.toString();
+	}
 
 	private void updatePrior(NaiveBayesPriorProperty prior, NaiveBayesCounts<NaiveBayesPriorProperty> counts, boolean subtract, Map<Classification, MutableNaiveBayesCounts<NaiveBayesPriorProperty>> priorCounts) {
 		createOrIncrement(priorCounts, prior.getClassification(), counts, subtract);
@@ -155,6 +160,11 @@ public class Aggregator implements NaiveBayesCountsProvider{
 		@Override
 		public Iterable<NaiveBayesCounts<NaiveBayesPosteriorProperty>> getPosteriors() {
 			return getAccumulatedPosteriorCounts(posteriorCounts.values());
+		}
+		
+		@Override
+		public String toString(){
+			return "priors: "+priorCounts.size()+"posts:"+posteriorCounts.size();
 		}
 	}
 }

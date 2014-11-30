@@ -20,6 +20,7 @@ public <if(nested)>static <endif>final class <message.name> <options.(message.na
     <message:message_impl_schema(message=it, options=options)>
     <message:message_field_equals(message=it, options=options)>
 	<message:message_field_hashcode(message=it, options=options)>
+	<message:message_field_toString(message=it, options=options)>
     
     <if(options.generate_pipe_schema)>
     <message:message_pipe_schema(message=it, options=options)>
@@ -44,6 +45,22 @@ public boolean equals(Object obj){
     return true;
 }
 
+>>
+
+message_field_toString(message, options) ::= <<
+@Override
+public String toString() {
+	StringBuilder builder = new StringBuilder("{");
+	
+	 <message.fields:field_toString(field=it, options=options); separator="\n">
+	
+	builder.append("}");
+	return builder.toString();
+}
+>>
+
+field_toString(field, options) ::= <<
+builder.append("<var(val=field.name, fmt="CC", options=options)>=").append(<var(val=field.name, fmt="CC", options=options)>).append(";");
 >>
 
 field_equals(field, options) ::= <<

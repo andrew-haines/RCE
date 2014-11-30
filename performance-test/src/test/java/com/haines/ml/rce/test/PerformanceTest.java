@@ -159,7 +159,7 @@ public class PerformanceTest extends RCEApplicationStartupTest{
 	private Feature getFeature(String value, int type){
 		Feature feature = new Feature();
 		
-		feature.setValue(value);
+		feature.setValue(value.trim());
 		feature.setType(type);
 		
 		return feature;
@@ -168,7 +168,7 @@ public class PerformanceTest extends RCEApplicationStartupTest{
 	private Classification getClassification(CSVRecord record) {
 		Classification classification = new Classification();
 		
-		classification.setValue(record.get(CLASSIFICATION_COLUMN_NAME));
+		classification.setValue(record.get(CLASSIFICATION_COLUMN_NAME).trim());
 		return classification;
 	}
 	

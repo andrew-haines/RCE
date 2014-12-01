@@ -136,7 +136,7 @@ public class WindowManagerUnitTest {
 		}, testClock, Arrays.asList(new WindowUpdatedListener() {
 			
 			@Override
-			public void windowUpdated(NaiveBayesProbabilitiesProvider window) {
+			public void newWindowCreated(NaiveBayesProbabilitiesProvider window) {
 				numUpdatedWindows.incrementAndGet();
 			}
 		}));

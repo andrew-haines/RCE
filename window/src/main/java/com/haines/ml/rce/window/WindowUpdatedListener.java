@@ -8,10 +8,10 @@ public interface WindowUpdatedListener extends SystemListener{
 	public static final WindowUpdatedListener NO_OP_LISTENER = new WindowUpdatedListener() {
 		
 		@Override
-		public void windowUpdated(NaiveBayesProbabilitiesProvider window) {
+		public void newWindowCreated(NaiveBayesProbabilitiesProvider window) {
 			// NoOp
 		}
 	};
 
-	void windowUpdated(NaiveBayesProbabilitiesProvider window);
+	void newWindowCreated(NaiveBayesProbabilitiesProvider window);
 }

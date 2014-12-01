@@ -20,4 +20,9 @@ public class NaiveBayesProbability{
 	public Probability getProbability() {
 		return probability;
 	}
+	
+	@Override
+	public String toString(){
+		return property+"="+probability;
+	}
 }

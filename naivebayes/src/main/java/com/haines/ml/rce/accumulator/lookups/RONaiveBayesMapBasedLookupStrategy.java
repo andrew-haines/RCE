@@ -72,14 +72,14 @@ public class RONaiveBayesMapBasedLookupStrategy<E extends ClassifiedEvent> imple
 	}
 
 	@Override
-	public void clear() {
-		indexes.clear();
-	}
-
-	@Override
 	public AccumulatorLookupStrategy<E> copy() {
 		
 		return new RONaiveBayesMapBasedLookupStrategy<E>(indexes.copy());
+	}
+
+	@Override
+	public void clear() {
+		indexes.clear();
 	}
 
 }

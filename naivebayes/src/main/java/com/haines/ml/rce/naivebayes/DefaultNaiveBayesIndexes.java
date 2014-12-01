@@ -34,7 +34,6 @@ public abstract class DefaultNaiveBayesIndexes implements NaiveBayesIndexes {
 	protected final Map<Classification, Map<Feature, Integer>> posteriorProbabilityIndexes;
 	protected final Map<Classification, Integer> priorProbabilityIndexes;
 	protected int maxIndex;
-	private volatile boolean fresh = true;
 	
 	protected DefaultNaiveBayesIndexes(Map<Classification, Map<Feature, Integer>> posteriorProbabilityIndexes, Map<Classification, Integer> priorProbabilityIndexes, int maxIndex){
 		
@@ -46,7 +45,6 @@ public abstract class DefaultNaiveBayesIndexes implements NaiveBayesIndexes {
 	
 	public int getPosteriorIndex(Feature feature, Classification classification){
 		
-		checkFresh();
 		Map<Feature, Integer> innerMap = posteriorProbabilityIndexes.get(classification);
 		
 		if (innerMap != null){
@@ -58,18 +56,9 @@ public abstract class DefaultNaiveBayesIndexes implements NaiveBayesIndexes {
 		}
 		return NO_INDEX_FOUND;
 	}
-	
-	protected void checkFresh() {
-		if (!fresh){
-			LOG.debug("Freshness is invalidated. Clearing indexes.");
-			clear();
-			fresh = true;
-		}
-	}
 
 	public int getPriorIndex(Classification classification){
 		
-		checkFresh();
 		Integer index = priorProbabilityIndexes.get(classification);
 		
 		if (index != null){
@@ -156,11 +145,6 @@ public abstract class DefaultNaiveBayesIndexes implements NaiveBayesIndexes {
 			@Override
 			protected <K, V> Map<K, V> checkIsEmpty(Map<K, V> map) {
 				return map;
-			}
-
-			@Override
-			public void clear() {
-				mutableIndexes.fresh = false;
 			}
 			
 			public String toString(){

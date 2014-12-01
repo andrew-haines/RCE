@@ -15,6 +15,7 @@ import java.util.Map.Entry;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
+import com.google.common.collect.Iterables;
 import com.haines.ml.rce.model.Classification;
 import com.haines.ml.rce.model.Feature;
 import com.haines.ml.rce.naivebayes.NaiveBayesCountsProvider.Counts;
@@ -125,6 +126,11 @@ public class CountsProviderNaiveBayesProbabilities implements NaiveBayesProbabil
 			}
 			
 		};
+	}
+	
+	@Override
+	public String toString(){
+		return Iterables.toString(getOrderedProbabilities());
 	}
 	
 	private int getPriorTotal(Iterable<? extends NaiveBayesCounts<NaiveBayesPriorProperty>> priorsIt) {

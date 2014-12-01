@@ -107,6 +107,8 @@ public class AccumulatorEventConsumer<T extends Event> implements EventConsumer<
 	@Override
 	public void consume(T event) {
 		
+		//LOG.debug("{} recieved event: {}", Thread.currentThread().getName(), event.toString());
+		
 		int[] slots = lookup.getSlots(event);
 		
 		for (int i = 0; i < slots.length; i++){
@@ -122,10 +124,16 @@ public class AccumulatorEventConsumer<T extends Event> implements EventConsumer<
 	}
 	
 	public void clear(){
+		
+		LOG.debug("clearing accumulator line for thread {}", Thread.currentThread().getName());
 		int secondLineLength = getSecondLineMaxIndex(config);
 		for (int i = 0; i < accumulators.length; i++){
 			accumulators[i] = new int[secondLineLength][];
 		}
+		
+		// now clear the indexes
+		
+		lookup.clear();
 	}
 	
 	private void rollbackSlots(int[] slots, int idxToRollbackTo) {

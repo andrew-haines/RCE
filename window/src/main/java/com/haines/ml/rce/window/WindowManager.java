@@ -4,6 +4,9 @@ import gnu.trove.map.hash.THashMap;
 
 import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.google.common.collect.Iterables;
 import com.haines.ml.rce.aggregator.Aggregator;
 import com.haines.ml.rce.model.Classification;
@@ -22,6 +25,8 @@ import com.haines.ml.rce.naivebayes.model.NaiveBayesProperty.NaiveBayesPriorProp
 
 public class WindowManager implements NaiveBayesProbabilitiesProvider{
 
+	private final static Logger LOG = LoggerFactory.getLogger(WindowManager.class);
+	
 	private static final int NO_WINDOW_IDX = -1;
 	private final WindowConfig config;
 	private final WindowProbabilities windowProbabilities;
@@ -56,12 +61,16 @@ public class WindowManager implements NaiveBayesProbabilitiesProvider{
 	public void addNewProvider(NaiveBayesCountsProvider provider, WindowUpdatedListener listener){
 		long currentTime = clock.getCurrentTime();
 		
+		if (LOG.isDebugEnabled()){
+			LOG.debug("Recieved: {}", provider);
+		}
+		
 		int currentMaxIdx = this.currentMaxIdx; // cache friendly version. NOTE that this is not needed anymore as these variables are no longer volatile
 		int currentMinIdx = this.currentMinIdx; 
 		
 		if (currentMaxIdx == NO_WINDOW_IDX || currentTime > cyclicWindowBuffer[currentMaxIdx].getExpires()){
-			
-			// TODO flush any windows that this new event skips past
+		
+			// TODO flush any windows that this new event skips past. Probably not so important now we have the heart beat triggers
 			
 			// shift to new window
 			
@@ -81,6 +90,8 @@ public class WindowManager implements NaiveBayesProbabilitiesProvider{
 				this.currentMinIdx = getNextIdxInBuffer(currentMinIdx);
 			}
 			
+			LOG.debug("New Window created at: {}", currentMaxIdx);
+			
 			currentMaxIdx = getNextIdxInBuffer(currentMaxIdx);
 			this.currentMaxIdx = currentMaxIdx;
 			cyclicWindowBuffer[currentMaxIdx] = newWindow;
@@ -89,10 +100,10 @@ public class WindowManager implements NaiveBayesProbabilitiesProvider{
 			
 			// update the listener only when there is a new window
 			
-			listener.windowUpdated(this);
+			listener.newWindowCreated(this);
 			
 			for (WindowUpdatedListener staticListener: staticWindowListeners){
-				staticListener.windowUpdated(this);
+				staticListener.newWindowCreated(this);
 			}
 			
 		} else { // add to existing window
@@ -114,6 +125,8 @@ public class WindowManager implements NaiveBayesProbabilitiesProvider{
 			
 			cyclicWindowBuffer[currentMaxIdx] = newAggregatedWindow;
 			
+			LOG.debug("Window {} updated ", currentMaxIdx);
+			
 			windowProbabilities.processWindows(newAggregatedWindow.getProvider(), currentWindow.getProvider());
 		}
 	}
@@ -130,7 +143,9 @@ public class WindowManager implements NaiveBayesProbabilitiesProvider{
 			if (cyclicWindowBuffer[i] != null){
 				Counts counts = cyclicWindowBuffer[i].getProvider().getCounts();
 				builder.append(Iterables.size(counts.getPosteriors()));
-				builder.append(":");
+				builder.append("#[");
+				builder.append(counts);
+				builder.append("] :");
 				builder.append(Iterables.size(counts.getPriors()));
 				builder.append(" e=");
 				builder.append(cyclicWindowBuffer[i].getExpires());

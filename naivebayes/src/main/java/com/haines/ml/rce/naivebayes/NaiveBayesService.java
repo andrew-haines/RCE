@@ -43,6 +43,8 @@ public class NaiveBayesService {
 		
 		NaiveBayesProbabilities probabilities = probabilitiesProvider.getProbabilities();
 		
+		System.out.println("considering classification with: "+probabilities.toString());
+		
 		for (Classification possibleClassification: probabilities.getAllClassifications()){
 			double logLikelihoodProbability = 0;
 			for (Feature feature: features){
@@ -60,6 +62,11 @@ public class NaiveBayesService {
 	
 	public PredicatedClassification getMaximumLikelihoodClassification(Iterable<? extends Feature> features){
 		return getMaximumLikelihoodClassifications(features, 1).iterator().next();
+	}
+	
+	@Override
+	public String toString(){
+		return probabilitiesProvider.toString();
 	}
 	
 	public static class PredicatedClassification {

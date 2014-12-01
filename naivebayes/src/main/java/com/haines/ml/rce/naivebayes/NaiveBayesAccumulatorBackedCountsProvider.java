@@ -68,6 +68,11 @@ public class NaiveBayesAccumulatorBackedCountsProvider implements NaiveBayesCoun
 	public Iterable<NaiveBayesCounts<NaiveBayesPriorProperty>> getPriorCounts() {
 		return Iterables.filter(Iterables.transform(indexes.getPriors(), priorPropertyToCountsFunction), NON_NULL_PREDICATE);
 	}
+	
+	@Override
+	public String toString(){
+		return "{posteriors: "+getPosteriorCounts()+"priors: "+getPriorCounts()+"}";
+	}
 
 	@Override
 	public Counts getCounts() {

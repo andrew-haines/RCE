@@ -46,7 +46,7 @@ public class WindowEventConsumer<E extends ClassifiedEvent> implements EventCons
 		aggregator.addNewProvider(countsProvider, new WindowUpdatedListener() {
 			
 			@Override
-			public void windowUpdated(NaiveBayesProbabilitiesProvider window) {
+			public void newWindowCreated(NaiveBayesProbabilitiesProvider window) {
 				
 				//update the global indexes with a sorted version of the posterior and prior properties, sorted by most probable
 				
@@ -87,10 +87,6 @@ public class WindowEventConsumer<E extends ClassifiedEvent> implements EventCons
 				NaiveBayesIndexes newGlobalIndexes = new NaiveBayesGlobalIndexes(posteriors, priors);
 				
 				strategy.getIndexes().getGlobalIndexes().setIndexes(newGlobalIndexes);
-				
-				// now reset the local indexes
-				
-				strategy.clear();
 			}
 		});
 		

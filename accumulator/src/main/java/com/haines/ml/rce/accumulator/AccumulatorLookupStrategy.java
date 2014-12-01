@@ -8,9 +8,9 @@ public interface AccumulatorLookupStrategy<T extends Event> {
 	
 	int getMaxIndex();
 	
-	void clear();
-	
 	AccumulatorLookupStrategy<T> copy();
+	
+	void clear();
 	
 	public static interface AccumulatorLookupStrategyFactory<E extends Event>{
 		

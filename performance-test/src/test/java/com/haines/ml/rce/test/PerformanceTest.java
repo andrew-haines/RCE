@@ -73,7 +73,7 @@ public class PerformanceTest extends RCEApplicationStartupTest{
 		for (Event event: testingEvents){
 			total++;
 			
-			com.haines.ml.rce.model.Classification classification = classifierService.getMaximumLikelihoodClassification(event.getFeaturesList());
+			com.haines.ml.rce.model.Classification classification = classifierService.getMaximumLikelihoodClassification(event.getFeaturesList()).getClassification();
 			
 			if (classification.getValue().equals(event.getClassificationsList().get(0).getValue())){
 				if (classification.getValue().equals(POSITIVE_CLASS)){

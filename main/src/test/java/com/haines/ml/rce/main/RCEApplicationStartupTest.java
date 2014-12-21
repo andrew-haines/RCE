@@ -132,18 +132,16 @@ public class RCEApplicationStartupTest {
 		waitingForNextWindow.set(true);
 		nextWindowUpdated.await();
 		
+		Thread.sleep(5000);// There is a race condition here with the test. We need to ensure that the heart beat has triggered
+		
 		for (int i = 0; i < 5; i++){
 			
-			PredicatedClassification classification = candidate.getNaiveBayesService().getMaximumLikelihoodClassification(Arrays.asList(getFeature("true", 1), getFeature("false", 2), getFeature("mild", 3), getFeature("false", 4)));
-		
 			Thread.sleep(2000);
 			
-			if (classification.getClassification() != Classification.UNKNOWN && i == 0){ // sometimes the push may not have happened even after waiting 2 seconds
+			PredicatedClassification classification = candidate.getNaiveBayesService().getMaximumLikelihoodClassification(Arrays.asList(getFeature("true", 1), getFeature("false", 2), getFeature("mild", 3), getFeature("false", 4)));
 			
-				
-				assertThat(classification.getClassification().getValue(), is(equalTo(TEST_CLASS_2.getValue())));
-				assertThat(classification.getCertainty(), is(closeTo(0.0185, 0.0001)));
-			}
+			assertThat(classification.getClassification().getValue(), is(equalTo(TEST_CLASS_2.getValue())));
+			assertThat(classification.getCertainty(), is(closeTo(0.0185, 0.0001)));
 		}
 	}
 	

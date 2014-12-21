@@ -26,7 +26,6 @@ public class PipelineAccumulatorControllerUnitTest {
 		clock = new StaticClock(INITIAL_STARTUP_TIME);
 		
 		candidate = new PipelineAccumulatorController(clock, TEST_CONFIG);
-		candidate.systemStarted();
 	}
 	
 	private static class TestEvent implements Event{

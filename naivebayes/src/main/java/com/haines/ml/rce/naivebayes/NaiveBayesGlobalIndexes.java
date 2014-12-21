@@ -37,7 +37,7 @@ public class NaiveBayesGlobalIndexes extends DefaultNaiveBayesIndexes{
 	}
 	
 	private static int getGreatestIndex(Map<Classification, Map<Feature, Integer>> posteriorProbabilityIndexes, Map<Classification, Integer> priorProbabilityIndexes) {
-		Integer currentMax = NaiveBayesIndexes.NO_INDEX_FOUND;
+		Integer currentMax = NO_INDEX_FOUND;
 		
 		for (Map<Feature, Integer> classIndexes: posteriorProbabilityIndexes.values()){
 			for (Integer idx: classIndexes.values()){

@@ -185,7 +185,7 @@ public class AccumulatorEventConsumer<T extends Event> implements EventConsumer<
 
 	public AccumulatorProvider<T> getAccumulatorProvider() {
 		
-		return new MemorySafeAccumulatorProvider<T>(accumulators, getMaxIndex()+1, finalAccumulatorLineSize, lookup);
+		return new MemorySafeAccumulatorProvider<T>(accumulators, getMaxIndex(), finalAccumulatorLineSize, lookup);
 	}
 	
 	private int getMaxIndex() {
@@ -200,18 +200,20 @@ public class AccumulatorEventConsumer<T extends Event> implements EventConsumer<
 	 */
 	private static class MemorySafeAccumulatorProvider<E extends Event> implements AccumulatorProvider<E>{
 
-		private volatile int[] accumulators;
+		private final int[] accumulators;
 		private final int maxIndex;
 		private final int finalAccumulatorLineSize;
 		private final AccumulatorLookupStrategy<? super E> lookupStrategy;
 		
 		public MemorySafeAccumulatorProvider(int[][][] accumulators, int maxIndex, int finalAccumulatorLineSize, AccumulatorLookupStrategy<? super E> lookupStrategy) {
+			maxIndex = maxIndex+1;
+			
 			int[] accumulatorArray = new int[maxIndex];
 			
 			this.finalAccumulatorLineSize = finalAccumulatorLineSize;
 			deepCopy(accumulators, accumulatorArray, maxIndex);
 			
-			this.accumulators = accumulatorArray; // sets the volatile semantics of all elements using this write.
+			this.accumulators = accumulatorArray; 
 			this.maxIndex = maxIndex;
 			this.lookupStrategy = lookupStrategy.copy();
 		}

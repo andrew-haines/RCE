@@ -43,7 +43,7 @@ public class NaiveBayesService {
 		
 		NaiveBayesProbabilities probabilities = probabilitiesProvider.getProbabilities();
 		
-		System.out.println("considering classification with: "+probabilities.toString());
+		//System.out.println("considering classification with: "+probabilities.toString());
 		
 		for (Classification possibleClassification: probabilities.getAllClassifications()){
 			double logLikelihoodProbability = 0;

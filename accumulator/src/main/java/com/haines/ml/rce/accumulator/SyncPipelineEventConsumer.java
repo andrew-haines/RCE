@@ -46,6 +46,7 @@ public class SyncPipelineEventConsumer<E extends Event, T extends AccumulatorLoo
 		
 		@Override
 		public void consume(AccumulatedEvent<T> event) {
+			LOG.debug("Pushing event {} into disruptor queue", event);
 			nextStageConsumer.consumeEvent(event);
 		}
 		

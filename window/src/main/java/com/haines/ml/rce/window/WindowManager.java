@@ -1,8 +1,7 @@
 package com.haines.ml.rce.window;
 
-import gnu.trove.map.hash.THashMap;
-
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,8 +40,8 @@ public class WindowManager implements NaiveBayesProbabilitiesProvider{
 		this.clock = clock;
 		this.config = config;
 		this.cyclicWindowBuffer = new Window[config.getNumWindows()];
-		this.windowProbabilities = new WindowProbabilities(new SubtractableAggregator(new THashMap<Classification, Map<Feature, MutableNaiveBayesCounts<NaiveBayesPosteriorProperty>>>(), 
-																				new THashMap<Classification, MutableNaiveBayesCounts<NaiveBayesPriorProperty>>()));
+		this.windowProbabilities = new WindowProbabilities(new SubtractableAggregator(new ConcurrentHashMap<Classification, Map<Feature, MutableNaiveBayesCounts<NaiveBayesPosteriorProperty>>>(), 
+																				new ConcurrentHashMap<Classification, MutableNaiveBayesCounts<NaiveBayesPriorProperty>>()));
 		
 		this.staticWindowListeners = staticWindowListeners;
 	}

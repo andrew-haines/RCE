@@ -53,7 +53,6 @@ public class AsyncPipelineAccumulatorController<E extends Event, T extends Accum
 
 	@Override
 	public void systemStarted() {
-		super.systemStarted();
 		
 		executorService.scheduleAtFixedRate(this, config.getPushIntervalTimeMs(), config.getPushIntervalTimeMs(), TimeUnit.MILLISECONDS);
 	}

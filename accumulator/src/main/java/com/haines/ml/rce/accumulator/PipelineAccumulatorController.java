@@ -10,7 +10,6 @@ import com.haines.ml.rce.model.Event;
 import com.haines.ml.rce.model.EventConsumer;
 import com.haines.ml.rce.model.PipelinedEventConsumer;
 import com.haines.ml.rce.model.system.Clock;
-import com.haines.ml.rce.model.system.SystemStartedListener;
 
 /**
  * An event consumer that keeps track of the last time it pushed changes to the next
@@ -44,25 +43,27 @@ import com.haines.ml.rce.model.system.SystemStartedListener;
  * @author haines
  *
  */
-public class PipelineAccumulatorController implements SystemStartedListener{
+public class PipelineAccumulatorController {
 
 	private static final Logger LOG = LoggerFactory.getLogger(PipelineAccumulatorController.class);
 	
-	private final Clock systemClock;
+	private final Clock clock;
 	private long nextPushToPipe;
 	protected final PipelineAccumulatorConfig config;
 	
 	@Inject
-	public PipelineAccumulatorController(Clock systemClock, PipelineAccumulatorConfig config){
-		this.systemClock = systemClock;
+	public PipelineAccumulatorController(Clock clock, PipelineAccumulatorConfig config){
+		this.clock = clock;
 		this.config = config;
 	}
 	
 	<E extends Event, T extends AccumulatorLookupStrategy<? super E>> void pushIfRequired(AccumulatorEventConsumer<E> sourceConsumer, EventConsumer<AccumulatedEvent<T>> nextStageConsumer){
-		long currentTime = systemClock.getCurrentTime();
+		long currentTime = clock.getCurrentTime();
 		
-		if (currentTime > nextPushToPipe){ // we need to push data to pipe. Basically set up memory barrier for consumer to read data
+		if (currentTime >= nextPushToPipe){ // we need to push data to pipe. Basically set up memory barrier for consumer to read data
 			pushToPipe(sourceConsumer, nextStageConsumer);
+		} else{
+			LOG.debug("Skipping push as {} is not greater than push time {}", currentTime, nextPushToPipe);
 		}
 	}
 
@@ -81,12 +82,22 @@ public class PipelineAccumulatorController implements SystemStartedListener{
 		LOG.debug("downstream consumer push completed. Next push time at: "+nextPushToPipe);
 	}
 
-	@Override
-	public void systemStarted() {
-		resetNextPipeTimeStamp();
-	}
-
 	private void resetNextPipeTimeStamp() {
-		nextPushToPipe = systemClock.getCurrentTime() + config.getPushIntervalTimeMs();
+		nextPushToPipe = clock.getCurrentTime() + config.getPushIntervalTimeMs();
+	}
+	
+	public static class PipelineAccumulatorControllerFactory {
+		
+		private final Clock clock;
+		private final PipelineAccumulatorConfig config;
+		
+		public PipelineAccumulatorControllerFactory(Clock clock, PipelineAccumulatorConfig config){
+			this.clock = clock;
+			this.config = config;
+		}
+		
+		public PipelineAccumulatorController create(){
+			return new PipelineAccumulatorController(clock, config);
+		}
 	}
 }

@@ -3,6 +3,7 @@ package com.haines.ml.rce.aggregator;
 import gnu.trove.map.hash.THashMap;
 
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import com.google.common.base.Function;
 import com.google.common.collect.Iterables;
@@ -129,8 +130,8 @@ public class Aggregator implements NaiveBayesCountsProvider{
 	}
 	
 	public static Aggregator newInstance(){
-		return new Aggregator(new THashMap<Classification, Map<Feature, MutableNaiveBayesCounts<NaiveBayesPosteriorProperty>>>(),
-				new THashMap<Classification, MutableNaiveBayesCounts<NaiveBayesPriorProperty>>());
+		return new Aggregator(new ConcurrentHashMap<Classification, Map<Feature, MutableNaiveBayesCounts<NaiveBayesPosteriorProperty>>>(),
+				new ConcurrentHashMap<Classification, MutableNaiveBayesCounts<NaiveBayesPriorProperty>>());
 	}
 
 	@Override

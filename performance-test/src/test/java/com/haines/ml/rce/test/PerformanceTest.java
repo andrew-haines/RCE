@@ -58,7 +58,7 @@ public class PerformanceTest extends RCEApplicationStartupTest{
 		
 		waitingForNextWindow.set(true);
 		
-		Thread.sleep(5000);
+		Thread.sleep(6000);
 		
 		NaiveBayesService classifierService = super.candidate.getNaiveBayesService();
 		

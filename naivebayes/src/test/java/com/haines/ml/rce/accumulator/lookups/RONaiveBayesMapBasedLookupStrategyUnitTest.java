@@ -25,7 +25,7 @@ public class RONaiveBayesMapBasedLookupStrategyUnitTest {
 	private static final TestEvent TEST_EVENT_4 = new TestEvent(Arrays.asList(new TestFeature("feature9"), new TestFeature("feature10")), Arrays.asList(new TestClassification("class3")));
 	private static final TestEvent TEST_EVENT_5 = new TestEvent(Arrays.asList(new TestFeature("feature11"), new TestFeature("feature12"), new TestFeature("feature2")), Arrays.asList(new TestClassification("class2")));
 	
-	private RONaiveBayesMapBasedLookupStrategy candidate;
+	private RONaiveBayesMapBasedLookupStrategy<TestEvent> candidate;
 	
 	@Before
 	public void before(){
@@ -45,7 +45,7 @@ public class RONaiveBayesMapBasedLookupStrategyUnitTest {
 			}
 		});
 		
-		candidate = new RONaiveBayesMapBasedLookupStrategy(localIndexes);
+		candidate = new RONaiveBayesMapBasedLookupStrategy<TestEvent>(localIndexes);
 	}
 	
 	@Test

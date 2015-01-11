@@ -9,18 +9,21 @@ import java.util.Arrays;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.haines.ml.rce.accumulator.FeatureHandlerRepository;
+import com.haines.ml.rce.accumulator.lookups.RONaiveBayesMapBasedLookupStrategy;
 import com.haines.ml.rce.naivebayes.model.NaiveBayesCounts;
-import com.haines.ml.rce.naivebayes.model.NaiveBayesProperty.NaiveBayesPosteriorProperty;
-import com.haines.ml.rce.naivebayes.model.NaiveBayesProperty.NaiveBayesPriorProperty;
+import com.haines.ml.rce.naivebayes.model.NaiveBayesCounts.DiscreteNaiveBayesCounts;
+import com.haines.ml.rce.naivebayes.model.NaiveBayesProperty.DiscreteNaiveBayesPosteriorProperty;
+import com.haines.ml.rce.naivebayes.model.NaiveBayesProperty.DiscreteNaiveBayesPriorProperty;
 import com.haines.ml.rce.test.TestClassification;
 import com.haines.ml.rce.test.TestFeature;
 
 public class CountsProviderNaiveBayesProbabilitiesUnitTest {
 	
-	private static final Iterable<NaiveBayesCounts<NaiveBayesPosteriorProperty>> POSTERIOR_COUNTS = getTestPosteriorCounts(); 
-	private static final Iterable<NaiveBayesCounts<NaiveBayesPosteriorProperty>> POSTERIOR_DIFFERENT_FEATURE_TYPE_COUNTS = getTestDifferentFeatureTypePosteriorCounts(); 
-	private static final Iterable<NaiveBayesCounts<NaiveBayesPosteriorProperty>> POSTERIOR_DUP_COUNTS = getTestPosteriorDupCounts(); 
-	private static final Iterable<NaiveBayesCounts<NaiveBayesPriorProperty>> PRIOR_COUNTS = getTestPriorCounts(); 
+	private static final Iterable<? extends NaiveBayesCounts<?>> POSTERIOR_COUNTS = getTestPosteriorCounts(); 
+	private static final Iterable<? extends NaiveBayesCounts<?>> POSTERIOR_DIFFERENT_FEATURE_TYPE_COUNTS = getTestDifferentFeatureTypePosteriorCounts(); 
+	private static final Iterable<? extends NaiveBayesCounts<?>> POSTERIOR_DUP_COUNTS = getTestPosteriorDupCounts(); 
+	private static final Iterable<? extends NaiveBayesCounts<?>> PRIOR_COUNTS = getTestPriorCounts(); 
 
 	private CountsProviderNaiveBayesProbabilities candidate;
 	
@@ -32,19 +35,21 @@ public class CountsProviderNaiveBayesProbabilitiesUnitTest {
 			public Counts getCounts() {
 				return new Counts(){
 
+					@SuppressWarnings("unchecked")
 					@Override
-					public Iterable<NaiveBayesCounts<NaiveBayesPriorProperty>> getPriors() {
-						return PRIOR_COUNTS;
+					public Iterable<NaiveBayesCounts<?>> getPriors() {
+						return (Iterable<NaiveBayesCounts<?>>)PRIOR_COUNTS;
 					}
 
+					@SuppressWarnings("unchecked")
 					@Override
-					public Iterable<NaiveBayesCounts<NaiveBayesPosteriorProperty>> getPosteriors() {
-						return POSTERIOR_COUNTS;
+					public Iterable<NaiveBayesCounts<?>> getPosteriors() {
+						return (Iterable<NaiveBayesCounts<?>>)POSTERIOR_COUNTS;
 					}
 					
 				};
 			}
-		});
+		}, null);
 	}
 
 	@Test
@@ -75,18 +80,18 @@ public class CountsProviderNaiveBayesProbabilitiesUnitTest {
 				return new Counts(){
 
 					@Override
-					public Iterable<NaiveBayesCounts<NaiveBayesPriorProperty>> getPriors() {
-						return PRIOR_COUNTS;
+					public Iterable<NaiveBayesCounts<?>> getPriors() {
+						return (Iterable<NaiveBayesCounts<?>>)PRIOR_COUNTS;
 					}
 
 					@Override
-					public Iterable<NaiveBayesCounts<NaiveBayesPosteriorProperty>> getPosteriors() {
-						return POSTERIOR_DUP_COUNTS;
+					public Iterable<NaiveBayesCounts<?>> getPosteriors() {
+						return (Iterable<NaiveBayesCounts<?>>)POSTERIOR_DUP_COUNTS;
 					}
 					
 				};
 			}
-		});
+		}, null);
 	}
 	
 	@Test
@@ -97,19 +102,21 @@ public class CountsProviderNaiveBayesProbabilitiesUnitTest {
 			public Counts getCounts() {
 				return new Counts(){
 
+					@SuppressWarnings("unchecked")
 					@Override
-					public Iterable<NaiveBayesCounts<NaiveBayesPriorProperty>> getPriors() {
-						return PRIOR_COUNTS;
+					public Iterable<NaiveBayesCounts<?>> getPriors() {
+						return (Iterable<NaiveBayesCounts<?>>)PRIOR_COUNTS;
 					}
 
+					@SuppressWarnings("unchecked")
 					@Override
-					public Iterable<NaiveBayesCounts<NaiveBayesPosteriorProperty>> getPosteriors() {
-						return POSTERIOR_DIFFERENT_FEATURE_TYPE_COUNTS;
+					public Iterable<NaiveBayesCounts<?>> getPosteriors() {
+						return (Iterable<NaiveBayesCounts<?>>)POSTERIOR_DIFFERENT_FEATURE_TYPE_COUNTS;
 					}
 					
 				};
 			}
-		});
+		}, null);
 		
 		assertThat(candidate.getPosteriorProbability(new TestFeature("feature1", 1), new TestClassification("class1")), is(equalTo(0.30275229357798167)));
 		assertThat(candidate.getPosteriorProbability(new TestFeature("feature2", 1), new TestClassification("class1")), is(equalTo(0.6972477064220184)));
@@ -129,38 +136,38 @@ public class CountsProviderNaiveBayesProbabilitiesUnitTest {
 		assertThat(candidate.getPriorProbability(new TestClassification("class5")), is(equalTo(0.06015037593984962)));
 	}
 
-	private static Iterable<NaiveBayesCounts<NaiveBayesPriorProperty>> getTestPriorCounts() {
-		return Arrays.asList(new NaiveBayesCounts<NaiveBayesPriorProperty>(new NaiveBayesPriorProperty(new TestClassification("class1")), 13),
-				new NaiveBayesCounts<NaiveBayesPriorProperty>(new NaiveBayesPriorProperty(new TestClassification("class2")), 45),
-				new NaiveBayesCounts<NaiveBayesPriorProperty>(new NaiveBayesPriorProperty(new TestClassification("class3")), 2),
-				new NaiveBayesCounts<NaiveBayesPriorProperty>(new NaiveBayesPriorProperty(new TestClassification("class4")), 65),
-				new NaiveBayesCounts<NaiveBayesPriorProperty>(new NaiveBayesPriorProperty(new TestClassification("class5")), 8));
+	private static Iterable<? extends NaiveBayesCounts<?>> getTestPriorCounts() {
+		return Arrays.asList(new DiscreteNaiveBayesCounts(new DiscreteNaiveBayesPriorProperty(new TestClassification("class1")), 13),
+				new DiscreteNaiveBayesCounts(new DiscreteNaiveBayesPriorProperty(new TestClassification("class2")), 45),
+				new DiscreteNaiveBayesCounts(new DiscreteNaiveBayesPriorProperty(new TestClassification("class3")), 2),
+				new DiscreteNaiveBayesCounts(new DiscreteNaiveBayesPriorProperty(new TestClassification("class4")), 65),
+				new DiscreteNaiveBayesCounts(new DiscreteNaiveBayesPriorProperty(new TestClassification("class5")), 8));
 	}
 	
-	private static Iterable<NaiveBayesCounts<NaiveBayesPosteriorProperty>> getTestDifferentFeatureTypePosteriorCounts() {
-		return Arrays.asList(new NaiveBayesCounts<NaiveBayesPosteriorProperty>(new NaiveBayesPosteriorProperty(new TestFeature("feature1", 1), new TestClassification("class1")), 33),
-				new NaiveBayesCounts<NaiveBayesPosteriorProperty>(new NaiveBayesPosteriorProperty(new TestFeature("feature2", 1), new TestClassification("class1")), 76),
-				new NaiveBayesCounts<NaiveBayesPosteriorProperty>(new NaiveBayesPosteriorProperty(new TestFeature("feature1", 1), new TestClassification("class2")), 22),
-				new NaiveBayesCounts<NaiveBayesPosteriorProperty>(new NaiveBayesPosteriorProperty(new TestFeature("feature2", 1), new TestClassification("class2")), 21),
-				new NaiveBayesCounts<NaiveBayesPosteriorProperty>(new NaiveBayesPosteriorProperty(new TestFeature("feature1", 2), new TestClassification("class1")), 85),
-				new NaiveBayesCounts<NaiveBayesPosteriorProperty>(new NaiveBayesPosteriorProperty(new TestFeature("feature2", 2), new TestClassification("class1")), 45)
+	private static Iterable<? extends NaiveBayesCounts<?>> getTestDifferentFeatureTypePosteriorCounts() {
+		return Arrays.asList(new DiscreteNaiveBayesCounts(new DiscreteNaiveBayesPosteriorProperty(new TestFeature("feature1", 1), new TestClassification("class1")), 33),
+				new DiscreteNaiveBayesCounts(new DiscreteNaiveBayesPosteriorProperty(new TestFeature("feature2", 1), new TestClassification("class1")), 76),
+				new DiscreteNaiveBayesCounts(new DiscreteNaiveBayesPosteriorProperty(new TestFeature("feature1", 1), new TestClassification("class2")), 22),
+				new DiscreteNaiveBayesCounts(new DiscreteNaiveBayesPosteriorProperty(new TestFeature("feature2", 1), new TestClassification("class2")), 21),
+				new DiscreteNaiveBayesCounts(new DiscreteNaiveBayesPosteriorProperty(new TestFeature("feature1", 2), new TestClassification("class1")), 85),
+				new DiscreteNaiveBayesCounts(new DiscreteNaiveBayesPosteriorProperty(new TestFeature("feature2", 2), new TestClassification("class1")), 45)
 				);
 	}
 
-	private static Iterable<NaiveBayesCounts<NaiveBayesPosteriorProperty>> getTestPosteriorDupCounts() {
-		return Arrays.asList(new NaiveBayesCounts<NaiveBayesPosteriorProperty>(new NaiveBayesPosteriorProperty(new TestFeature("feature1"), new TestClassification("class1")), 33),
-				new NaiveBayesCounts<NaiveBayesPosteriorProperty>(new NaiveBayesPosteriorProperty(new TestFeature("feature2"), new TestClassification("class1")), 76),
-				new NaiveBayesCounts<NaiveBayesPosteriorProperty>(new NaiveBayesPosteriorProperty(new TestFeature("feature1"), new TestClassification("class2")), 22),
-				new NaiveBayesCounts<NaiveBayesPosteriorProperty>(new NaiveBayesPosteriorProperty(new TestFeature("feature2"), new TestClassification("class2")), 21),
-				new NaiveBayesCounts<NaiveBayesPosteriorProperty>(new NaiveBayesPosteriorProperty(new TestFeature("feature1"), new TestClassification("class1")), 85)
+	private static Iterable<? extends NaiveBayesCounts<?>> getTestPosteriorDupCounts() {
+		return Arrays.asList(new DiscreteNaiveBayesCounts(new DiscreteNaiveBayesPosteriorProperty(new TestFeature("feature1"), new TestClassification("class1")), 33),
+				new DiscreteNaiveBayesCounts(new DiscreteNaiveBayesPosteriorProperty(new TestFeature("feature2"), new TestClassification("class1")), 76),
+				new DiscreteNaiveBayesCounts(new DiscreteNaiveBayesPosteriorProperty(new TestFeature("feature1"), new TestClassification("class2")), 22),
+				new DiscreteNaiveBayesCounts(new DiscreteNaiveBayesPosteriorProperty(new TestFeature("feature2"), new TestClassification("class2")), 21),
+				new DiscreteNaiveBayesCounts(new DiscreteNaiveBayesPosteriorProperty(new TestFeature("feature1"), new TestClassification("class1")), 85)
 				);
 	}
 	
-	private static Iterable<NaiveBayesCounts<NaiveBayesPosteriorProperty>> getTestPosteriorCounts() {
-		return Arrays.asList(new NaiveBayesCounts<NaiveBayesPosteriorProperty>(new NaiveBayesPosteriorProperty(new TestFeature("feature1"), new TestClassification("class1")), 33),
-				new NaiveBayesCounts<NaiveBayesPosteriorProperty>(new NaiveBayesPosteriorProperty(new TestFeature("feature2"), new TestClassification("class1")), 76),
-				new NaiveBayesCounts<NaiveBayesPosteriorProperty>(new NaiveBayesPosteriorProperty(new TestFeature("feature1"), new TestClassification("class2")), 22),
-				new NaiveBayesCounts<NaiveBayesPosteriorProperty>(new NaiveBayesPosteriorProperty(new TestFeature("feature2"), new TestClassification("class2")), 21)
+	private static Iterable<? extends NaiveBayesCounts<?>> getTestPosteriorCounts() {
+		return Arrays.asList(new DiscreteNaiveBayesCounts(new DiscreteNaiveBayesPosteriorProperty(new TestFeature("feature1"), new TestClassification("class1")), 33),
+				new DiscreteNaiveBayesCounts(new DiscreteNaiveBayesPosteriorProperty(new TestFeature("feature2"), new TestClassification("class1")), 76),
+				new DiscreteNaiveBayesCounts(new DiscreteNaiveBayesPosteriorProperty(new TestFeature("feature1"), new TestClassification("class2")), 22),
+				new DiscreteNaiveBayesCounts(new DiscreteNaiveBayesPosteriorProperty(new TestFeature("feature2"), new TestClassification("class2")), 21)
 				);
 	}
 }

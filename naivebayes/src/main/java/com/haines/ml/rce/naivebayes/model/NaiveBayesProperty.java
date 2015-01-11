@@ -2,10 +2,12 @@ package com.haines.ml.rce.naivebayes.model;
 
 import com.haines.ml.rce.model.Classification;
 import com.haines.ml.rce.model.Feature;
+import com.haines.ml.rce.naivebayes.NaiveBayesIndexes.NaiveBayesPosteriorDistributionProperty;
 
 public interface NaiveBayesProperty {
 
 	PropertyType<?> getType();
+	
 	
 	public static class PropertyType<T extends NaiveBayesProperty>{
 		
@@ -19,27 +21,73 @@ public interface NaiveBayesProperty {
 			return clazz.cast(property);
 		}
 		
-		@SuppressWarnings("unchecked")
-		public NaiveBayesCounts<T> cast(NaiveBayesCounts<?> counts){
-			return (NaiveBayesCounts<T>) counts;
-		}
-		
 		@Override
 		public String toString(){
 			return "typeClass: "+clazz;
 		}
 		
-		public static final PropertyType<NaiveBayesPosteriorProperty> POSTERIOR_TYPE = new PropertyType<NaiveBayesPosteriorProperty>(NaiveBayesPosteriorProperty.class){};
+		public static final PropertyType<DiscreteNaiveBayesPosteriorProperty> DISCRETE_POSTERIOR_TYPE = new PropertyType<DiscreteNaiveBayesPosteriorProperty>(DiscreteNaiveBayesPosteriorProperty.class){};
+		public static final PropertyType<NaiveBayesPosteriorDistributionProperty> DISTRIBUTION_POSTERIOR_TYPE = new PropertyType<NaiveBayesPosteriorDistributionProperty>(NaiveBayesPosteriorDistributionProperty.class){};
+
 		
-		public static final PropertyType<NaiveBayesPriorProperty> PRIOR_TYPE = new PropertyType<NaiveBayesPriorProperty>(NaiveBayesPriorProperty.class){};
+		public static final PropertyType<DiscreteNaiveBayesPriorProperty> DISCRETE_PRIOR_TYPE = new PropertyType<DiscreteNaiveBayesPriorProperty>(DiscreteNaiveBayesPriorProperty.class){};
+		public static final PropertyType<NaiveBayesPriorDistributionProperty> DISTRIBUTION_PRIOR_TYPE = new PropertyType<NaiveBayesPriorDistributionProperty>(NaiveBayesPriorDistributionProperty.class){};
 	}
 	
-	public static class NaiveBayesPosteriorProperty implements NaiveBayesProperty{
+	public static class NaiveBayesPriorDistributionProperty implements NaiveBayesPriorProperty {
+
+		private final int classificationType;
+		
+		public NaiveBayesPriorDistributionProperty(int classificationType){
+			this.classificationType = classificationType;
+		}
+		
+		@Override
+		public PropertyType<?> getType() {
+			return PropertyType.DISTRIBUTION_PRIOR_TYPE;
+		}
+
+		@Override
+		public final int getClassificationType() {
+			return classificationType;
+		}
+		
+		@Override
+		public int hashCode(){
+			return classificationType;
+		}
+		
+		@Override
+		public boolean equals(Object obj){
+			if (obj instanceof NaiveBayesPriorDistributionProperty){
+				
+				NaiveBayesPriorDistributionProperty other = (NaiveBayesPriorDistributionProperty)obj;
+				
+				return this.getClassificationType() == other.getClassificationType();
+			}
+			
+			return false;
+		}
+	}
+	
+	public static interface NaiveBayesPosteriorProperty extends NaiveBayesProperty{
+		
+		Classification getClassification();
+		
+		int getFeatureType();
+	}
+	
+	public static interface NaiveBayesPriorProperty extends NaiveBayesProperty{
+		
+		int getClassificationType();
+	}
+	
+	public static class DiscreteNaiveBayesPosteriorProperty implements NaiveBayesPosteriorProperty{
 		
 		private final Feature feature;
 		private final Classification classification;
 		
-		public NaiveBayesPosteriorProperty(Feature feature, Classification classification){
+		public DiscreteNaiveBayesPosteriorProperty(Feature feature, Classification classification){
 			this.feature = feature;
 			this.classification = classification;
 		}
@@ -51,18 +99,21 @@ public interface NaiveBayesProperty {
 		public Classification getClassification(){
 			return classification;
 		}
+		
+		@Override
+		public int getFeatureType() {
+			return feature.getType();
+		}
 
 		@Override
-		public PropertyType<NaiveBayesPosteriorProperty> getType() {
-			return PropertyType.POSTERIOR_TYPE;
+		public PropertyType<DiscreteNaiveBayesPosteriorProperty> getType() {
+			return PropertyType.DISCRETE_POSTERIOR_TYPE;
 		}
 
 		@Override
 		public int hashCode() {
 			final int prime = 31;
-			int result = 1;
-			result = prime
-					* result
+			int result = prime 
 					+ ((classification == null) ? 0 : classification.hashCode());
 			result = prime * result
 					+ ((feature == null) ? 0 : feature.hashCode());
@@ -77,7 +128,7 @@ public interface NaiveBayesProperty {
 				return false;
 			if (getClass() != obj.getClass())
 				return false;
-			NaiveBayesPosteriorProperty other = (NaiveBayesPosteriorProperty) obj;
+			DiscreteNaiveBayesPosteriorProperty other = (DiscreteNaiveBayesPosteriorProperty) obj;
 			if (classification == null) {
 				if (other.classification != null)
 					return false;
@@ -97,16 +148,12 @@ public interface NaiveBayesProperty {
 		}
 	}
 	
-	public static class NaiveBayesPriorProperty implements NaiveBayesProperty{
+	public static class DiscreteNaiveBayesPriorProperty implements NaiveBayesPriorProperty{
 		
 		@Override
 		public int hashCode() {
 			final int prime = 31;
-			int result = 1;
-			result = prime
-					* result
-					+ ((classification == null) ? 0 : classification.hashCode());
-			return result;
+			return prime + ((classification == null) ? 0 : classification.hashCode());
 		}
 
 		@Override
@@ -117,7 +164,7 @@ public interface NaiveBayesProperty {
 				return false;
 			if (getClass() != obj.getClass())
 				return false;
-			NaiveBayesPriorProperty other = (NaiveBayesPriorProperty) obj;
+			DiscreteNaiveBayesPriorProperty other = (DiscreteNaiveBayesPriorProperty) obj;
 			if (classification == null) {
 				if (other.classification != null)
 					return false;
@@ -128,7 +175,7 @@ public interface NaiveBayesProperty {
 
 		private final Classification classification;
 		
-		public NaiveBayesPriorProperty(Classification classification){
+		public DiscreteNaiveBayesPriorProperty(Classification classification){
 			this.classification = classification;
 		}
 
@@ -137,13 +184,18 @@ public interface NaiveBayesProperty {
 		}
 
 		@Override
-		public PropertyType<NaiveBayesPriorProperty> getType() {
-			return PropertyType.PRIOR_TYPE;
+		public PropertyType<DiscreteNaiveBayesPriorProperty> getType() {
+			return PropertyType.DISCRETE_PRIOR_TYPE;
 		}
 		
 		@Override
 		public String toString(){
 			return classification.toString();
+		}
+
+		@Override
+		public int getClassificationType() {
+			return classification.getType();
 		}
 	}
 }

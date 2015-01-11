@@ -4,10 +4,17 @@ import com.haines.ml.rce.model.Classification;
 
 public class TestClassification implements Classification {
 	
+	private static final int DEFAULT_CLASSIFICATION_TYPE = 0;
 	private final String classificationStr;
+	private final int classificationType;
+	
+	public TestClassification(String classificationStr, int classificationType){
+		this.classificationStr = classificationStr;
+		this.classificationType = classificationType;
+	}
 	
 	public TestClassification(String classificationStr){
-		this.classificationStr = classificationStr;
+		this(classificationStr, DEFAULT_CLASSIFICATION_TYPE);
 	}
 	
 	@Override
@@ -28,5 +35,10 @@ public class TestClassification implements Classification {
 	@Override
 	public String getValue() {
 		return classificationStr;
+	}
+
+	@Override
+	public int getType() {
+		return classificationType;
 	}
 }

@@ -7,6 +7,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.Iterables;
+import com.haines.ml.rce.accumulator.FeatureHandlerRepository;
 import com.haines.ml.rce.aggregator.Aggregator;
 import com.haines.ml.rce.model.Classification;
 import com.haines.ml.rce.model.Feature;
@@ -14,13 +15,12 @@ import com.haines.ml.rce.model.system.Clock;
 import com.haines.ml.rce.naivebayes.CountsProviderNaiveBayesProbabilities;
 import com.haines.ml.rce.naivebayes.NaiveBayesCountsProvider;
 import com.haines.ml.rce.naivebayes.NaiveBayesCountsProvider.Counts;
+import com.haines.ml.rce.naivebayes.NaiveBayesIndexes.NaiveBayesPosteriorDistributionProperty;
 import com.haines.ml.rce.naivebayes.NaiveBayesProbabilities;
 import com.haines.ml.rce.naivebayes.NaiveBayesProbabilitiesProvider;
 import com.haines.ml.rce.naivebayes.model.NaiveBayesCounts;
-import com.haines.ml.rce.naivebayes.model.NaiveBayesCounts.MutableNaiveBayesCounts;
-import com.haines.ml.rce.naivebayes.model.NaiveBayesProperty;
-import com.haines.ml.rce.naivebayes.model.NaiveBayesProperty.NaiveBayesPosteriorProperty;
-import com.haines.ml.rce.naivebayes.model.NaiveBayesProperty.NaiveBayesPriorProperty;
+import com.haines.ml.rce.naivebayes.model.NaiveBayesCounts.MutableDiscreteNaiveBayesCounts;
+import com.haines.ml.rce.naivebayes.model.NaiveBayesCounts.MutableNaiveBayesDistributionCounts;
 
 public class WindowManager implements NaiveBayesProbabilitiesProvider{
 
@@ -36,14 +36,17 @@ public class WindowManager implements NaiveBayesProbabilitiesProvider{
 	private final Clock clock;
 	private final Iterable<? extends WindowUpdatedListener> staticWindowListeners;
 	
-	public WindowManager(WindowConfig config, Clock clock, Iterable<? extends WindowUpdatedListener> staticWindowListeners){
+	public WindowManager(WindowConfig config, Clock clock, Iterable<? extends WindowUpdatedListener> staticWindowListeners, FeatureHandlerRepository<?> featureHandlers){
 		this.clock = clock;
 		this.config = config;
 		this.cyclicWindowBuffer = new Window[config.getNumWindows()];
-		this.windowProbabilities = new WindowProbabilities(new SubtractableAggregator(new ConcurrentHashMap<Classification, Map<Feature, MutableNaiveBayesCounts<NaiveBayesPosteriorProperty>>>(), 
-																				new ConcurrentHashMap<Classification, MutableNaiveBayesCounts<NaiveBayesPriorProperty>>()));
+		this.windowProbabilities = new WindowProbabilities(new SubtractableAggregator(new ConcurrentHashMap<Classification, Map<Feature, MutableDiscreteNaiveBayesCounts>>(), 
+																				new ConcurrentHashMap<Classification, MutableDiscreteNaiveBayesCounts>(),
+																				new ConcurrentHashMap<NaiveBayesPosteriorDistributionProperty, MutableNaiveBayesDistributionCounts>(),
+																				new ConcurrentHashMap<Integer, MutableNaiveBayesDistributionCounts>()), featureHandlers);
 		
 		this.staticWindowListeners = staticWindowListeners;
+		
 	}
 	
 	@Override
@@ -192,9 +195,11 @@ public class WindowManager implements NaiveBayesProbabilitiesProvider{
 		
 		private final SubtractableAggregator aggregator;
 		private volatile NaiveBayesProbabilities probabilities = NaiveBayesProbabilities.NOMINAL_PROBABILITIES;
+		private final FeatureHandlerRepository<?> featureHandlers;
 		
-		private WindowProbabilities(SubtractableAggregator aggregator){
+		private WindowProbabilities(SubtractableAggregator aggregator, FeatureHandlerRepository<?> featureHandlers){
 			this.aggregator = aggregator;
+			this.featureHandlers = featureHandlers;
 		}
 
 		private NaiveBayesProbabilities getProbabilities(){
@@ -214,22 +219,21 @@ public class WindowManager implements NaiveBayesProbabilitiesProvider{
 				aggregator.subtract(oldWindowCounts.getPriors());
 			}
 			
-			probabilities = new CountsProviderNaiveBayesProbabilities(aggregator);
+			probabilities = new CountsProviderNaiveBayesProbabilities(aggregator, featureHandlers);
 		}
 	}
 	
 	private static class SubtractableAggregator extends Aggregator{
 
-		public SubtractableAggregator(Map<Classification, Map<Feature, MutableNaiveBayesCounts<NaiveBayesPosteriorProperty>>> posteriorCounts,
-				Map<Classification, MutableNaiveBayesCounts<NaiveBayesPriorProperty>> priorCounts) {
-			super(posteriorCounts, priorCounts);
+		public SubtractableAggregator(Map<Classification, Map<Feature, MutableDiscreteNaiveBayesCounts>> discretePosteriorCounts, Map<Classification, MutableDiscreteNaiveBayesCounts> discretePriorCounts, Map<NaiveBayesPosteriorDistributionProperty, MutableNaiveBayesDistributionCounts> distributionPosteriorCounts, Map<Integer, MutableNaiveBayesDistributionCounts> distributionPriorCounts) {
+			super(discretePosteriorCounts, discretePriorCounts, distributionPosteriorCounts, distributionPriorCounts);
 		}
 
-		private void subtract(Iterable<? extends NaiveBayesCounts<? extends NaiveBayesProperty>> counts){
+		private void subtract(Iterable<? extends NaiveBayesCounts<?>> counts){
 			aggregate(counts, true);
 		}
 		
-		private void add(Iterable<? extends NaiveBayesCounts<? extends NaiveBayesProperty>> counts){
+		private void add(Iterable<? extends NaiveBayesCounts<?>> counts){
 			aggregate(counts, false);
 		}
 	}

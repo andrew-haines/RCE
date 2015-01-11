@@ -5,16 +5,23 @@ public interface Classification {
 	public static final Classification UNKNOWN = new Classification(){
 
 		@Override
-		public String getValue() {
+		public Object getValue() {
 			return "Unknown";
 		}
 		
 		@Override
 		public String toString(){
-			return getValue();
+			return getValue().toString();
+		}
+
+		@Override
+		public int getType() {
+			return -1;
 		}
 		
 	};
 	
-	String getValue();
+	Object getValue();
+	
+	int getType();
 }

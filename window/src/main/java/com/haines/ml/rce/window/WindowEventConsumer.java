@@ -7,6 +7,10 @@ import java.util.Map;
 import javax.inject.Inject;
 
 import com.haines.ml.rce.accumulator.AccumulatorProvider;
+import com.haines.ml.rce.accumulator.DistributionProvider;
+import com.haines.ml.rce.accumulator.FeatureHandlerRepository;
+import com.haines.ml.rce.accumulator.handlers.ClassificationHandler;
+import com.haines.ml.rce.accumulator.handlers.FeatureHandler;
 import com.haines.ml.rce.accumulator.lookups.RONaiveBayesMapBasedLookupStrategy;
 import com.haines.ml.rce.accumulator.model.AccumulatedEvent;
 import com.haines.ml.rce.model.Classification;
@@ -19,18 +23,22 @@ import com.haines.ml.rce.naivebayes.NaiveBayesGlobalIndexes;
 import com.haines.ml.rce.naivebayes.NaiveBayesIndexes;
 import com.haines.ml.rce.naivebayes.NaiveBayesProbabilities;
 import com.haines.ml.rce.naivebayes.NaiveBayesProbabilitiesProvider;
-import com.haines.ml.rce.naivebayes.NaiveBayesProbability;
-import com.haines.ml.rce.naivebayes.model.NaiveBayesProperty.NaiveBayesPosteriorProperty;
-import com.haines.ml.rce.naivebayes.model.NaiveBayesProperty.NaiveBayesPriorProperty;
+import com.haines.ml.rce.naivebayes.NaiveBayesIndexes.NaiveBayesPosteriorDistributionProperty;
+import com.haines.ml.rce.naivebayes.model.NaiveBayesProperty;
+import com.haines.ml.rce.naivebayes.model.NaiveBayesProperty.DiscreteNaiveBayesPosteriorProperty;
+import com.haines.ml.rce.naivebayes.model.NaiveBayesProperty.DiscreteNaiveBayesPriorProperty;
+import com.haines.ml.rce.naivebayes.model.NaiveBayesProperty.NaiveBayesPriorDistributionProperty;
 import com.haines.ml.rce.naivebayes.model.NaiveBayesProperty.PropertyType;
 
 public class WindowEventConsumer<E extends ClassifiedEvent> implements EventConsumer<AccumulatedEvent<RONaiveBayesMapBasedLookupStrategy<E>>>{
 
 	private final WindowManager aggregator;
+	private final FeatureHandlerRepository<E> featureHandlers;
 	
 	@Inject
-	public WindowEventConsumer(WindowManager aggregator){
+	public WindowEventConsumer(WindowManager aggregator, FeatureHandlerRepository<E> featureHandlers){
 		this.aggregator = aggregator;
+		this.featureHandlers = featureHandlers;
 	}
 	
 	@Override
@@ -40,7 +48,7 @@ public class WindowEventConsumer<E extends ClassifiedEvent> implements EventCons
 		
 		final RONaiveBayesMapBasedLookupStrategy<E> strategy = event.getLookupStrategy();
 		
-		NaiveBayesCountsProvider countsProvider = new NaiveBayesAccumulatorBackedCountsProvider(accumulatorProvider, strategy.getIndexes());
+		NaiveBayesCountsProvider countsProvider = new NaiveBayesAccumulatorBackedCountsProvider(accumulatorProvider, strategy.getIndexes(), featureHandlers);
 		
 		// need to ensure that this call uses the single writer paradigm
 		aggregator.addNewProvider(countsProvider, new WindowUpdatedListener() {
@@ -57,15 +65,17 @@ public class WindowEventConsumer<E extends ClassifiedEvent> implements EventCons
 				 * is simply used for sorting the indexes by the frequency of each feature value. As long as .equals and .hasCode 
 				 * are implemented properly with the type, this will work
 				 */
-				Map<Classification, Map<Feature, Integer>> posteriors = new THashMap<Classification, Map<Feature, Integer>>(); 
-				Map<Classification, Integer> priors = new THashMap<Classification, Integer>();
+				Map<Classification, Map<Feature, Integer>> discretePosteriors = new THashMap<Classification, Map<Feature, Integer>>(); 
+				Map<Classification, Integer> discretePriors = new THashMap<Classification, Integer>();
+				Map<NaiveBayesPosteriorDistributionProperty, int[]> posteriorTypeIndexes = new THashMap<NaiveBayesPosteriorDistributionProperty, int[]>();
+				Map<Integer, int[]> priorTypeIndexes = new THashMap<Integer, int[]>();
 				
 				int indexLocation = 0;
-				for (NaiveBayesProbability probability: probabilities.getOrderedProbabilities()){
-					if (probability.getProperty().getType() == PropertyType.POSTERIOR_TYPE){
-						NaiveBayesPosteriorProperty posterior = PropertyType.POSTERIOR_TYPE.cast(probability.getProperty());
+				for (NaiveBayesProperty property: probabilities.getOrderedProperties()){
+					if (property.getType() == PropertyType.DISCRETE_POSTERIOR_TYPE){
+						DiscreteNaiveBayesPosteriorProperty posterior = PropertyType.DISCRETE_POSTERIOR_TYPE.cast(property);
 						
-						Map<Feature, Integer> featureIndexMap = posteriors.get(posterior.getClassification());
+						Map<Feature, Integer> featureIndexMap = discretePosteriors.get(posterior.getClassification());
 						
 						if (featureIndexMap == null){
 							featureIndexMap = new THashMap<Feature, Integer>();
@@ -73,23 +83,53 @@ public class WindowEventConsumer<E extends ClassifiedEvent> implements EventCons
 						
 						featureIndexMap.put(posterior.getFeature(), indexLocation++);
 						
-						posteriors.put(posterior.getClassification(), featureIndexMap);
+						discretePosteriors.put(posterior.getClassification(), featureIndexMap);
 						
-					} else if (probability.getProperty().getType() == PropertyType.PRIOR_TYPE){
-						NaiveBayesPriorProperty prior = PropertyType.PRIOR_TYPE.cast(probability.getProperty());
+					} else if (property.getType() == PropertyType.DISCRETE_PRIOR_TYPE){
+						DiscreteNaiveBayesPriorProperty prior = PropertyType.DISCRETE_PRIOR_TYPE.cast(property);
 						
-						priors.put(prior.getClassification(), indexLocation++);
-					} else{
-						throw new IllegalStateException("unknown naive bayes property type: "+probability.getProperty().getType());
+						discretePriors.put(prior.getClassification(), indexLocation++);
+					} else if (property.getType() == PropertyType.DISTRIBUTION_POSTERIOR_TYPE){
+						NaiveBayesPosteriorDistributionProperty posterior = PropertyType.DISTRIBUTION_POSTERIOR_TYPE.cast(property);
+						
+						FeatureHandler<E> handler = featureHandlers.getFeatureHandler(posterior.getFeatureType());
+						
+						assert(!posteriorTypeIndexes.containsKey(posterior));
+						
+						int[] slots = new int[handler.getNumSlotsRequired()];
+						
+						for (int i = 0;i < slots.length; i++){
+							slots[i] = indexLocation++;
+						}
+						
+						posteriorTypeIndexes.put(posterior, slots);
+						
+					} else if (property.getType() == PropertyType.DISTRIBUTION_PRIOR_TYPE){
+						
+						NaiveBayesPriorDistributionProperty prior = PropertyType.DISTRIBUTION_PRIOR_TYPE.cast(property);
+						
+						ClassificationHandler<E> handler = featureHandlers.getClassificationHandler(prior.getClassificationType());
+						
+						assert(!priorTypeIndexes.containsKey(prior.getClassificationType()));
+						
+						int[] slots = new int[handler.getNumSlotsRequired()];
+						
+						for (int i = 0;i < slots.length; i++){
+							slots[i] = indexLocation++;
+						}
+						
+						priorTypeIndexes.put(prior.getClassificationType(), slots);
+						
+					} else {
+						throw new IllegalStateException("unknown naive bayes property type: "+property.getType());
 					}
 				}
 				
-				NaiveBayesIndexes newGlobalIndexes = new NaiveBayesGlobalIndexes(posteriors, priors);
+				NaiveBayesIndexes newGlobalIndexes = new NaiveBayesGlobalIndexes(discretePosteriors, discretePriors, posteriorTypeIndexes, priorTypeIndexes);
 				
 				strategy.getIndexes().getGlobalIndexes().setIndexes(newGlobalIndexes);
 			}
 		});
-		
 		
 	}
 

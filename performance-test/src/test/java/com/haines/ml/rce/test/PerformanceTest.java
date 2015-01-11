@@ -64,11 +64,11 @@ public class PerformanceTest extends RCEApplicationStartupTest{
 		
 		Iterable<Event> testingEvents = loadTestEvents();
 		
-		int tp = 0;
-		int fp = 0;
-		int tn = 0;
-		int fn = 0;
-		int total = 0;
+		double tp = 0;
+		double fp = 0;
+		double tn = 0;
+		double fn = 0;
+		double total = 0;
 		
 		for (Event event: testingEvents){
 			total++;
@@ -91,6 +91,8 @@ public class PerformanceTest extends RCEApplicationStartupTest{
 		}
 		
 		LOG.info("classifier results: tp="+tp+" tn="+tn+" fp="+fp+" fn="+fn+" total="+total);
+		LOG.info("classifier accuracy: "+((tp+tn) / total));
+		LOG.info("classifier fmeasure: "+(2*tp / (2*tp + fp + fn)));
 	}
 
 	private Iterable<Event> loadTrainingEvents() throws IOException {

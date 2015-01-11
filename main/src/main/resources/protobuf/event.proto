@@ -12,6 +12,7 @@ message Event {
 	
 	message Classification {
 		required string value = 1;
+		optional int32 type = 2 [default = 1];
 	}
 
 	repeated Feature features = 1;

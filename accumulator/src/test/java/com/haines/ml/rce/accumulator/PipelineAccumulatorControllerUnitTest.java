@@ -2,7 +2,9 @@ package com.haines.ml.rce.accumulator;
 
 import org.junit.Before;
 
+import com.haines.ml.rce.model.Classification;
 import com.haines.ml.rce.model.Event;
+import com.haines.ml.rce.model.Feature;
 import com.haines.ml.rce.model.system.Clock.StaticClock;
 
 public class PipelineAccumulatorControllerUnitTest {
@@ -44,8 +46,13 @@ public class PipelineAccumulatorControllerUnitTest {
 	private static class TestAccumulatorLookupStrategy implements AccumulatorLookupStrategy<TestEvent>{
 
 		@Override
-		public int[] getSlots(TestEvent event) {
+		public int[] getSlots(Feature feature, TestEvent event) {
 			return event.getSlots();
+		}
+		
+		@Override
+		public int getSlot(Classification classification, TestEvent event) {
+			return -1;
 		}
 
 		@Override
@@ -61,6 +68,21 @@ public class PipelineAccumulatorControllerUnitTest {
 		@Override
 		public AccumulatorLookupStrategy<TestEvent> copy() {
 			return null;
+		}
+
+		@Override
+		public int[] getPosteriorSlots(Feature feature,Classification classification, int numSlots) {
+			return null;
+		}
+
+		@Override
+		public int[] getClassificationSlots(Classification classification,int numSlots) {
+			return null;
+		}
+
+		@Override
+		public int getClassificationSlot(Classification classification) {
+			return 0;
 		}
 	}
 }

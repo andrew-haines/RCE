@@ -4,9 +4,20 @@ import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
 import com.haines.ml.rce.accumulator.AccumulatorProvider;
+import com.haines.ml.rce.accumulator.FeatureHandlerRepository;
+import com.haines.ml.rce.accumulator.handlers.ClassificationHandler;
+import com.haines.ml.rce.accumulator.handlers.FeatureHandler;
+import com.haines.ml.rce.model.distribution.DistributionParameters;
+import com.haines.ml.rce.naivebayes.NaiveBayesIndexes.NaiveBayesPosteriorDistributionProperty;
 import com.haines.ml.rce.naivebayes.model.NaiveBayesCounts;
+import com.haines.ml.rce.naivebayes.model.NaiveBayesCounts.DiscreteNaiveBayesCounts;
+import com.haines.ml.rce.naivebayes.model.NaiveBayesCounts.NaiveBayesDistributionCounts;
+import com.haines.ml.rce.naivebayes.model.NaiveBayesProperty.DiscreteNaiveBayesPosteriorProperty;
 import com.haines.ml.rce.naivebayes.model.NaiveBayesProperty.NaiveBayesPosteriorProperty;
+import com.haines.ml.rce.naivebayes.model.NaiveBayesProperty.DiscreteNaiveBayesPriorProperty;
+import com.haines.ml.rce.naivebayes.model.NaiveBayesProperty.NaiveBayesPriorDistributionProperty;
 import com.haines.ml.rce.naivebayes.model.NaiveBayesProperty.NaiveBayesPriorProperty;
+import com.haines.ml.rce.naivebayes.model.NaiveBayesProperty.PropertyType;
 
 public class NaiveBayesAccumulatorBackedCountsProvider implements NaiveBayesCountsProvider{
 
@@ -17,43 +28,80 @@ public class NaiveBayesAccumulatorBackedCountsProvider implements NaiveBayesCoun
 			return input != null;
 		}
 	};
-	private final Function<NaiveBayesPosteriorProperty, NaiveBayesCounts<NaiveBayesPosteriorProperty>> posteriorPropertyToCountsFunction;
-	private final Function<NaiveBayesPriorProperty, NaiveBayesCounts<NaiveBayesPriorProperty>> priorPropertyToCountsFunction;
+	private final Function<NaiveBayesPosteriorProperty, NaiveBayesCounts<?>> posteriorPropertyToCountsFunction;
+	private final Function<NaiveBayesPriorProperty, NaiveBayesCounts<?>> priorPropertyToCountsFunction;
 	
 	private final NaiveBayesIndexes indexes;
+	private final FeatureHandlerRepository<?> featureHandlers;
 	
-	public NaiveBayesAccumulatorBackedCountsProvider(final AccumulatorProvider<?> accumulator, NaiveBayesIndexes indexes){
+	public NaiveBayesAccumulatorBackedCountsProvider(final AccumulatorProvider<?> accumulator, NaiveBayesIndexes indexes, FeatureHandlerRepository<?> featureHandlers){
 		this.indexes = indexes;
+		this.featureHandlers = featureHandlers;
 		
-		this.posteriorPropertyToCountsFunction = new Function<NaiveBayesPosteriorProperty, NaiveBayesCounts<NaiveBayesPosteriorProperty>>(){
+		this.posteriorPropertyToCountsFunction = new Function<NaiveBayesPosteriorProperty, NaiveBayesCounts<?>>(){
 
 			@Override
-			public NaiveBayesCounts<NaiveBayesPosteriorProperty> apply(NaiveBayesPosteriorProperty input) {
+			public NaiveBayesCounts<?> apply(NaiveBayesPosteriorProperty input) {
 				
-				int slot = NaiveBayesAccumulatorBackedCountsProvider.this.indexes.getPosteriorIndex(input.getFeature(), input.getClassification());
+				if (PropertyType.DISCRETE_POSTERIOR_TYPE.equals(input.getType())){
+					return getDiscreteCounts(PropertyType.DISCRETE_POSTERIOR_TYPE.cast(input));
+				} else {
+					return getDistributionCounts(PropertyType.DISTRIBUTION_POSTERIOR_TYPE.cast(input));
+				}
+			}
+			
+			private NaiveBayesDistributionCounts getDistributionCounts(NaiveBayesPosteriorDistributionProperty property) {
+				int[] slots = NaiveBayesAccumulatorBackedCountsProvider.this.indexes.getPosteriorDistributionIndexes(property, NaiveBayesIndexes.UNKNOWN_NUM_INDEXES);
+				
+				FeatureHandler<?> handler = NaiveBayesAccumulatorBackedCountsProvider.this.featureHandlers.getFeatureHandler(property.getFeatureType());
+				
+				DistributionParameters distribution = handler.getDistributionProvider().getDistribution(accumulator, slots); // misconfigurations will throw a null pointer. This should never happen in a correctly configured setup
+				
+				return new NaiveBayesDistributionCounts(property, distribution);
+			}
+
+			private DiscreteNaiveBayesCounts getDiscreteCounts(DiscreteNaiveBayesPosteriorProperty property){
+				int slot = NaiveBayesAccumulatorBackedCountsProvider.this.indexes.getDiscretePosteriorIndex(property.getFeature(), property.getClassification());
 				
 				int count = accumulator.getAccumulatorValue(slot);
 				
 				if (count > 0){
 				
-					return new NaiveBayesCounts<NaiveBayesPosteriorProperty>(input, count);
+					return new DiscreteNaiveBayesCounts(property, count);
 				} else{
 					return null;
 				}
 			}
 		};
 		
-		this.priorPropertyToCountsFunction = new Function<NaiveBayesPriorProperty, NaiveBayesCounts<NaiveBayesPriorProperty>>(){
+		this.priorPropertyToCountsFunction = new Function<NaiveBayesPriorProperty, NaiveBayesCounts<?>>(){
 
 			@Override
-			public NaiveBayesCounts<NaiveBayesPriorProperty> apply(NaiveBayesPriorProperty input) {
+			public NaiveBayesCounts<?> apply(NaiveBayesPriorProperty input) {
+				if (PropertyType.DISCRETE_PRIOR_TYPE.equals(input.getType())){
+					return getDiscreteCounts(PropertyType.DISCRETE_PRIOR_TYPE.cast(input));
+				} else{
+					return getDistributionCounts(PropertyType.DISTRIBUTION_PRIOR_TYPE.cast(input));
+				}
+			}
+			
+			private NaiveBayesDistributionCounts getDistributionCounts(NaiveBayesPriorDistributionProperty property) {
+				int[] slots = NaiveBayesAccumulatorBackedCountsProvider.this.indexes.getPriorDistributionIndexes(property.getClassificationType(), NaiveBayesIndexes.UNKNOWN_NUM_INDEXES);
 				
-				int slot = NaiveBayesAccumulatorBackedCountsProvider.this.indexes.getPriorIndex(input.getClassification());
+				ClassificationHandler<?> handler = NaiveBayesAccumulatorBackedCountsProvider.this.featureHandlers.getClassificationHandler(property.getClassificationType());
+				
+				DistributionParameters distribution = handler.getDistributionProvider().getDistribution(accumulator, slots);
+				
+				return new NaiveBayesDistributionCounts(property, distribution);
+			}
+
+			private DiscreteNaiveBayesCounts getDiscreteCounts(DiscreteNaiveBayesPriorProperty property){
+				int slot = NaiveBayesAccumulatorBackedCountsProvider.this.indexes.getDiscretePriorIndex(property.getClassification());
 				
 				int count = accumulator.getAccumulatorValue(slot);
 				
 				if (count > 0){
-					return new NaiveBayesCounts<NaiveBayesPriorProperty>(input, count);
+					return new DiscreteNaiveBayesCounts(property, count);
 				} else{
 					return null;
 				}
@@ -61,12 +109,12 @@ public class NaiveBayesAccumulatorBackedCountsProvider implements NaiveBayesCoun
 		};
 	}
 
-	public Iterable<NaiveBayesCounts<NaiveBayesPosteriorProperty>> getPosteriorCounts() {
-		return Iterables.filter(Iterables.transform(indexes.getPosteriors(), posteriorPropertyToCountsFunction), NON_NULL_PREDICATE);
+	public Iterable<NaiveBayesCounts<?>> getPosteriorCounts() {
+		return Iterables.filter(Iterables.transform(Iterables.concat(indexes.getDiscretePosteriors(), indexes.getPosteriorDistributions()), posteriorPropertyToCountsFunction), NON_NULL_PREDICATE);
 	}
 
-	public Iterable<NaiveBayesCounts<NaiveBayesPriorProperty>> getPriorCounts() {
-		return Iterables.filter(Iterables.transform(indexes.getPriors(), priorPropertyToCountsFunction), NON_NULL_PREDICATE);
+	public Iterable<NaiveBayesCounts<?>> getPriorCounts() {
+		return Iterables.filter(Iterables.transform(Iterables.concat(indexes.getPriors(), indexes.getDiscretePriorTypes()), priorPropertyToCountsFunction), NON_NULL_PREDICATE);
 	}
 	
 	@Override
@@ -79,12 +127,12 @@ public class NaiveBayesAccumulatorBackedCountsProvider implements NaiveBayesCoun
 		return new Counts(){
 
 			@Override
-			public Iterable<NaiveBayesCounts<NaiveBayesPriorProperty>> getPriors() {
+			public Iterable<NaiveBayesCounts<?>> getPriors() {
 				return getPriorCounts();
 			}
 
 			@Override
-			public Iterable<NaiveBayesCounts<NaiveBayesPosteriorProperty>> getPosteriors() {
+			public Iterable<NaiveBayesCounts<?>> getPosteriors() {
 				return getPosteriorCounts();
 			}
 			

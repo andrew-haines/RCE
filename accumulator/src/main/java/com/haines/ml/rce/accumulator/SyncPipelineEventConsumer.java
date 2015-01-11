@@ -16,10 +16,10 @@ public class SyncPipelineEventConsumer<E extends Event, T extends AccumulatorLoo
 	
 	private final PipelineAccumulatorController controller;
 	private final EventConsumer<AccumulatedEvent<T>> nextStageConsumer;
-	private final AccumulatorEventConsumer<E> eventConsumer;
+	private final Accumulator<E> eventConsumer;
 	
 	@Inject
-	public SyncPipelineEventConsumer(PipelineAccumulatorController controller, AccumulatorEventConsumer<E> eventConsumer, EventConsumer<AccumulatedEvent<T>> nextStageConsumer){
+	public SyncPipelineEventConsumer(PipelineAccumulatorController controller, Accumulator<E> eventConsumer, EventConsumer<AccumulatedEvent<T>> nextStageConsumer){
 		this.controller = controller;
 		this.eventConsumer = eventConsumer;
 		this.nextStageConsumer = nextStageConsumer;

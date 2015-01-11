@@ -11,7 +11,7 @@ import com.haines.ml.rce.accumulator.AccumulatorEventConsumerUnitTest.TestEvent;
 
 public class CustomAccumulatorEventConsumerUnitTest {
 	
-	private static final AccumulatorConfig TEST_CONFIG = new AccumulatorConfig() {
+	public static final AccumulatorConfig TEST_CONFIG = new AccumulatorConfig() {
 		
 		@Override
 		public int getSecondAccumulatorLineBitDepth() {
@@ -47,13 +47,13 @@ public class CustomAccumulatorEventConsumerUnitTest {
 		}
 	};
 	
-	private AccumulatorEventConsumer<AccumulatorEventConsumerUnitTest.TestEvent> candidate;
-	private AccumulatorEventConsumer<AccumulatorEventConsumerUnitTest.TestEvent> candidateLarge;
+	private Accumulator<AccumulatorEventConsumerUnitTest.TestEvent> candidate;
+	private Accumulator<AccumulatorEventConsumerUnitTest.TestEvent> candidateLarge;
 	
 	@Before
 	public void before(){
-		candidate = new AccumulatorEventConsumer<AccumulatorEventConsumerUnitTest.TestEvent>(TEST_CONFIG, new AccumulatorEventConsumerUnitTest.TestEventAccumulatorLookupStrategy());
-		candidateLarge = new AccumulatorEventConsumer<AccumulatorEventConsumerUnitTest.TestEvent>(LARGE_TEST_CONFIG, new AccumulatorEventConsumerUnitTest.TestEventAccumulatorLookupStrategy());
+		candidate = AccumulatorEventConsumerUnitTest.createNewAccumulator(TEST_CONFIG, new AccumulatorEventConsumerUnitTest.TestEventAccumulatorLookupStrategy());
+		candidateLarge = AccumulatorEventConsumerUnitTest.createNewAccumulator(LARGE_TEST_CONFIG, new AccumulatorEventConsumerUnitTest.TestEventAccumulatorLookupStrategy());
 
 	}
 	
@@ -63,7 +63,7 @@ public class CustomAccumulatorEventConsumerUnitTest {
 		
 		candidate.consume(new AccumulatorEventConsumerUnitTest.TestEvent(new int[]{1, 5, 7,8 ,3 ,4}));
 		
-		AccumulatorProvider provider = candidate.getAccumulatorProvider();
+		AccumulatorProvider<TestEvent> provider = candidate.getAccumulatorProvider();
 		
 		assertThat(provider.getAccumulatorValue(0), is(equalTo(0)));
 		assertThat(provider.getAccumulatorValue(1), is(equalTo(1)));
@@ -80,7 +80,7 @@ public class CustomAccumulatorEventConsumerUnitTest {
 		assertThat(candidate.getAccumulatorProvider().getAccumulatorValue(1), is(equalTo(0)));
 		candidate.consume(new AccumulatorEventConsumerUnitTest.TestEvent(new int[]{1}));
 		
-		AccumulatorProvider provider = candidate.getAccumulatorProvider();
+		AccumulatorProvider<TestEvent> provider = candidate.getAccumulatorProvider();
 		
 		assertThat(provider.getAccumulatorValue(1), is(equalTo(1)));
 		assertThat(provider.getAccumulatorValue(0), is(equalTo(0)));
@@ -92,7 +92,7 @@ public class CustomAccumulatorEventConsumerUnitTest {
 		candidate.consume(new TestEvent(new int[]{1}));
 		candidate.consume(new TestEvent(new int[]{1}));
 		
-		AccumulatorProvider provider = candidate.getAccumulatorProvider();
+		AccumulatorProvider<TestEvent> provider = candidate.getAccumulatorProvider();
 		
 		assertThat(provider.getAccumulatorValue(1), is(equalTo(2)));
 		assertThat(provider.getAccumulatorValue(0), is(equalTo(0)));
@@ -109,7 +109,7 @@ public class CustomAccumulatorEventConsumerUnitTest {
 			candidate.consume(new TestEvent(new int[]{4}));
 		}
 		
-		AccumulatorProvider provider = candidate.getAccumulatorProvider();
+		AccumulatorProvider<TestEvent> provider = candidate.getAccumulatorProvider();
 		
 		assertThat(provider.getAccumulatorValue(1), is(equalTo(10)));
 		assertThat(provider.getAccumulatorValue(4), is(equalTo(10)));
@@ -127,7 +127,7 @@ public class CustomAccumulatorEventConsumerUnitTest {
 			candidate.consume(new TestEvent(new int[]{257}));
 		}
 		
-		AccumulatorProvider provider = candidate.getAccumulatorProvider();
+		AccumulatorProvider<TestEvent> provider = candidate.getAccumulatorProvider();
 		
 		assertThat(provider.getAccumulatorValue(1), is(equalTo(10)));
 		assertThat(provider.getAccumulatorValue(257), is(equalTo(10)));
@@ -144,7 +144,7 @@ public class CustomAccumulatorEventConsumerUnitTest {
 			}
 		}
 		
-		AccumulatorProvider provider = candidate.getAccumulatorProvider();
+		AccumulatorProvider<TestEvent> provider = candidate.getAccumulatorProvider();
 		
 		for (int j = 0; j < 4096; j++){
 			assertThat("j="+j, provider.getAccumulatorValue(j), is(equalTo(3)));
@@ -159,7 +159,7 @@ public class CustomAccumulatorEventConsumerUnitTest {
 			candidate.consume(new TestEvent(new int[]{4095}));
 		}
 		
-		AccumulatorProvider provider = candidate.getAccumulatorProvider();
+		AccumulatorProvider<TestEvent> provider = candidate.getAccumulatorProvider();
 		
 		assertThat(provider.getAccumulatorValue(4095), is(equalTo(4096)));
 	}
@@ -173,7 +173,7 @@ public class CustomAccumulatorEventConsumerUnitTest {
 		candidate.consume(new TestEvent(new int[]{2095, 4095, 4094}));
 		candidate.consume(new TestEvent(new int[]{4095, 4094}));
 		
-		AccumulatorProvider provider = candidate.getAccumulatorProvider();
+		AccumulatorProvider<TestEvent> provider = candidate.getAccumulatorProvider();
 		
 		assertThat(provider.getAccumulatorValue(0), is(equalTo(1)));
 		assertThat(provider.getAccumulatorValue(1), is(equalTo(1)));
@@ -194,7 +194,7 @@ public class CustomAccumulatorEventConsumerUnitTest {
 			}
 		}
 		
-		AccumulatorProvider provider = candidateLarge.getAccumulatorProvider();
+		AccumulatorProvider<TestEvent> provider = candidateLarge.getAccumulatorProvider();
 		
 		assertThat(provider.getAccumulatorValue(16777215), is(equalTo(10)));
 	}
@@ -209,7 +209,7 @@ public class CustomAccumulatorEventConsumerUnitTest {
 			}
 		}
 		
-		AccumulatorProvider provider = candidateLarge.getAccumulatorProvider();
+		AccumulatorProvider<TestEvent> provider = candidateLarge.getAccumulatorProvider();
 		
 		assertThat(provider.getAccumulatorValue(4095), is(equalTo(10)));
 		candidateLarge.clear();

@@ -20,13 +20,13 @@ public class AsyncPipelineAccumulatorController<E extends Event, T extends Accum
 
 	public static final String SCHEDULE_EXECUTOR_BINDING_KEY = "AsyncPipelineAccumulatorController.asyncExecutor";
 	private final Logger LOG = LoggerFactory.getLogger(AsyncPipelineAccumulatorController.class);
-	private final Iterable<PipelinedEventConsumer<E, AccumulatorEventConsumer<E>>> consumers;
+	private final Iterable<? extends PipelinedEventConsumer<E, ? extends Accumulator<E>>> consumers;
 	private final EventConsumer<AccumulatedEvent<T>> accumulatorConsumer;
 	private final ScheduledExecutorService executorService;
 	private volatile boolean isRunning;
 	
 	@Inject
-	public AsyncPipelineAccumulatorController(Clock systemClock, PipelineAccumulatorConfig config, Iterable<PipelinedEventConsumer<E, AccumulatorEventConsumer<E>>> consumers, EventConsumer<AccumulatedEvent<T>> accumulatorConsumer, @Named(SCHEDULE_EXECUTOR_BINDING_KEY) ScheduledExecutorService executorService) {
+	public AsyncPipelineAccumulatorController(Clock systemClock, PipelineAccumulatorConfig config, Iterable<? extends PipelinedEventConsumer<E, ? extends Accumulator<E>>> consumers, EventConsumer<AccumulatedEvent<T>> accumulatorConsumer, @Named(SCHEDULE_EXECUTOR_BINDING_KEY) ScheduledExecutorService executorService) {
 		super(systemClock, config);
 		
 		this.consumers = consumers;
@@ -44,8 +44,8 @@ public class AsyncPipelineAccumulatorController<E extends Event, T extends Accum
 	
 	private void process(){
 		
-		for (PipelinedEventConsumer<E, AccumulatorEventConsumer<E>> consumer: consumers){
-			AccumulatorEventConsumer<E> stagingConsumer = consumer.switchLiveConsumer();
+		for (PipelinedEventConsumer<E, ? extends Accumulator<E>> consumer: consumers){
+			Accumulator<E> stagingConsumer = consumer.switchLiveConsumer();
 			
 			super.pushToPipe(stagingConsumer, accumulatorConsumer);
 		}

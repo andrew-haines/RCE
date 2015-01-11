@@ -11,13 +11,16 @@ import com.google.inject.Scopes;
 import com.google.inject.binder.LinkedBindingBuilder;
 import com.google.inject.name.Names;
 import com.haines.ml.rce.accumulator.AccumulatorConfig;
-import com.haines.ml.rce.accumulator.AccumulatorEventConsumer;
+import com.haines.ml.rce.accumulator.Accumulator;
 import com.haines.ml.rce.accumulator.AccumulatorLookupStrategy;
+import com.haines.ml.rce.accumulator.FeatureHandlerRepository;
+import com.haines.ml.rce.accumulator.handlers.FeaturedEventAccumulatorEventConsumer;
 import com.haines.ml.rce.main.config.RCEConfig;
 import com.haines.ml.rce.model.Event;
 import com.haines.ml.rce.model.EventConsumer;
 import com.haines.ml.rce.model.EventConsumerFactory;
 import com.haines.ml.rce.model.EventMarshalBuffer;
+import com.haines.ml.rce.model.FeaturedEvent;
 import com.haines.ml.rce.model.PipelinedEventConsumer;
 import com.haines.ml.rce.naivebayes.NaiveBayesGlobalIndexes;
 import com.haines.ml.rce.naivebayes.NaiveBayesGlobalIndexes.VolatileNaiveBayesGlobalIndexesProvider;
@@ -60,7 +63,7 @@ public class AsyncPipelineRCEConfigConfiguredInitiationModule<T extends Selectab
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	protected Class<? extends EventConsumerFactory<E, ? extends EventConsumer<E>>> getDownStreamEventConsumerFactory() {
-		return (Class)AccumulatorEventConsumerFactory.class;
+		return (Class)FeaturedAccumulatorEventConsumerFactory.class;
 	}
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
@@ -91,20 +94,22 @@ public class AsyncPipelineRCEConfigConfiguredInitiationModule<T extends Selectab
 		
 	}
 	
-	public static class AccumulatorEventConsumerFactory<E extends Event> implements EventConsumerFactory<E, AccumulatorEventConsumer<E>>{
+	public static class FeaturedAccumulatorEventConsumerFactory<E extends FeaturedEvent> implements EventConsumerFactory<E, Accumulator<E>>{
 
 		private final AccumulatorConfig config;
 		private final AccumulatorLookupStrategy<E> lookupStrategy;
+		private final FeatureHandlerRepository<E> featureHandlers;
 		
 		@Inject
-		public AccumulatorEventConsumerFactory(AccumulatorConfig config, AccumulatorLookupStrategy<E> lookupStrategy){
+		public FeaturedAccumulatorEventConsumerFactory(AccumulatorConfig config, AccumulatorLookupStrategy<E> lookupStrategy, FeatureHandlerRepository<E> featureHandlers){
 			this.config = config;
 			this.lookupStrategy = lookupStrategy;
+			this.featureHandlers = featureHandlers;
 		}
 		
 		@Override
-		public AccumulatorEventConsumer<E> create() {
-			return new AccumulatorEventConsumer<E>(config, lookupStrategy);
+		public Accumulator<E> create() {
+			return new FeaturedEventAccumulatorEventConsumer<E>(config, lookupStrategy, featureHandlers);
 		}
 	}
 	

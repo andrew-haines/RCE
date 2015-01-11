@@ -6,6 +6,7 @@ import java.util.Map;
 
 import javax.inject.Inject;
 
+import com.google.common.collect.Iterables;
 import com.haines.ml.rce.model.Classification;
 import com.haines.ml.rce.model.Feature;
 
@@ -32,11 +33,11 @@ public class NaiveBayesGlobalIndexes extends DefaultNaiveBayesIndexes{
 	 * @param posteriorProbabilityIndexes
 	 * @param priorProbabilityIndexes
 	 */
-	public NaiveBayesGlobalIndexes(Map<Classification, Map<Feature, Integer>> posteriorProbabilityIndexes, Map<Classification, Integer> priorProbabilityIndexes){
-		super(posteriorProbabilityIndexes, priorProbabilityIndexes, getGreatestIndex(posteriorProbabilityIndexes, priorProbabilityIndexes)); // no index set at beginning.
+	public NaiveBayesGlobalIndexes(Map<Classification, Map<Feature, Integer>> posteriorProbabilityIndexes, Map<Classification, Integer> priorProbabilityIndexes, Map<NaiveBayesPosteriorDistributionProperty, int[]> posteriorTypeIndexes, Map<Integer, int[]> priorTypeIndexes){
+		super(posteriorProbabilityIndexes, priorProbabilityIndexes, posteriorTypeIndexes, priorTypeIndexes, getGreatestIndex(posteriorProbabilityIndexes, priorProbabilityIndexes, posteriorTypeIndexes, priorTypeIndexes)); // no index set at beginning.
 	}
 	
-	private static int getGreatestIndex(Map<Classification, Map<Feature, Integer>> posteriorProbabilityIndexes, Map<Classification, Integer> priorProbabilityIndexes) {
+	private static int getGreatestIndex(Map<Classification, Map<Feature, Integer>> posteriorProbabilityIndexes, Map<Classification, Integer> priorProbabilityIndexes, Map<NaiveBayesPosteriorDistributionProperty, int[]> posteriorTypeIndexes, Map<Integer, int[]> priorTypeIndexes) {
 		Integer currentMax = NO_INDEX_FOUND;
 		
 		for (Map<Feature, Integer> classIndexes: posteriorProbabilityIndexes.values()){
@@ -53,12 +54,20 @@ public class NaiveBayesGlobalIndexes extends DefaultNaiveBayesIndexes{
 			}
 		}
 		
+		for (int[] indexes: Iterables.concat(posteriorTypeIndexes.values(), priorTypeIndexes.values())){
+			for (int idx: indexes){
+				if (currentMax < idx){
+					currentMax = idx;
+				}
+			}
+		}
+		
 		return currentMax;
 	}
 
 	@Inject
 	public NaiveBayesGlobalIndexes(){
-		this(new THashMap<Classification, Map<Feature, Integer>>(), new THashMap<Classification, Integer>());
+		this(new THashMap<Classification, Map<Feature, Integer>>(), new THashMap<Classification, Integer>(), new THashMap<NaiveBayesPosteriorDistributionProperty, int[]>(), new THashMap<Integer, int[]>());
 	}
 	
 	@Override

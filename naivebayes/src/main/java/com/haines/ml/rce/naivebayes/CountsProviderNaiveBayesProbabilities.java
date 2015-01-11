@@ -15,15 +15,39 @@ import java.util.Map.Entry;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
+import com.google.common.base.Function;
 import com.google.common.collect.Iterables;
+import com.google.common.primitives.Ints;
+import com.haines.ml.rce.accumulator.DistributionProvider;
+import com.haines.ml.rce.accumulator.FeatureHandlerRepository;
+import com.haines.ml.rce.accumulator.handlers.ClassificationHandler;
+import com.haines.ml.rce.accumulator.handlers.FeatureHandler;
 import com.haines.ml.rce.model.Classification;
 import com.haines.ml.rce.model.Feature;
 import com.haines.ml.rce.naivebayes.NaiveBayesCountsProvider.Counts;
 import com.haines.ml.rce.naivebayes.model.NaiveBayesCounts;
+import com.haines.ml.rce.naivebayes.model.NaiveBayesProperty;
+import com.haines.ml.rce.naivebayes.model.NaiveBayesCounts.NaiveBayesDistributionCounts;
+import com.haines.ml.rce.naivebayes.model.NaiveBayesProperty.DiscreteNaiveBayesPosteriorProperty;
+import com.haines.ml.rce.naivebayes.model.NaiveBayesProperty.NaiveBayesPriorProperty;
+import com.haines.ml.rce.naivebayes.model.NaiveBayesProperty.PropertyType;
 import com.haines.ml.rce.naivebayes.model.Probability;
 import com.haines.ml.rce.naivebayes.model.NaiveBayesProperty.NaiveBayesPosteriorProperty;
-import com.haines.ml.rce.naivebayes.model.NaiveBayesProperty.NaiveBayesPriorProperty;
+import com.haines.ml.rce.naivebayes.model.NaiveBayesProperty.DiscreteNaiveBayesPriorProperty;
+import com.haines.ml.rce.naivebayes.model.Probability.DiscretePosteriorProbabilities;
+import com.haines.ml.rce.naivebayes.model.Probability.DiscretePriorProbabilities;
+import com.haines.ml.rce.naivebayes.model.Probability.DiscreteProbability;
+import com.haines.ml.rce.naivebayes.model.Probability.DistributionProbability;
+import com.haines.ml.rce.naivebayes.model.Probability.PosteriorProbability;
+import com.haines.ml.rce.naivebayes.model.Probability.PriorProbability;
 
+/**
+ * This class is responsible for converting an iteration of {@link NaiveBayesCounts} object provided by an instance of {@link NaiveBayesCountsProvider}
+ * and calculating their probabilities into {@link Probability} objects. Note that this also handles the translation of {@link DiscreteNaiveBayesCounts}
+ * into {@link DiscreteProbability} and {@link NaiveBayesDistributionCounts} into {@link DistributionProbability} instances.
+ * @author haines
+ *
+ */
 public class CountsProviderNaiveBayesProbabilities implements NaiveBayesProbabilities{
 	
 	private static final Comparator<? super NaiveBayesProbability> MOST_PROPULAR_OUTCOMES_PROBABILITIES_COMPARATOR = new Comparator<NaiveBayesProbability>(){
@@ -35,81 +59,100 @@ public class CountsProviderNaiveBayesProbabilities implements NaiveBayesProbabil
 		
 	};
 	
-	private final Map<Classification, TIntObjectMap<Probabilities>> posteriorProbabilities;
-	private final Map<Classification, Probability> priorProbabilities;
-	private final Iterable<NaiveBayesProbability> orderedProbabilities;
+	private final Map<Classification, TIntObjectMap<PosteriorProbability>> posteriorProbabilities;
+	private final TIntObjectMap<PriorProbability> priorProbabilities;
+	private final Iterable<NaiveBayesProperty> orderedProbabilities;
+	private final FeatureHandlerRepository<?> featureHandlers;
 	
-	public CountsProviderNaiveBayesProbabilities(NaiveBayesCountsProvider provider){
+	public CountsProviderNaiveBayesProbabilities(NaiveBayesCountsProvider provider, FeatureHandlerRepository<?> featureHandlers){
 		
+		
+		this.featureHandlers = featureHandlers;
 		Counts counts = provider.getCounts();
 		
-		Map<Classification, TIntIntMap> postertiorTotals = getPosteriorTotals(counts.getPosteriors());
+		Map<Classification, TIntIntMap> posteriorTotals = getPosteriorTotals(counts.getPosteriors());
 		
-		int priorTotal = getPriorTotal(counts.getPriors()); // TODO check that classification priors are calculated by instance seen and not feature seen
+		int priorTotal = getPriorTotal(counts.getPriors());
 		
-		posteriorProbabilities = new THashMap<Classification, TIntObjectMap<Probabilities>>();
-		priorProbabilities = new THashMap<Classification, Probability>();
+		posteriorProbabilities = new THashMap<Classification, TIntObjectMap<PosteriorProbability>>();
+		priorProbabilities = new TIntObjectHashMap<PriorProbability>();
 		
-		for (NaiveBayesCounts<NaiveBayesPosteriorProperty> posteriors: counts.getPosteriors()){
-			TIntObjectMap<Probabilities> features = posteriorProbabilities.get(posteriors.getProperty().getClassification());
+		for (NaiveBayesCounts<?> posterior: counts.getPosteriors()){
+			
+			NaiveBayesPosteriorProperty property = (NaiveBayesPosteriorProperty)posterior.getProperty();
+			
+			TIntObjectMap<PosteriorProbability> features = posteriorProbabilities.get(property.getClassification());
 			
 			if (features == null){
-				features = new TIntObjectHashMap<Probabilities>();
-				posteriorProbabilities.put(posteriors.getProperty().getClassification(), features);
+				features = new TIntObjectHashMap<PosteriorProbability>();
+				posteriorProbabilities.put(property.getClassification(), features);
 			}
 			
-			Feature feature = posteriors.getProperty().getFeature();
-			Probabilities probabilities = features.get(feature.getType());
+			int featureType = property.getFeatureType();
+			PosteriorProbability probability = features.get(featureType);
 			
-			if (probabilities == null){
-				
-				probabilities = new Probabilities(new THashMap<Feature, Probability>());
-			}
+			assert (property.getType() == PropertyType.DISCRETE_POSTERIOR_TYPE || property.getType() == PropertyType.DISTRIBUTION_POSTERIOR_TYPE);
 			
-			try{
-				Probability probability = new Probability(posteriors.getCounts(), postertiorTotals.get(posteriors.getProperty().getClassification()).get(feature.getType()));
-				if (probabilities.probabilities.containsKey(feature)){
-					throw new IllegalStateException("posterior feature/class pairing should be unique. Multiple counts supplied for: "+posteriors.getProperty());
-				}
-				
-				probabilities.probabilities.put(feature, probability);
-				
-				features.put(feature.getType(), probabilities);
-			} catch (NullPointerException e){
-				System.out.println(postertiorTotals.get(posteriors.getProperty().getClassification()));
-				throw e;
-			}
+			if (property.getType() == PropertyType.DISCRETE_POSTERIOR_TYPE){
+				probability = convertDiscretePosteriorCounts(PropertyType.DISCRETE_POSTERIOR_TYPE.cast(property), probability, posterior, posteriorTotals.get(property.getClassification()).get(property.getFeatureType()));
+			} else { // distribution type
+				probability = convertDistributionPosteriorCounts(PropertyType.DISCRETE_POSTERIOR_TYPE.cast(property), probability, (NaiveBayesDistributionCounts)posterior, posteriorTotals.get(property.getClassification()).get(property.getFeatureType()));
+			} 
+			
+			features.put(featureType, probability);
 			
 		}
 		
-		for (NaiveBayesCounts<NaiveBayesPriorProperty> prior: counts.getPriors()){
-			priorProbabilities.put(prior.getProperty().getClassification(), new Probability(prior.getCounts(), priorTotal));
+		for (NaiveBayesCounts<?> prior: counts.getPriors()){
+			NaiveBayesPriorProperty property = (NaiveBayesPriorProperty)prior.getProperty();
+			
+			assert (property.getType() == PropertyType.DISCRETE_PRIOR_TYPE || property.getType() == PropertyType.DISTRIBUTION_PRIOR_TYPE);
+			
+			PriorProbability probability = priorProbabilities.get(property.getClassificationType());
+			
+			if (property.getType() == PropertyType.DISCRETE_PRIOR_TYPE){
+				probability = convertDiscretePriorCounts(PropertyType.DISCRETE_PRIOR_TYPE.cast(property), probability, prior, priorTotal);
+			} else { // distribution type
+				probability = convertDistributionPriorCounts(PropertyType.DISCRETE_PRIOR_TYPE.cast(property), probability, (NaiveBayesDistributionCounts)prior, priorTotal);
+			} 
+			
+			priorProbabilities.put(property.getClassificationType(), probability);
 		}
 		
-		orderedProbabilities = new Iterable<NaiveBayesProbability>(){ // lazy loaded iterable
+		orderedProbabilities = new Iterable<NaiveBayesProperty>(){ // lazy loaded iterable
 
 			private SortedSet<NaiveBayesProbability> sortedProperties = null;
 			
 			@Override
-			public Iterator<NaiveBayesProbability> iterator() {
+			public Iterator<NaiveBayesProperty> iterator() {
 				if (sortedProperties == null){
 					sortedProperties = new TreeSet<NaiveBayesProbability>(MOST_PROPULAR_OUTCOMES_PROBABILITIES_COMPARATOR);
 					
 					// add posteriors
 					
-					for (Entry<Classification, TIntObjectMap<Probabilities>> classification: posteriorProbabilities.entrySet()){
+					for (Entry<Classification, TIntObjectMap<PosteriorProbability>> classification: posteriorProbabilities.entrySet()){
 						
-						TIntObjectIterator<Probabilities> it = classification.getValue().iterator();
+						TIntObjectIterator<PosteriorProbability> it = classification.getValue().iterator();
 						
 						while(it.hasNext()){
 						
 							it.advance();
 							
-							Probabilities probabilities = it.value();
+							PosteriorProbability probabilities = it.value();
 							
-							for (Entry<Feature, Probability> probability: probabilities.probabilities.entrySet()){
+							assert(probabilities instanceof DiscretePosteriorProbabilities || probabilities instanceof DistributionProbability);
 							
-								sortedProperties.add(new NaiveBayesProbability(new NaiveBayesPosteriorProperty(probability.getKey(), classification.getKey()), probability.getValue()));
+							if (probabilities instanceof DiscretePosteriorProbabilities){
+								DiscretePosteriorProbabilities discreteProbabilities = (DiscretePosteriorProbabilities)probabilities;
+								
+								for (Entry<Feature, DiscreteProbability> featureProbability: discreteProbabilities.getFeatureProbabilities()){
+									sortedProperties.add(new NaiveBayesProbability(new DiscreteNaiveBayesPosteriorProperty(featureProbability.getKey(), classification.getKey()), featureProbability.getValue()));
+
+								}
+							} else {
+								FeatureHandler<?> handler = CountsProviderNaiveBayesProbabilities.this.featureHandlers.getFeatureHandler(it.key());
+								
+								sortedProperties.add(new NaiveBayesProbability(new NaiveBayesIndexes.NaiveBayesPosteriorDistributionProperty(it.key(), classification.getKey()), probabilities));
 							}
 						}
 							
@@ -117,45 +160,146 @@ public class CountsProviderNaiveBayesProbabilities implements NaiveBayesProbabil
 					
 					// add priors
 					
-					for (Entry<Classification, Probability> classification: priorProbabilities.entrySet()){
-						sortedProperties.add(new NaiveBayesProbability(new NaiveBayesPriorProperty(classification.getKey()), classification.getValue()));
+					TIntObjectIterator<PriorProbability> it = priorProbabilities.iterator();
+					
+					while(it.hasNext()){
+						it.advance();
+						
+						PriorProbability probability = it.value();
+						
+						assert(probability instanceof DiscretePriorProbabilities || probability instanceof DistributionProbability);
+						
+						if (probability instanceof DiscretePriorProbabilities){
+							for (Entry<Classification, DiscreteProbability> discreteProbilities: ((DiscretePriorProbabilities)probability).getClassificationProbabilities()){
+								sortedProperties.add(new NaiveBayesProbability(new DiscreteNaiveBayesPriorProperty(discreteProbilities.getKey()), discreteProbilities.getValue()));
+							}
+						} else{
+							sortedProperties.add(new NaiveBayesProbability(new NaiveBayesProperty.NaiveBayesPriorDistributionProperty(it.key()), probability));
+						}
+						
 					}
 				}
 				
-				return sortedProperties.iterator();
+				return Iterables.transform(sortedProperties, new Function<NaiveBayesProbability, NaiveBayesProperty>(){
+
+					@Override
+					public NaiveBayesProperty apply(NaiveBayesProbability input) {
+						return input.getProperty();
+					}
+					
+				}).iterator();
 			}
 			
 		};
 	}
 	
+	private PriorProbability convertDistributionPriorCounts(
+			DiscreteNaiveBayesPriorProperty property,
+			PriorProbability probability, 
+			NaiveBayesDistributionCounts counts,
+			int priorTotal) {
+		
+		if (probability != null){ // TODO maybe convert this to an assertion?
+			throw new IllegalArgumentException("There cant already be an existing distribution probability for this classifcation/featuretype");
+		}
+		
+		ClassificationHandler<?> handler = featureHandlers.getClassificationHandler(property.getClassification().getType());
+		
+		DistributionProvider distributionProvider = handler.getDistributionProvider();
+		
+		assert(distributionProvider != null);
+		
+		return new DistributionProbability(counts.getDistribution(), distributionProvider.getDistribution()); 
+	}
+
+	private PriorProbability convertDiscretePriorCounts(
+			DiscreteNaiveBayesPriorProperty property, 
+			PriorProbability probability,
+			NaiveBayesCounts<?> counts, 
+			int priorTotal) {
+		
+		DiscretePriorProbabilities probabilities;
+		
+		if (probability == null){
+			probabilities = new DiscretePriorProbabilities();
+		} else{
+			probabilities = (DiscretePriorProbabilities)probability;
+		}
+		
+		
+		probabilities.addProbability(property.getClassification(), new DiscreteProbability(counts.getCounts(), priorTotal));
+		
+		return probabilities;
+	}
+
+	private PosteriorProbability convertDistributionPosteriorCounts(
+			DiscreteNaiveBayesPosteriorProperty property,
+			PosteriorProbability probability, 
+			NaiveBayesDistributionCounts counts,
+			int totalCountsForPosteriorType) {
+		
+		if (probability != null){ // TODO maybe convert this to an assertion?
+			throw new IllegalArgumentException("There cant already be an existing distribution probability for this classifcation/featuretype");
+		}
+		
+		FeatureHandler<?> handler = featureHandlers.getFeatureHandler(property.getFeature().getType());
+		
+		DistributionProvider distributionProvider = handler.getDistributionProvider();
+		
+		assert(distributionProvider != null);
+		
+		return new DistributionProbability(counts.getDistribution(), distributionProvider.getDistribution());
+	}
+
+	private PosteriorProbability convertDiscretePosteriorCounts(
+			DiscreteNaiveBayesPosteriorProperty property,
+			PosteriorProbability probability, 
+			NaiveBayesCounts<?> counts,
+			int totalCountsForPosteriorType) {
+		
+		DiscretePosteriorProbabilities probabilities;
+		
+		if (probability == null){ 
+			probabilities = new DiscretePosteriorProbabilities();
+		} else{
+			probabilities = (DiscretePosteriorProbabilities)probability;
+		}
+		
+		probabilities.addProbability(property.getFeature(), new DiscreteProbability(counts.getCounts(), totalCountsForPosteriorType));
+		
+		return probabilities;
+	}
+
 	@Override
 	public String toString(){
-		return Iterables.toString(getOrderedProbabilities());
+		return Iterables.toString(getOrderedProperties());
 	}
 	
-	private int getPriorTotal(Iterable<? extends NaiveBayesCounts<NaiveBayesPriorProperty>> priorsIt) {
+	private int getPriorTotal(Iterable<? extends NaiveBayesCounts<?>> priorsIt) {
 		int priorTotal = 0;
 		
-		for (NaiveBayesCounts<NaiveBayesPriorProperty> prior: priorsIt){
+		for (NaiveBayesCounts<?> prior: priorsIt){
 			priorTotal += prior.getCounts();
 		}
 		
 		return priorTotal;
 	}
 
-	private Map<Classification, TIntIntMap> getPosteriorTotals(Iterable<? extends NaiveBayesCounts<NaiveBayesPosteriorProperty>> posteriorsIt) {
+	private Map<Classification, TIntIntMap> getPosteriorTotals(Iterable<? extends NaiveBayesCounts<?>> posteriorsIt) {
 		Map<Classification, TIntIntMap> postertiorTotals = new HashMap<Classification, TIntIntMap>();
 		
-		for (NaiveBayesCounts<NaiveBayesPosteriorProperty> posteriors: posteriorsIt){
+		for (NaiveBayesCounts<?> posteriors: posteriorsIt){
 			
-			TIntIntMap classificationTotal = postertiorTotals.get(posteriors.getProperty().getClassification());
+			NaiveBayesPosteriorProperty property = (NaiveBayesPosteriorProperty)posteriors.getProperty();
+			
+			TIntIntMap classificationTotal = postertiorTotals.get(property.getClassification());
 			
 			if (classificationTotal == null){
 				classificationTotal = new TIntIntHashMap();
 			}
 			
-			classificationTotal.adjustOrPutValue(posteriors.getProperty().getFeature().getType(), posteriors.getCounts(), posteriors.getCounts());
-			postertiorTotals.put(posteriors.getProperty().getClassification(), classificationTotal);
+			classificationTotal.adjustOrPutValue(property.getFeatureType(), posteriors.getCounts(), posteriors.getCounts());
+			postertiorTotals.put(property.getClassification(), classificationTotal);
 		}
 		
 		return postertiorTotals;
@@ -163,61 +307,53 @@ public class CountsProviderNaiveBayesProbabilities implements NaiveBayesProbabil
 
 	@Override
 	public double getPosteriorProbability(Feature feature, Classification classification) {
-		TIntObjectMap<Probabilities> classProbabilities = posteriorProbabilities.get(classification);
+		TIntObjectMap<PosteriorProbability> classProbabilities = posteriorProbabilities.get(classification);
 		
-		Probability probability = null;
+		double probability = NOMINAL_PROBABILITY;
 		
 		if (classProbabilities != null){ // TODO if we insist on classification being driven from getAllClassifications, this check is unneeded.
 			
-			Probabilities probabilities = classProbabilities.get(feature.getType());
+			PosteriorProbability probabilities = classProbabilities.get(feature.getType());
 			
 			if (probabilities != null){
-				probability = probabilities.getProbability(feature);
+				probability = probabilities.getProbability(feature, classification);
 			}
 		}
 		
-		if (probability == null){
-			// note that we cant use +1 smoothing or other scheme as we dont know what the complete feature space is. 
-			// Use a nominal probability instead to avoid multipling by zero. The value of this norminal probability
-			// might need to be tuned
-			return NOMINAL_PROBABILITY; 
-		}
-		
-		return probability.getProbability();
+		return probability;
 	}
 
 	@Override
 	public double getPriorProbability(Classification classification) {
-		Probability probability = priorProbabilities.get(classification);
+		PriorProbability probability = priorProbabilities.get(classification.getType());
 		
 		if (probability == null){ // TODO if we insist on classification being driven from getAllClassifications, this check is unneeded.
 			return NOMINAL_PROBABILITY;
 		}
 		
-		return probability.getProbability();
+		return probability.getProbability(classification);
 	}
 
 	@Override
 	public Iterable<Classification> getAllClassifications() {
-		return priorProbabilities.keySet();
+		return Iterables.concat(Iterables.transform(Ints.asList(priorProbabilities.keys()), new Function<Integer, Iterable<Classification>>(){
+
+			@Override
+			public Iterable<Classification> apply(Integer classificationType) {
+				
+				PriorProbability probability = priorProbabilities.get(classificationType);
+				
+				if (probability instanceof DiscretePriorProbabilities){
+					return ((DiscretePriorProbabilities)probability).getAllClassifications();
+				} else {
+					throw new IllegalStateException("Unable to handle non discrete classification probabilities yet"); // TODO need to work out how this will work!
+				}
+			}
+		}));
 	}
 
 	@Override
-	public Iterable<NaiveBayesProbability> getOrderedProbabilities() {
+	public Iterable<NaiveBayesProperty> getOrderedProperties() {
 		return orderedProbabilities;
 	}
-	
-	private static class Probabilities {
-
-		private final Map<Feature, Probability> probabilities;
-		
-		public Probabilities(Map<Feature, Probability> probabilities){
-			this.probabilities = probabilities;
-		}
-		
-		public Probability getProbability(Feature value){
-			return probabilities.get(value);
-		}
-	}
-
 }

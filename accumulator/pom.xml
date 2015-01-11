@@ -19,6 +19,13 @@
     	</dependency>
     	<dependency>
     		<groupId>${project.groupId}</groupId>
+    		<artifactId>rce-model</artifactId>
+    		<version>${project.version}</version>
+    		<scope>test</scope>
+    		<classifier>tests</classifier>
+    	</dependency>
+    	<dependency>
+    		<groupId>${project.groupId}</groupId>
     		<artifactId>rce-dispatcher</artifactId>
     		<version>${project.version}</version>
     	</dependency>

@@ -61,7 +61,7 @@ public class RONaiveBayesMapBasedLookupStrategyUnitTest {
 		
 		assertThat(candidate.getMaxIndex(), is(equalTo(2)));
 	}
-	
+
 	@Test
 	public void givenCandidateWithNoGlobalIndexes_whenCallingGetSlotsFromSameEventAlreadyAdded_thenSameIndexesReturned(){
 		int[] indexes = candidate.getSlots(TEST_EVENT_1);

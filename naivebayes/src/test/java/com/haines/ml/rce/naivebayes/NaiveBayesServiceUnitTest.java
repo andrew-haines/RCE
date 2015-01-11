@@ -5,7 +5,9 @@ import java.util.Arrays;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.haines.ml.rce.accumulator.AccumulatorEventConsumer;
+import com.haines.ml.rce.accumulator.Accumulator;
+import com.haines.ml.rce.accumulator.FeatureHandlerRepository;
+import com.haines.ml.rce.accumulator.handlers.ClassifiedEventAccumulatorConsumer;
 import com.haines.ml.rce.accumulator.lookups.RONaiveBayesMapBasedLookupStrategy;
 import com.haines.ml.rce.model.Classification;
 import com.haines.ml.rce.model.ClassifiedEvent;
@@ -56,13 +58,17 @@ public class NaiveBayesServiceUnitTest {
 			}
 		});
 		
-		AccumulatorEventConsumer<ClassifiedEvent> eventConsumer = new AccumulatorEventConsumer<ClassifiedEvent>(new RONaiveBayesMapBasedLookupStrategy(indexes));
+		RONaiveBayesMapBasedLookupStrategy<ClassifiedEvent> lookupStrategy = new RONaiveBayesMapBasedLookupStrategy<ClassifiedEvent>(indexes);
+		
+		FeatureHandlerRepository<ClassifiedEvent> handlers = FeatureHandlerRepository.create();
+		
+		Accumulator<ClassifiedEvent> eventConsumer = new ClassifiedEventAccumulatorConsumer<ClassifiedEvent>(Accumulator.DEFAULT_CONFIG, lookupStrategy, handlers, lookupStrategy);
 
 		consumeTestEvents(eventConsumer);
 		
-		NaiveBayesAccumulatorBackedCountsProvider provider = new NaiveBayesAccumulatorBackedCountsProvider(eventConsumer.getAccumulatorProvider(), indexes);
+		NaiveBayesAccumulatorBackedCountsProvider provider = new NaiveBayesAccumulatorBackedCountsProvider(eventConsumer.getAccumulatorProvider(), indexes, handlers);
 		
-		final NaiveBayesProbabilities probabilities = new CountsProviderNaiveBayesProbabilities(provider);
+		final NaiveBayesProbabilities probabilities = new CountsProviderNaiveBayesProbabilities(provider, FeatureHandlerRepository.create());
 		
 		this.candidate = new NaiveBayesService(new NaiveBayesProbabilitiesProvider() {
 			
@@ -73,7 +79,7 @@ public class NaiveBayesServiceUnitTest {
 		});
 	}
 
-	private void consumeTestEvents(AccumulatorEventConsumer<ClassifiedEvent> eventConsumer) {
+	private void consumeTestEvents(Accumulator<ClassifiedEvent> eventConsumer) {
 		eventConsumer.consume(TEST_EVENT_1);
 		eventConsumer.consume(TEST_EVENT_2);
 		eventConsumer.consume(TEST_EVENT_3);

@@ -14,13 +14,14 @@ import javax.inject.Inject;
 
 import com.google.common.collect.Iterables;
 import com.haines.ml.rce.accumulator.AccumulatorConfig;
-import com.haines.ml.rce.accumulator.AccumulatorEventConsumer;
+import com.haines.ml.rce.accumulator.Accumulator;
 import com.haines.ml.rce.accumulator.AccumulatorLookupStrategy;
+import com.haines.ml.rce.accumulator.FeatureHandlerRepository;
 import com.haines.ml.rce.accumulator.AccumulatorLookupStrategy.AccumulatorLookupStrategyFactory;
 import com.haines.ml.rce.accumulator.AsyncPipelineAccumulatorController;
-import com.haines.ml.rce.accumulator.PipelineAccumulatorController;
 import com.haines.ml.rce.accumulator.PipelineAccumulatorController.PipelineAccumulatorControllerFactory;
 import com.haines.ml.rce.accumulator.SyncPipelineEventConsumer;
+import com.haines.ml.rce.accumulator.handlers.FeaturedEventAccumulatorEventConsumer;
 import com.haines.ml.rce.accumulator.model.AccumulatedEvent;
 import com.haines.ml.rce.dispatcher.Dispatcher;
 import com.haines.ml.rce.dispatcher.DispatcherConsumer;
@@ -38,6 +39,7 @@ import com.haines.ml.rce.model.Event;
 import com.haines.ml.rce.model.EventConsumer;
 import com.haines.ml.rce.model.EventConsumerFactory;
 import com.haines.ml.rce.model.EventMarshalBuffer;
+import com.haines.ml.rce.model.FeaturedEvent;
 import com.haines.ml.rce.model.PipelinedEventConsumer;
 import com.haines.ml.rce.model.system.Clock;
 import com.haines.ml.rce.model.system.SystemListener;
@@ -167,28 +169,32 @@ public class DefaultRCEApplicationFactory<E extends Event, EC extends EventConsu
 		return consumers;
 	}
 		
-	public static class AccumulatorEventConsumerFactory<E extends Event> implements EventConsumerFactory<E, AccumulatorEventConsumer<E>>{
+	public static class FeaturedAccumulatorEventConsumerFactory<E extends FeaturedEvent> implements EventConsumerFactory<E, Accumulator<E>>{
 
 		private final AccumulatorConfig config;
-		private final AccumulatorLookupStrategyFactory<E> lookupStrategy;
+		private final AccumulatorLookupStrategyFactory<E> lookupStrategyFactory;
+		private final FeatureHandlerRepository<E> featureHandlerRepo;
 		
 		@Inject
-		public AccumulatorEventConsumerFactory(AccumulatorConfig config, AccumulatorLookupStrategyFactory<E> lookupStrategy){
+		public FeaturedAccumulatorEventConsumerFactory(AccumulatorConfig config, AccumulatorLookupStrategyFactory<E> lookupStrategyFactory, FeatureHandlerRepository<E> featureHandlerRepo){
 			this.config = config;
-			this.lookupStrategy = lookupStrategy;
+			this.lookupStrategyFactory = lookupStrategyFactory;
+			this.featureHandlerRepo = featureHandlerRepo;
 		}
 		
 		@Override
-		public AccumulatorEventConsumer<E> create() {
-			return new AccumulatorEventConsumer<E>(config, lookupStrategy.create());
+		public Accumulator<E> create() {
+			AccumulatorLookupStrategy<? super E> lookupStrategy = lookupStrategyFactory.create();
+			
+			return new FeaturedEventAccumulatorEventConsumer<E>(config, lookupStrategy, featureHandlerRepo);
 		}
 	}
 	
-	public static class DefaultASyncRCEApplicationFactory<E extends Event, T extends AccumulatorLookupStrategy<? super E>> extends DefaultRCEApplicationFactory<E, PipelinedEventConsumer<E, AccumulatorEventConsumer<E>>, T>{
+	public static class DefaultASyncRCEApplicationFactory<E extends FeaturedEvent, T extends AccumulatorLookupStrategy<? super E>> extends DefaultRCEApplicationFactory<E, PipelinedEventConsumer<E, Accumulator<E>>, T>{
 		
 		private final ScheduledExecutorService executorService;
-		public DefaultASyncRCEApplicationFactory(EventMarshalBuffer<E> marshalBuffer, EventConsumerFactory<E, AccumulatorEventConsumer<E>> downstreamConsumerFactory, EventConsumer<AccumulatedEvent<T>> accumulatedEventConsumer, ScheduledExecutorService executorService, Clock clock){
-			super(marshalBuffer, clock, new ASyncEventConsumerFactory<E, AccumulatorEventConsumer<E>>(downstreamConsumerFactory), accumulatedEventConsumer);
+		public DefaultASyncRCEApplicationFactory(EventMarshalBuffer<E> marshalBuffer, EventConsumerFactory<E, Accumulator<E>> downstreamConsumerFactory, EventConsumer<AccumulatedEvent<T>> accumulatedEventConsumer, ScheduledExecutorService executorService, Clock clock){
+			super(marshalBuffer, clock, new ASyncEventConsumerFactory<E, Accumulator<E>>(downstreamConsumerFactory), accumulatedEventConsumer);
 			
 			this.executorService = executorService;
 		}
@@ -208,8 +214,8 @@ public class DefaultRCEApplicationFactory<E extends Event, EC extends EventConsu
 		}
 
 		@Override
-		protected Iterable<PipelinedEventConsumer<E, AccumulatorEventConsumer<E>>> getEventConsumers(RCEConfig config, EventConsumerFactory<E, PipelinedEventConsumer<E, AccumulatorEventConsumer<E>>> consumerFactory, EventConsumer<AccumulatedEvent<T>> windowEventConsumer) {
-			Iterable<PipelinedEventConsumer<E, AccumulatorEventConsumer<E>>> consumers = super.getEventConsumers(config, consumerFactory, windowEventConsumer);
+		protected Iterable<PipelinedEventConsumer<E, Accumulator<E>>> getEventConsumers(RCEConfig config, EventConsumerFactory<E, PipelinedEventConsumer<E, Accumulator<E>>> consumerFactory, EventConsumer<AccumulatedEvent<T>> windowEventConsumer) {
+			Iterable<PipelinedEventConsumer<E, Accumulator<E>>> consumers = super.getEventConsumers(config, consumerFactory, windowEventConsumer);
 			
 			AsyncPipelineAccumulatorController<E, T> asyncController = new AsyncPipelineAccumulatorController<E, T>(getClock(), RCEConfig.UTIL.getPipelineAccumulatorConfig(config), consumers, windowEventConsumer, executorService);
 			
@@ -220,11 +226,11 @@ public class DefaultRCEApplicationFactory<E extends Event, EC extends EventConsu
 	
 	public static class DefaultSyncRCEApplicationFactory<E extends Event, T extends AccumulatorLookupStrategy<? super E>> extends DefaultRCEApplicationFactory<E, SyncPipelineEventConsumer<E, T>, T>{
 		
-		public DefaultSyncRCEApplicationFactory(EventMarshalBuffer<E> marshalBuffer, EventConsumerFactory<E, AccumulatorEventConsumer<E>> factory, RCEConfig config, EventConsumer<AccumulatedEvent<T>> windowEventConsumer, Clock clock){
+		public DefaultSyncRCEApplicationFactory(EventMarshalBuffer<E> marshalBuffer, EventConsumerFactory<E, Accumulator<E>> factory, RCEConfig config, EventConsumer<AccumulatedEvent<T>> windowEventConsumer, Clock clock){
 			super(marshalBuffer, clock, DefaultSyncRCEApplicationFactory.<E, T>getSynEventConsumerFactory(clock, config, factory, windowEventConsumer), windowEventConsumer);
 		}
 		
-		private static <E extends Event, T extends AccumulatorLookupStrategy<? super E>> EventConsumerFactory<E, SyncPipelineEventConsumer<E, T>> getSynEventConsumerFactory(Clock clock, RCEConfig config, EventConsumerFactory<E, AccumulatorEventConsumer<E>> factory, EventConsumer<AccumulatedEvent<T>> windowEventConsumer) {
+		private static <E extends Event, T extends AccumulatorLookupStrategy<? super E>> EventConsumerFactory<E, SyncPipelineEventConsumer<E, T>> getSynEventConsumerFactory(Clock clock, RCEConfig config, EventConsumerFactory<E, Accumulator<E>> factory, EventConsumer<AccumulatedEvent<T>> windowEventConsumer) {
 			
 			return new SyncEventConsumerFactory<E, T>(new PipelineAccumulatorControllerFactory(clock, RCEConfig.UTIL.getPipelineAccumulatorConfig(config)), factory, windowEventConsumer);
 		}
@@ -232,10 +238,10 @@ public class DefaultRCEApplicationFactory<E extends Event, EC extends EventConsu
 		private static class SyncEventConsumerFactory<E extends Event, T extends AccumulatorLookupStrategy<? super E>> implements EventConsumerFactory<E, SyncPipelineEventConsumer<E, T>>, SystemStartedListener{
 
 			private final PipelineAccumulatorControllerFactory controller;
-			private final EventConsumerFactory<E, AccumulatorEventConsumer<E>> eventConsumerFactory;
+			private final EventConsumerFactory<E, Accumulator<E>> eventConsumerFactory;
 			private final EventConsumer<AccumulatedEvent<T>> accumulatedEventConsumer;
 			
-			private SyncEventConsumerFactory(PipelineAccumulatorControllerFactory controller, EventConsumerFactory<E, AccumulatorEventConsumer<E>> eventConsumerFactory, EventConsumer<AccumulatedEvent<T>> accumulatedEventConsumer){
+			private SyncEventConsumerFactory(PipelineAccumulatorControllerFactory controller, EventConsumerFactory<E, Accumulator<E>> eventConsumerFactory, EventConsumer<AccumulatedEvent<T>> accumulatedEventConsumer){
 				this.controller = controller;
 				this.accumulatedEventConsumer = accumulatedEventConsumer;
 				this.eventConsumerFactory = eventConsumerFactory;

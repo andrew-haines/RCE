@@ -140,7 +140,7 @@ public class RCEApplicationStartupTest {
 			
 			PredicatedClassification classification = candidate.getNaiveBayesService().getMaximumLikelihoodClassification(Arrays.asList(getFeature("true", 1), getFeature("false", 2), getFeature("mild", 3), getFeature("false", 4)));
 			
-			assertThat(classification.getClassification().getValue(), is(equalTo(TEST_CLASS_2.getValue())));
+			assertThat((String)classification.getClassification().getValue(), is(equalTo(TEST_CLASS_2.getValue())));
 			assertThat(classification.getCertainty(), is(closeTo(0.0185, 0.0001)));
 		}
 	}
@@ -172,7 +172,7 @@ public class RCEApplicationStartupTest {
 			if (classification.getClassification() != Classification.UNKNOWN && i == 0){ // sometimes the push may not have happened even after waiting 2 seconds
 			
 				
-				assertThat(classification.getClassification().getValue(), is(equalTo(TEST_CLASS_2.getValue())));
+				assertThat((String)classification.getClassification().getValue(), is(equalTo(TEST_CLASS_2.getValue())));
 				assertThat(classification.getCertainty(), is(closeTo(0.0185, 0.0001)));
 			}
 		}

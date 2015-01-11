@@ -11,5 +11,12 @@ public interface AccumulatorProvider<E extends Event> {
 	 */
 	int getAccumulatorValue(int slot);
 	
+	/**
+	 * Returns the accumulator value at a particular slot but as a floating point number
+	 * @param slot
+	 * @return
+	 */
+	float getAccumulatorValueAsFloat(int slot);
+	
 	AccumulatorLookupStrategy<? super E> getLookupStrategy();
 }

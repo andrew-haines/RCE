@@ -14,36 +14,47 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
 import com.haines.ml.rce.model.Classification;
 import com.haines.ml.rce.model.Feature;
-import com.haines.ml.rce.naivebayes.model.NaiveBayesProperty.NaiveBayesPosteriorProperty;
-import com.haines.ml.rce.naivebayes.model.NaiveBayesProperty.NaiveBayesPriorProperty;
+import com.haines.ml.rce.naivebayes.model.NaiveBayesProperty.DiscreteNaiveBayesPriorProperty;
+import com.haines.ml.rce.naivebayes.model.NaiveBayesProperty.NaiveBayesPriorDistributionProperty;
+import com.haines.ml.rce.naivebayes.model.NaiveBayesProperty.DiscreteNaiveBayesPosteriorProperty;
 
 public abstract class DefaultNaiveBayesIndexes implements NaiveBayesIndexes {
 	
 	private final static Logger LOG = LoggerFactory.getLogger(DefaultNaiveBayesIndexes.class);
-	
-	public static final int NO_INDEX_FOUND = -1;
 
-	private static final Function<? super Classification, ? extends NaiveBayesPriorProperty> CLASSIFICATION_TO_PRIOR_PROPERTY_FUNC = new Function<Classification, NaiveBayesPriorProperty>(){
+	private static final Function<? super Classification, ? extends DiscreteNaiveBayesPriorProperty> CLASSIFICATION_TO_PRIOR_PROPERTY_FUNC = new Function<Classification, DiscreteNaiveBayesPriorProperty>(){
 
 		@Override
-		public NaiveBayesPriorProperty apply(Classification input) {
-			return new NaiveBayesPriorProperty(input);
+		public DiscreteNaiveBayesPriorProperty apply(Classification input) {
+			return new DiscreteNaiveBayesPriorProperty(input);
 		}
 	};
+
+	private static final Function<? super Integer, ? extends NaiveBayesPriorDistributionProperty> PRIOR_TYPE_TRANSFORM_FUNCTION = new Function<Integer, NaiveBayesPriorDistributionProperty>(){
+
+			@Override
+			public NaiveBayesPriorDistributionProperty apply(Integer input) {
+				return new NaiveBayesPriorDistributionProperty(input);
+			}
+		};
 	
 	protected final Map<Classification, Map<Feature, Integer>> posteriorProbabilityIndexes;
 	protected final Map<Classification, Integer> priorProbabilityIndexes;
+	protected final Map<NaiveBayesPosteriorDistributionProperty, int[]> posteriorTypeIndexes;
+	protected final Map<Integer, int[]> priorTypeIndexes;
 	protected int maxIndex;
 	
-	protected DefaultNaiveBayesIndexes(Map<Classification, Map<Feature, Integer>> posteriorProbabilityIndexes, Map<Classification, Integer> priorProbabilityIndexes, int maxIndex){
+	protected DefaultNaiveBayesIndexes(Map<Classification, Map<Feature, Integer>> posteriorProbabilityIndexes, Map<Classification, Integer> priorProbabilityIndexes, Map<NaiveBayesPosteriorDistributionProperty, int[]> posteriorTypeIndexes, Map<Integer, int[]> priorTypeIndexes, int maxIndex){
 		
 		this.posteriorProbabilityIndexes = checkIsEmpty(posteriorProbabilityIndexes);
 		this.priorProbabilityIndexes = checkIsEmpty(priorProbabilityIndexes);
+		this.posteriorTypeIndexes = checkIsEmpty(posteriorTypeIndexes);
+		this.priorTypeIndexes = checkIsEmpty(priorTypeIndexes);
 		
 		this.maxIndex = maxIndex;
 	}
 	
-	public int getPosteriorIndex(Feature feature, Classification classification){
+	public int getDiscretePosteriorIndex(Feature feature, Classification classification){
 		
 		Map<Feature, Integer> innerMap = posteriorProbabilityIndexes.get(classification);
 		
@@ -57,7 +68,7 @@ public abstract class DefaultNaiveBayesIndexes implements NaiveBayesIndexes {
 		return NO_INDEX_FOUND;
 	}
 
-	public int getPriorIndex(Classification classification){
+	public int getDiscretePriorIndex(Classification classification){
 		
 		Integer index = priorProbabilityIndexes.get(classification);
 		
@@ -67,7 +78,7 @@ public abstract class DefaultNaiveBayesIndexes implements NaiveBayesIndexes {
 		return NO_INDEX_FOUND;
 	}
 	
-	public int getMaxIndex(){
+	public final int getMaxIndex(){
 		return maxIndex;
 	}
 	
@@ -78,14 +89,57 @@ public abstract class DefaultNaiveBayesIndexes implements NaiveBayesIndexes {
 		return map;
 	}
 	
-	public Iterable<NaiveBayesPosteriorProperty> getPosteriors(){
-		return new Iterable<NaiveBayesPosteriorProperty>(){
+	@Override
+	public int[] getPosteriorDistributionIndexes(NaiveBayesPosteriorDistributionProperty types, int numIdxes) {
+		
+		int[] indexes = posteriorTypeIndexes.get(types);
+		
+		if (indexes != null){
+			checkIndexLength(types, indexes, numIdxes);
+			
+			return indexes;
+		}
+		
+		return NO_INDEXES_FOUND;
+	}
+
+	@Override
+	public int[] getPriorDistributionIndexes(int classificationIndex, int numIndexes) {
+		int[] indexes = priorTypeIndexes.get(classificationIndex);
+		
+		if (indexes != null){
+			checkIndexLength(null, indexes, numIndexes);
+			
+			return indexes;
+		}
+		
+		return NO_INDEXES_FOUND;
+	}
+
+	protected final void checkIndexLength(NaiveBayesPosteriorDistributionProperty types, int[] indexes, int numIdxes) {
+		if (indexes.length != numIdxes && numIdxes != UNKNOWN_NUM_INDEXES){
+			throw new IllegalArgumentException("Existing slots for type: "+types+" does not have the required num of requested slots. Wanted: "+numIdxes+" slots, found: "+numIdxes+" slots");
+		}
+	}
+	
+	@Override
+	public Iterable<NaiveBayesPosteriorDistributionProperty> getPosteriorDistributions(){
+		return posteriorTypeIndexes.keySet();
+	}
+	
+	@Override
+	public Iterable<NaiveBayesPriorDistributionProperty> getDiscretePriorTypes(){
+		return Iterables.transform(priorTypeIndexes.keySet(), PRIOR_TYPE_TRANSFORM_FUNCTION);
+	}
+
+	public Iterable<DiscreteNaiveBayesPosteriorProperty> getDiscretePosteriors(){
+		return new Iterable<DiscreteNaiveBayesPosteriorProperty>(){
 
 			@Override
-			public Iterator<NaiveBayesPosteriorProperty> iterator() {
+			public Iterator<DiscreteNaiveBayesPosteriorProperty> iterator() {
 				
 				final Iterator<Map.Entry<Classification, Map<Feature, Integer>>> keySetIt = new THashMap<Classification, Map<Feature, Integer>>(posteriorProbabilityIndexes).entrySet().iterator();
-				return new Iterator<NaiveBayesPosteriorProperty>(){
+				return new Iterator<DiscreteNaiveBayesPosteriorProperty>(){
 
 					private Iterator<Feature> currentPosteriorFeatureForClassification;
 					private Classification currentClassification;
@@ -96,7 +150,7 @@ public abstract class DefaultNaiveBayesIndexes implements NaiveBayesIndexes {
 					}
 
 					@Override
-					public NaiveBayesPosteriorProperty next() {
+					public DiscreteNaiveBayesPosteriorProperty next() {
 						if (currentPosteriorFeatureForClassification == null || !currentPosteriorFeatureForClassification.hasNext()){
 							
 							Map.Entry<Classification, Map<Feature, Integer>> entry = keySetIt.next();
@@ -105,7 +159,7 @@ public abstract class DefaultNaiveBayesIndexes implements NaiveBayesIndexes {
 							currentPosteriorFeatureForClassification = entry.getValue().keySet().iterator();
 						}
 						
-						return new NaiveBayesPosteriorProperty(currentPosteriorFeatureForClassification.next(), currentClassification);
+						return new DiscreteNaiveBayesPosteriorProperty(currentPosteriorFeatureForClassification.next(), currentClassification);
 					}
 
 					@Override
@@ -117,7 +171,7 @@ public abstract class DefaultNaiveBayesIndexes implements NaiveBayesIndexes {
 		};
 	}
 
-	public Iterable<NaiveBayesPriorProperty> getPriors() {
+	public Iterable<DiscreteNaiveBayesPriorProperty> getPriors() {
 		return Iterables.transform(new THashMap<>(priorProbabilityIndexes).keySet(), CLASSIFICATION_TO_PRIOR_PROPERTY_FUNC);
 	}
 
@@ -133,9 +187,8 @@ public abstract class DefaultNaiveBayesIndexes implements NaiveBayesIndexes {
 	public NaiveBayesIndexes copy() {
 		
 		final NaiveBayesIndexesProvider globalIndexes = this.getGlobalIndexes();
-		final DefaultNaiveBayesIndexes mutableIndexes = this;
 		
-		return new DefaultNaiveBayesIndexes(copyPosterior(posteriorProbabilityIndexes), copyPriors(priorProbabilityIndexes), this.getMaxIndex()) {
+		return new DefaultNaiveBayesIndexes(copyPosterior(posteriorProbabilityIndexes), copyPriors(priorProbabilityIndexes), copyPosteriorTypes(posteriorTypeIndexes), copyPriorTypes(priorTypeIndexes), this.getMaxIndex()) {
 			
 			@Override
 			public NaiveBayesIndexesProvider getGlobalIndexes() {
@@ -153,11 +206,19 @@ public abstract class DefaultNaiveBayesIndexes implements NaiveBayesIndexes {
 		};
 	}
 
-	private static Map<Classification, Integer> copyPriors(Map<Classification, Integer> priorProbabilityIndexes) {
+	private final static Map<Classification, Integer> copyPriors(Map<Classification, Integer> priorProbabilityIndexes) {
 		return ImmutableMap.copyOf(priorProbabilityIndexes);
 	}
+	
+	private final static Map<NaiveBayesPosteriorDistributionProperty, int[]> copyPosteriorTypes(Map<NaiveBayesPosteriorDistributionProperty, int[]> posteriorTypes){
+		return ImmutableMap.copyOf(posteriorTypes);
+	}
+	
+	private final static Map<Integer, int[]> copyPriorTypes(Map<Integer, int[]> priorTypes){
+		return ImmutableMap.copyOf(priorTypes);
+	}
 
-	private static  Map<Classification, Map<Feature, Integer>> copyPosterior(Map<Classification, Map<Feature, Integer>> posteriorProbabilityIndexes) {
+	private final static  Map<Classification, Map<Feature, Integer>> copyPosterior(Map<Classification, Map<Feature, Integer>> posteriorProbabilityIndexes) {
 		Map<Classification, Map<Feature, Integer>> mapCopy = new THashMap<Classification, Map<Feature,Integer>>();
 		
 		for(Entry<Classification, Map<Feature, Integer>> entry: posteriorProbabilityIndexes.entrySet()){

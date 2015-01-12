@@ -14,6 +14,7 @@ public class NaiveBayesLocalIndexes extends DefaultNaiveBayesIndexes{
 
 	public static final String INJECT_BINDING_GLOBAL_INDEXES_KEY = "com.haines.ml.rce.naivebayes.globalIndexes";
 	private final NaiveBayesIndexesProvider globalIndexes;
+	private Thread currentThread = null; // used for debugging purposes.
 	
 	@Inject
 	public NaiveBayesLocalIndexes(Map<Classification, Map<Feature, Integer>> posteriorProbabilityIndexes, Map<Classification, Integer> priorProbabilityIndexes, Map<NaiveBayesPosteriorDistributionProperty, int[]> posteriorTypeIndexes, Map<Integer, int[]> priorTypeIndexes, NaiveBayesIndexesProvider globalIndexes){
@@ -29,6 +30,9 @@ public class NaiveBayesLocalIndexes extends DefaultNaiveBayesIndexes{
 	
 	@Override
 	public int[] getPriorDistributionIndexes(int classificationIndex, int numIndexes) {
+		
+		assert((currentThread == null)? (currentThread = Thread.currentThread()) == Thread.currentThread(): currentThread == Thread.currentThread()); // when running with assertions on, ensure that only one thread has access to this local index cache
+		
 		int[] idxes = globalIndexes.getIndexes().getPriorDistributionIndexes(classificationIndex, numIndexes);
 		
 		if (idxes == NaiveBayesIndexes.NO_INDEXES_FOUND){
@@ -53,6 +57,9 @@ public class NaiveBayesLocalIndexes extends DefaultNaiveBayesIndexes{
 
 	@Override
 	public int[] getPosteriorDistributionIndexes(NaiveBayesPosteriorDistributionProperty types, int numIdxes) {
+		
+		assert((currentThread == null)? (currentThread = Thread.currentThread()) == Thread.currentThread(): currentThread == Thread.currentThread()); // when running with assertions on, ensure that only one thread has access to this local index cache
+		
 		int[] idxes = globalIndexes.getIndexes().getPosteriorDistributionIndexes(types, numIdxes);
 		
 		if (idxes == NaiveBayesIndexes.NO_INDEXES_FOUND){
@@ -77,6 +84,9 @@ public class NaiveBayesLocalIndexes extends DefaultNaiveBayesIndexes{
 
 	@Override
 	public int getDiscretePosteriorIndex(Feature feature, Classification classification) {
+		
+		assert((currentThread == null)? (currentThread = Thread.currentThread()) == Thread.currentThread(): currentThread == Thread.currentThread()); // when running with assertions on, ensure that only one thread has access to this local index cache
+		
 		int globalIndex = globalIndexes.getIndexes().getDiscretePosteriorIndex(feature, classification);
 		
 		if (globalIndex == NaiveBayesIndexes.NO_INDEX_FOUND){
@@ -104,6 +114,9 @@ public class NaiveBayesLocalIndexes extends DefaultNaiveBayesIndexes{
 
 	@Override
 	public int getDiscretePriorIndex(Classification classification) {
+		
+		assert((currentThread == null)? (currentThread = Thread.currentThread()) == Thread.currentThread(): currentThread == Thread.currentThread()); // when running with assertions on, ensure that only one thread has access to this local index cache
+		
 		int globalIndex = globalIndexes.getIndexes().getDiscretePriorIndex(classification);
 		
 		if (globalIndex == NaiveBayesIndexes.NO_INDEX_FOUND){

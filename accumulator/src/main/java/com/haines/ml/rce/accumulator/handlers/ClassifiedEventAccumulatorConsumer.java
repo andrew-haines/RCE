@@ -8,7 +8,7 @@ import com.haines.ml.rce.model.ClassifiedEvent;
 
 public class ClassifiedEventAccumulatorConsumer<T extends ClassifiedEvent> extends FeaturedEventAccumulatorEventConsumer<T>{
 	
-	public ClassifiedEventAccumulatorConsumer(AccumulatorConfig config, AccumulatorLookupStrategy<T> lookup, FeatureHandlerRepository<T> featureHandlers, ClassificationAccumulatorLookupStrategy lookupStrategy) {
+	public ClassifiedEventAccumulatorConsumer(AccumulatorConfig config, AccumulatorLookupStrategy<? super T> lookup, FeatureHandlerRepository<T> featureHandlers) {
 		super(config, lookup, featureHandlers);
 	}
 

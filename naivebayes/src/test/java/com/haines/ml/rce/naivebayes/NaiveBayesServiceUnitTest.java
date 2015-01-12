@@ -62,7 +62,7 @@ public class NaiveBayesServiceUnitTest {
 		
 		FeatureHandlerRepository<ClassifiedEvent> handlers = FeatureHandlerRepository.create();
 		
-		Accumulator<ClassifiedEvent> eventConsumer = new ClassifiedEventAccumulatorConsumer<ClassifiedEvent>(Accumulator.DEFAULT_CONFIG, lookupStrategy, handlers, lookupStrategy);
+		Accumulator<ClassifiedEvent> eventConsumer = new ClassifiedEventAccumulatorConsumer<ClassifiedEvent>(Accumulator.DEFAULT_CONFIG, lookupStrategy, handlers);
 
 		consumeTestEvents(eventConsumer);
 		

@@ -123,12 +123,12 @@ public abstract class DefaultNaiveBayesIndexes implements NaiveBayesIndexes {
 	}
 	
 	@Override
-	public Iterable<NaiveBayesPosteriorDistributionProperty> getPosteriorDistributions(){
+	public Iterable<NaiveBayesPosteriorDistributionProperty> getPosteriorDistributionsTypes(){
 		return posteriorTypeIndexes.keySet();
 	}
 	
 	@Override
-	public Iterable<NaiveBayesPriorDistributionProperty> getDiscretePriorTypes(){
+	public Iterable<NaiveBayesPriorDistributionProperty> getPriorDistributionTypes(){
 		return Iterables.transform(priorTypeIndexes.keySet(), PRIOR_TYPE_TRANSFORM_FUNCTION);
 	}
 
@@ -171,13 +171,15 @@ public abstract class DefaultNaiveBayesIndexes implements NaiveBayesIndexes {
 		};
 	}
 
-	public Iterable<DiscreteNaiveBayesPriorProperty> getPriors() {
+	public Iterable<DiscreteNaiveBayesPriorProperty> getDiscretePriors() {
 		return Iterables.transform(new THashMap<>(priorProbabilityIndexes).keySet(), CLASSIFICATION_TO_PRIOR_PROPERTY_FUNC);
 	}
 
 	public void clear() {
 		posteriorProbabilityIndexes.clear();
 		priorProbabilityIndexes.clear();
+		posteriorTypeIndexes.clear();
+		priorTypeIndexes.clear();
 		
 		maxIndex = 0;
 	}

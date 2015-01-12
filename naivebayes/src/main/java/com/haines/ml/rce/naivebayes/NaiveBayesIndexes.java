@@ -17,13 +17,13 @@ public interface NaiveBayesIndexes {
 	 * Return all the
 	 * @return
 	 */
-	Iterable<DiscreteNaiveBayesPriorProperty> getPriors();
+	Iterable<DiscreteNaiveBayesPriorProperty> getDiscretePriors();
 	
 	Iterable<DiscreteNaiveBayesPosteriorProperty> getDiscretePosteriors();
 	
-	Iterable<NaiveBayesPosteriorDistributionProperty> getPosteriorDistributions();
+	Iterable<NaiveBayesPosteriorDistributionProperty> getPosteriorDistributionsTypes();
 	
-	Iterable<NaiveBayesPriorDistributionProperty> getDiscretePriorTypes();
+	Iterable<NaiveBayesPriorDistributionProperty> getPriorDistributionTypes();
 
 	int getDiscretePosteriorIndex(Feature feature, Classification classification);
 	

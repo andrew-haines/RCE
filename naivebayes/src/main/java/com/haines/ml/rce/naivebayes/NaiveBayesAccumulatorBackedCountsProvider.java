@@ -110,11 +110,11 @@ public class NaiveBayesAccumulatorBackedCountsProvider implements NaiveBayesCoun
 	}
 
 	public Iterable<NaiveBayesCounts<?>> getPosteriorCounts() {
-		return Iterables.filter(Iterables.transform(Iterables.concat(indexes.getDiscretePosteriors(), indexes.getPosteriorDistributions()), posteriorPropertyToCountsFunction), NON_NULL_PREDICATE);
+		return Iterables.filter(Iterables.transform(Iterables.concat(indexes.getDiscretePosteriors(), indexes.getPosteriorDistributionsTypes()), posteriorPropertyToCountsFunction), NON_NULL_PREDICATE);
 	}
 
 	public Iterable<NaiveBayesCounts<?>> getPriorCounts() {
-		return Iterables.filter(Iterables.transform(Iterables.concat(indexes.getPriors(), indexes.getDiscretePriorTypes()), priorPropertyToCountsFunction), NON_NULL_PREDICATE);
+		return Iterables.filter(Iterables.transform(Iterables.concat(indexes.getDiscretePriors(), indexes.getPriorDistributionTypes()), priorPropertyToCountsFunction), NON_NULL_PREDICATE);
 	}
 	
 	@Override

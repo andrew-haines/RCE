@@ -21,7 +21,7 @@ import com.haines.ml.rce.accumulator.AccumulatorLookupStrategy.AccumulatorLookup
 import com.haines.ml.rce.accumulator.AsyncPipelineAccumulatorController;
 import com.haines.ml.rce.accumulator.PipelineAccumulatorController.PipelineAccumulatorControllerFactory;
 import com.haines.ml.rce.accumulator.SyncPipelineEventConsumer;
-import com.haines.ml.rce.accumulator.handlers.FeaturedEventAccumulatorEventConsumer;
+import com.haines.ml.rce.accumulator.handlers.ClassifiedEventAccumulatorConsumer;
 import com.haines.ml.rce.accumulator.model.AccumulatedEvent;
 import com.haines.ml.rce.dispatcher.Dispatcher;
 import com.haines.ml.rce.dispatcher.DispatcherConsumer;
@@ -35,6 +35,7 @@ import com.haines.ml.rce.eventstream.SelectorEventStreamFactory;
 import com.haines.ml.rce.main.RCEApplication;
 import com.haines.ml.rce.main.RCEApplication.DefaultRCEApplication;
 import com.haines.ml.rce.main.config.RCEConfig;
+import com.haines.ml.rce.model.ClassifiedEvent;
 import com.haines.ml.rce.model.Event;
 import com.haines.ml.rce.model.EventConsumer;
 import com.haines.ml.rce.model.EventConsumerFactory;
@@ -169,7 +170,7 @@ public class DefaultRCEApplicationFactory<E extends Event, EC extends EventConsu
 		return consumers;
 	}
 		
-	public static class FeaturedAccumulatorEventConsumerFactory<E extends FeaturedEvent> implements EventConsumerFactory<E, Accumulator<E>>{
+	public static class FeaturedAccumulatorEventConsumerFactory<E extends ClassifiedEvent> implements EventConsumerFactory<E, Accumulator<E>>{
 
 		private final AccumulatorConfig config;
 		private final AccumulatorLookupStrategyFactory<E> lookupStrategyFactory;
@@ -186,7 +187,7 @@ public class DefaultRCEApplicationFactory<E extends Event, EC extends EventConsu
 		public Accumulator<E> create() {
 			AccumulatorLookupStrategy<? super E> lookupStrategy = lookupStrategyFactory.create();
 			
-			return new FeaturedEventAccumulatorEventConsumer<E>(config, lookupStrategy, featureHandlerRepo);
+			return new ClassifiedEventAccumulatorConsumer<E>(config, lookupStrategy, featureHandlerRepo);
 		}
 	}
 	

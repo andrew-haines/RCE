@@ -22,6 +22,7 @@ import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertThat;
 
+
 public class DisruptorDispatcherConsumerITest {
 	
 	private static final Logger LOG = LoggerFactory.getLogger(DisruptorDispatcherConsumerITest.class);
@@ -30,7 +31,7 @@ public class DisruptorDispatcherConsumerITest {
 
 	private static final int NUM_TEST_EVENTS = 5000000;
 	
-	private Dispatcher<TestEvent> candidate;
+	private Dispatcher<Event> candidate;
 	private Iterable<TestEventConsumer> consumers;
 	private CountDownLatch consumerLatch;
 	
@@ -46,12 +47,12 @@ public class DisruptorDispatcherConsumerITest {
 		
 		consumers = Arrays.asList(new TestEventConsumer(consumerLatch));
 		
-		before(numEventExpected, consumers);
+		before(consumers);
 	}
 	
-	public void before(int numEventExpected, Iterable<TestEventConsumer> consumers){
+	public void before(Iterable<TestEventConsumer> consumers){
 		
-		candidate = new Dispatcher<TestEvent>(getTestConsumers(consumers));
+		candidate = new Dispatcher<Event>(getTestConsumers(consumers));
 	}
 	
 	@Test
@@ -66,6 +67,7 @@ public class DisruptorDispatcherConsumerITest {
 		
 		assertThat(Iterables.get(consumer.getEventsRecieved(), 0).testString, is(equalTo(TEST_EVENT_STRING)));
 		assertThat(Iterables.get(consumer.getEventsRecieved(), 0).testNum, is(equalTo(1)));
+		assertThat(consumer.getNumHeartBeatsRecieved(), is(equalTo(0)));
 	}
 	
 	@Test
@@ -94,6 +96,7 @@ public class DisruptorDispatcherConsumerITest {
 		for (TestEvent event: consumer.getEventsRecieved()){
 			assertThat(event.testString, is(equalTo(TEST_EVENT_STRING+i)));
 			assertThat(event.testNum, is(equalTo(i)));
+			assertThat(consumer.getNumHeartBeatsRecieved(), is(equalTo(0)));
 			i++;
 		}
 	}
@@ -112,7 +115,7 @@ public class DisruptorDispatcherConsumerITest {
 		consumers.add(new TestEventConsumer(consumerLatch));
 		consumers.add(new TestEventConsumer(consumerLatch));
 		
-		before(NUM_TEST_EVENTS, consumers);
+		before(consumers);
 		
 		candidate.dispatchEvent(new TestEvent(TEST_EVENT_STRING+0, 0));
 		
@@ -137,9 +140,36 @@ public class DisruptorDispatcherConsumerITest {
 				assertThat(event.testString, is(not(nullValue())));
 				assertThat(event.testNum >= 0, is(equalTo(true)));
 			}
+			assertThat(consumer.getNumHeartBeatsRecieved(), is(equalTo(0)));
 		}
 		
 		assertThat(totalEvents, is(equalTo(NUM_TEST_EVENTS)));
+	}
+	
+	@Test
+	public void givenMultipleConsumerCandidates_whenSendingHeartBeat_thenAllConsumersNotified() throws InterruptedException{
+		
+		consumerLatch = new CountDownLatch(7);
+		Collection<TestEventConsumer> consumers = new ArrayList<TestEventConsumer>();
+		
+		consumers.add(new TestEventConsumer(consumerLatch));
+		consumers.add(new TestEventConsumer(consumerLatch));
+		consumers.add(new TestEventConsumer(consumerLatch));
+		consumers.add(new TestEventConsumer(consumerLatch));
+		consumers.add(new TestEventConsumer(consumerLatch));
+		consumers.add(new TestEventConsumer(consumerLatch));
+		consumers.add(new TestEventConsumer(consumerLatch));
+		
+		before(consumers);
+		
+		candidate.sendHeartBeat();
+		
+		consumerLatch.await();
+		
+		
+		for (TestEventConsumer consumer: consumers){
+			assertThat(consumer.getNumHeartBeatsRecieved(), is(equalTo(1)));
+		}
 	}
 	
 	private static double calculateRPS(long timeSpent, int numberEventsToSend) {
@@ -147,13 +177,13 @@ public class DisruptorDispatcherConsumerITest {
 		return 1000 / ((double)timeSpent / numberEventsToSend);
 	}
 
-	private Iterable<DispatcherConsumer<TestEvent>> getTestConsumers(Iterable<TestEventConsumer> consumers) {
+	private Iterable<DispatcherConsumer<Event>> getTestConsumers(Iterable<TestEventConsumer> consumers) {
 		
-		Iterable<DispatcherConsumer<TestEvent>> builders = Iterables.transform(consumers, new Function<TestEventConsumer, DispatcherConsumer<TestEvent>>(){
+		Iterable<DispatcherConsumer<Event>> builders = Iterables.transform(consumers, new Function<TestEventConsumer, DispatcherConsumer<Event>>(){
 
 			@Override
-			public DispatcherConsumer<TestEvent> apply(TestEventConsumer input) {
-				return new DisruptorConsumer.Builder<TestEvent>(Executors.newSingleThreadExecutor(), 
+			public DispatcherConsumer<Event> apply(TestEventConsumer input) {
+				return new DisruptorConsumer.Builder<Event>(Executors.newSingleThreadExecutor(), 
 						new DisruptorConfig.Builder()
 							.ringSize(1024)
 							.build()
@@ -176,9 +206,10 @@ public class DisruptorDispatcherConsumerITest {
 		}
 	}
 	
-	private static class TestEventConsumer implements EventConsumer<TestEvent>{
+	private static class TestEventConsumer implements EventConsumer<Event>{
 
 		private final Collection<TestEvent> eventsRecieved = new ArrayList<TestEvent>();
+		private int numHeartBeatsRecieved = 0;
 		private final CountDownLatch latch;
 		
 		private TestEventConsumer(CountDownLatch latch){
@@ -186,14 +217,26 @@ public class DisruptorDispatcherConsumerITest {
 		}
 		
 		@Override
-		public void consume(TestEvent event) {
+		public void consume(Event event) {
 			
-			eventsRecieved.add(event);
+			if (event == Event.HEARTBEAT){
+				setNumHeartBeatsRecieved(getNumHeartBeatsRecieved() + 1);
+			} else{
+				eventsRecieved.add((TestEvent)event);
+			}
 			latch.countDown();
 		}
 
 		public Collection<TestEvent> getEventsRecieved() {
 			return eventsRecieved;
+		}
+
+		public int getNumHeartBeatsRecieved() {
+			return numHeartBeatsRecieved;
+		}
+
+		public void setNumHeartBeatsRecieved(int numHeartBeatsRecieved) {
+			this.numHeartBeatsRecieved = numHeartBeatsRecieved;
 		}
 		
 	}

@@ -63,6 +63,9 @@ public class NaiveBayesAccumulatorBackedCountsProvider implements NaiveBayesCoun
 			private DiscreteNaiveBayesCounts getDiscreteCounts(DiscreteNaiveBayesPosteriorProperty property){
 				int slot = NaiveBayesAccumulatorBackedCountsProvider.this.indexes.getDiscretePosteriorIndex(property.getFeature(), property.getClassification());
 				
+				if (slot == -1){
+					slot = NaiveBayesAccumulatorBackedCountsProvider.this.indexes.getDiscretePosteriorIndex(property.getFeature(), property.getClassification());
+				}
 				int count = accumulator.getAccumulatorValue(slot);
 				
 				if (count > 0){
@@ -109,12 +112,20 @@ public class NaiveBayesAccumulatorBackedCountsProvider implements NaiveBayesCoun
 		};
 	}
 
-	public Iterable<NaiveBayesCounts<?>> getPosteriorCounts() {
+	private Iterable<NaiveBayesCounts<?>> getPosteriorCounts(NaiveBayesIndexes indexes) {
 		return Iterables.filter(Iterables.transform(Iterables.concat(indexes.getDiscretePosteriors(), indexes.getPosteriorDistributionsTypes()), posteriorPropertyToCountsFunction), NON_NULL_PREDICATE);
 	}
 
-	public Iterable<NaiveBayesCounts<?>> getPriorCounts() {
+	private Iterable<NaiveBayesCounts<?>> getPriorCounts(NaiveBayesIndexes indexes) {
 		return Iterables.filter(Iterables.transform(Iterables.concat(indexes.getDiscretePriors(), indexes.getPriorDistributionTypes()), priorPropertyToCountsFunction), NON_NULL_PREDICATE);
+	}
+	
+	private Iterable<NaiveBayesCounts<?>> getPosteriorCounts(){
+		return Iterables.concat(getPosteriorCounts(indexes), getPosteriorCounts(indexes.getGlobalIndexes()));
+	}
+	
+	private Iterable<NaiveBayesCounts<?>> getPriorCounts(){
+		return Iterables.concat(getPriorCounts(indexes), getPriorCounts(indexes.getGlobalIndexes()));
 	}
 	
 	@Override

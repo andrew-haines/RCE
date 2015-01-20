@@ -17,7 +17,7 @@ public class ClassifiedEventAccumulatorConsumer<T extends ClassifiedEvent> exten
 		super.consume(event);
 		
 		for (Classification classification: event.getClassificationsList()){
-			getFeatureHandlers().getClassificationHandler(classification.getType()).increment(classification, event, this, this.getLookupStrategy());
+			featureHandlers.getClassificationHandler(classification.getType()).increment(classification, event, this, lookup);
 		}
 	}
 }

@@ -15,18 +15,18 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
 
-public class AccumulatorEventConsumerUnitTest {
+public class AccumulatorUnitTest {
 	
-	private static final Logger LOG = LoggerFactory.getLogger(AccumulatorEventConsumerUnitTest.class);
+	private static final Logger LOG = LoggerFactory.getLogger(AccumulatorUnitTest.class);
 
 	private Accumulator<TestEvent> candidate;
 	private final AccumulatorLookupStrategy<? extends TestEvent> lookupStrategy;
 	
-	public AccumulatorEventConsumerUnitTest(){
+	public AccumulatorUnitTest(){
 		this(new TestEventAccumulatorLookupStrategy());
 	}
 	
-	protected AccumulatorEventConsumerUnitTest(AccumulatorLookupStrategy<? extends TestEvent> lookupStrategy){
+	protected AccumulatorUnitTest(AccumulatorLookupStrategy<? extends TestEvent> lookupStrategy){
 		this.lookupStrategy = lookupStrategy;
 	}
 	
@@ -39,7 +39,7 @@ public class AccumulatorEventConsumerUnitTest {
 	
 	@SuppressWarnings("unchecked")
 	protected Accumulator<? extends TestEvent> getNewAccumulator(AccumulatorLookupStrategy<? extends TestEvent> lookupStrategy) {
-		return AccumulatorEventConsumerUnitTest.createNewAccumulator((AccumulatorLookupStrategy<TestEvent>)lookupStrategy);
+		return AccumulatorUnitTest.createNewAccumulator((AccumulatorLookupStrategy<TestEvent>)lookupStrategy);
 	}
 	
 	static Accumulator<TestEvent> createNewAccumulator(AccumulatorLookupStrategy<TestEvent> lookupStrategy){

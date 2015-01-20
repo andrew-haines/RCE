@@ -19,12 +19,12 @@ public class TestClassification implements Classification {
 	
 	@Override
 	public int hashCode() {
-		return classificationStr.hashCode();
+		return 31 * classificationStr.hashCode() + 31 * classificationType;
 	}
 
 	@Override
 	public boolean equals(Object obj) {
-		return classificationStr.equals(((TestClassification)obj).classificationStr);
+		return classificationStr.equals(((TestClassification)obj).classificationStr) && classificationType == ((TestClassification)obj).classificationType;
 	}
 	
 	@Override

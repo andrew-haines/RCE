@@ -193,6 +193,11 @@ public interface RCEConfig {
 				public int getNumWindows() {
 					return config.getNumWindows();
 				}
+
+				@Override
+				public int getGlobalIndexLimit() {
+					return config.getGlobalIndexLimit();
+				}
 				
 			};
 		}
@@ -276,10 +281,17 @@ public interface RCEConfig {
 		public long getWindowPeriod() {
 			return delegate.getWindowPeriod();
 		}
+
+		@Override
+		public int getGlobalIndexLimit() {
+			return delegate.getGlobalIndexLimit();
+		}
 		
 	}
 
 	int getDisruptorRingSize();
+
+	int getGlobalIndexLimit();
 
 	int getNumWindows();
 

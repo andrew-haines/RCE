@@ -3,7 +3,6 @@ package com.haines.ml.rce.accumulator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.collect.Ordering;
 import com.haines.ml.rce.model.Event;
 import com.haines.ml.rce.model.EventConsumer;
 
@@ -50,35 +49,39 @@ public abstract class Accumulator<T extends Event> implements EventConsumer<T>, 
 	private static final Logger LOG = LoggerFactory.getLogger(Accumulator.class);
 	
 	private final int[][][] accumulators;
-	private final AccumulatorLookupStrategy<? super T> lookup;
+	protected final AccumulatorLookupStrategy<? super T> lookup;
 	private final int finalAccumulatorLineSize;
 	private final int finalAccumulatorBitSize;
 	private final int finalAccumulatorMask;
+	private final int secondAccumualtorLineSize;
 	private final int firstAccumulatorLineIndexMask;
 	private final int secondAccumulatorLineIndexMask;
 	private final int firstAccumulatorShift;
 	private final int phyisicalLimitOfAccumulator;
 	private final AccumulatorConfig config;
+	private int currentMaxIdx = 0;
 	
 	public Accumulator(AccumulatorConfig config, AccumulatorLookupStrategy<? super T> lookup){
 		
 		this.config = config;
 		int firstLineLength = getFirstLineMaxIndex(config);
-		int secondLineLength = getSecondLineMaxIndex(config);
-		this.accumulators = newAccumulator(firstLineLength, secondLineLength);
+		secondAccumualtorLineSize = getSecondLineMaxIndex(config);
+		this.accumulators = newAccumulator(firstLineLength, secondAccumualtorLineSize);
 		this.lookup = lookup;
 		
 		this.finalAccumulatorBitSize = config.getFinalAccumulatorLineBitDepth();
 		this.finalAccumulatorLineSize = (int)Math.pow(2, finalAccumulatorBitSize);
 		if (LOG.isDebugEnabled()){
-			printAccumulatorConfig(firstLineLength, secondLineLength, finalAccumulatorLineSize);
+			printAccumulatorConfig(firstLineLength, secondAccumualtorLineSize, finalAccumulatorLineSize);
 		
 		}
 		this.finalAccumulatorMask = finalAccumulatorLineSize-1;
 		this.firstAccumulatorShift = finalAccumulatorBitSize + config.getSecondAccumulatorLineBitDepth();
 		this.firstAccumulatorLineIndexMask = (firstLineLength-1) << firstAccumulatorShift; // shift 18
-		this.secondAccumulatorLineIndexMask = (secondLineLength-1) << finalAccumulatorBitSize; // shift 12
-		this.phyisicalLimitOfAccumulator = (firstLineLength * secondLineLength * finalAccumulatorLineSize) - 1;
+		this.secondAccumulatorLineIndexMask = (secondAccumualtorLineSize-1) << finalAccumulatorBitSize; // shift 12
+		this.phyisicalLimitOfAccumulator = (firstLineLength * secondAccumualtorLineSize * finalAccumulatorLineSize) - 1;
+		
+		this.currentMaxIdx = finalAccumulatorLineSize;
 	}
 	
 	private int[][][] newAccumulator(int firstLineLength, int secondLineLength) {
@@ -114,11 +117,12 @@ public abstract class Accumulator<T extends Event> implements EventConsumer<T>, 
 		for (int i = 0; i < slots.length; i++){
 			int slot = slots[i];
 			if (slot > getMaxIndex()){
-				LOG.warn("We are trying to update an accumulator which we dont have an index for. Rolling back event updates");
+				LOG.warn("We are trying to update an accumulator which we dont have an index for. Rolling back event updates. slot {} into {}", slot, getMaxIndex());
 				
 				rollbackSlots(slots, i);
 				return;
 			}
+			
 			incrementAccumulator(slot);
 		}
 	}
@@ -134,6 +138,8 @@ public abstract class Accumulator<T extends Event> implements EventConsumer<T>, 
 		// now clear the indexes
 		
 		lookup.clear();
+		
+		this.currentMaxIdx = finalAccumulatorLineSize;
 	}
 	
 	public void rollbackSlots(int[] slots, int idxToRollbackTo) {
@@ -151,8 +157,12 @@ public abstract class Accumulator<T extends Event> implements EventConsumer<T>, 
 		getAccumulatorLine(slot)[accumulatorIdx]--;
 	}
 	
+	private final int getFirstAccumulatorLineIdx(int slot){
+		return (slot & firstAccumulatorLineIndexMask) >> firstAccumulatorShift;//use most significant n bits for first index
+	}
+	
 	private int[][] getFirstAccumulatorLine(int slot){
-		int firstAccumulatorLineIdx = (slot & firstAccumulatorLineIndexMask) >> firstAccumulatorShift;//use most significant n bits for first index
+		int firstAccumulatorLineIdx = getFirstAccumulatorLineIdx(slot);
 		
 		return accumulators[firstAccumulatorLineIdx];
 	}
@@ -168,9 +178,18 @@ public abstract class Accumulator<T extends Event> implements EventConsumer<T>, 
 		int secondAccumulatorLineId = getSecondAccumulatorLineIdx(slot);
 		if (firstAccumulatorLine[secondAccumulatorLineId] == null){
 			firstAccumulatorLine[secondAccumulatorLineId] = new int[finalAccumulatorLineSize];
+			
+			int potentialNewMaxIdx = getNewMaxId(getFirstAccumulatorLineIdx(slot), secondAccumulatorLineId);
+			if (currentMaxIdx < potentialNewMaxIdx){
+				currentMaxIdx = potentialNewMaxIdx; // add another line to the max idx size
+			}
 		}
 		
 		return firstAccumulatorLine[secondAccumulatorLineId];
+	}
+	
+	private int getNewMaxId(int firstAccumulatorIdx, int secondAccumulatorIdx){
+		return (firstAccumulatorIdx * secondAccumualtorLineSize * finalAccumulatorLineSize) + ((1+secondAccumulatorIdx) * finalAccumulatorLineSize);
 	}
 
 	public void incrementAccumulator(int slot) {
@@ -207,11 +226,11 @@ public abstract class Accumulator<T extends Event> implements EventConsumer<T>, 
 
 	public AccumulatorProvider<T> getAccumulatorProvider() {
 		
-		return new MemorySafeAccumulatorProvider<T>(accumulators, getMaxIndex(), finalAccumulatorLineSize, lookup);
+		return new MemorySafeAccumulatorProvider<T>(accumulators, currentMaxIdx, finalAccumulatorLineSize, lookup);
 	}
 	
 	public int getMaxIndex() {
-		return Ordering.natural().min(lookup.getMaxIndex(), phyisicalLimitOfAccumulator);
+		return phyisicalLimitOfAccumulator;
 	}
 
 	/**

@@ -13,4 +13,10 @@ public interface WindowConfig {
 	 * @return
 	 */
 	int getNumWindows();
+
+	/**
+	 * Returns the maximum number of entities that should be pushed to the global index
+	 * @return
+	 */
+	int getGlobalIndexLimit();
 }

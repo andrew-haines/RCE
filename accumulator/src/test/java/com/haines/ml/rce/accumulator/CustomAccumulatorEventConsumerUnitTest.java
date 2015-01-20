@@ -7,7 +7,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.haines.ml.rce.accumulator.AccumulatorEventConsumerUnitTest.TestEvent;
+import com.haines.ml.rce.accumulator.AccumulatorUnitTest.TestEvent;
 
 public class CustomAccumulatorEventConsumerUnitTest {
 	
@@ -47,13 +47,13 @@ public class CustomAccumulatorEventConsumerUnitTest {
 		}
 	};
 	
-	private Accumulator<AccumulatorEventConsumerUnitTest.TestEvent> candidate;
-	private Accumulator<AccumulatorEventConsumerUnitTest.TestEvent> candidateLarge;
+	private Accumulator<AccumulatorUnitTest.TestEvent> candidate;
+	private Accumulator<AccumulatorUnitTest.TestEvent> candidateLarge;
 	
 	@Before
 	public void before(){
-		candidate = AccumulatorEventConsumerUnitTest.createNewAccumulator(TEST_CONFIG, new AccumulatorEventConsumerUnitTest.TestEventAccumulatorLookupStrategy());
-		candidateLarge = AccumulatorEventConsumerUnitTest.createNewAccumulator(LARGE_TEST_CONFIG, new AccumulatorEventConsumerUnitTest.TestEventAccumulatorLookupStrategy());
+		candidate = AccumulatorUnitTest.createNewAccumulator(TEST_CONFIG, new AccumulatorUnitTest.TestEventAccumulatorLookupStrategy());
+		candidateLarge = AccumulatorUnitTest.createNewAccumulator(LARGE_TEST_CONFIG, new AccumulatorUnitTest.TestEventAccumulatorLookupStrategy());
 
 	}
 	
@@ -61,7 +61,7 @@ public class CustomAccumulatorEventConsumerUnitTest {
 	public void givenCandidateWithConfiguredAccumulatorSizes_whenConsumingSlotsPerEvent_thenAccumulatorsUpdatedCorrectly(){
 		assertThat(candidate.getAccumulatorProvider().getAccumulatorValue(1), is(equalTo(0)));
 		
-		candidate.consume(new AccumulatorEventConsumerUnitTest.TestEvent(new int[]{1, 5, 7,8 ,3 ,4}));
+		candidate.consume(new AccumulatorUnitTest.TestEvent(new int[]{1, 5, 7,8 ,3 ,4}));
 		
 		AccumulatorProvider<TestEvent> provider = candidate.getAccumulatorProvider();
 		
@@ -78,7 +78,7 @@ public class CustomAccumulatorEventConsumerUnitTest {
 	@Test
 	public void givenCandidateWithConfiguredAccumulatorSizes_whenConsumingEvent_thenAccumulatorUpdatedCorrectly(){
 		assertThat(candidate.getAccumulatorProvider().getAccumulatorValue(1), is(equalTo(0)));
-		candidate.consume(new AccumulatorEventConsumerUnitTest.TestEvent(new int[]{1}));
+		candidate.consume(new AccumulatorUnitTest.TestEvent(new int[]{1}));
 		
 		AccumulatorProvider<TestEvent> provider = candidate.getAccumulatorProvider();
 		

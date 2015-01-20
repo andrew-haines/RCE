@@ -63,7 +63,7 @@ public class PipelineAccumulatorController {
 		if (currentTime >= nextPushToPipe){ // we need to push data to pipe. Basically set up memory barrier for consumer to read data
 			pushToPipe(sourceConsumer, nextStageConsumer);
 		} else{
-			LOG.debug("Skipping push as {} is not greater than push time {}", currentTime, nextPushToPipe);
+			//LOG.debug("Skipping push as {} is not greater than push time {}", currentTime, nextPushToPipe);
 		}
 	}
 

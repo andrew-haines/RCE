@@ -10,7 +10,7 @@ import com.haines.ml.rce.model.FeaturedEvent;
 
 public class FeaturedEventAccumulatorEventConsumer<T extends FeaturedEvent> extends Accumulator<T> implements EventConsumer<T>{
 
-	private final FeatureHandlerRepository<T> featureHandlers;
+	protected final FeatureHandlerRepository<T> featureHandlers;
 	
 	public FeaturedEventAccumulatorEventConsumer(AccumulatorConfig config,AccumulatorLookupStrategy<? super T> lookup, FeatureHandlerRepository<T> featureHandlers) {
 		super(config, lookup);
@@ -21,7 +21,7 @@ public class FeaturedEventAccumulatorEventConsumer<T extends FeaturedEvent> exte
 	public void consume(T event) {
 		
 		for (Feature feature: event.getFeaturesList()){
-			getFeatureHandlers().getFeatureHandler(feature.getType()).increment(feature, event, this, this.getLookupStrategy());
+			featureHandlers.getFeatureHandler(feature.getType()).increment(feature, event, this, lookup);
 		}
 	}
 

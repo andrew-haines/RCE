@@ -178,4 +178,15 @@ public class OverrideRCEConfig implements RCEConfig{
 			}
 		});
 	}
+
+	@Override
+	public int getGlobalIndexLimit() {
+		return doOverride(new ValueGetter<Integer>(){
+
+			@Override
+			public Integer getValue(RCEConfig config) {
+				return config.getGlobalIndexLimit();
+			}
+		});
+	}
 }

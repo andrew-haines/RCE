@@ -113,6 +113,8 @@ public class WindowManagerUnitTest {
 		TEST_PRIOR_EVENTS_1, TEST_PRIOR_EVENTS_2, TEST_PRIOR_EVENTS_3, TEST_PRIOR_EVENTS_4, TEST_PRIOR_EVENTS_5, TEST_PRIOR_EVENTS_6
 	};
 
+	private static final int TEST_MAX_GLOBAL_INDEX_LIMIT = 1000000;
+
 	private WindowManager candidate;
 	private StaticClock testClock;
 	private AtomicInteger numUpdatedWindows;
@@ -134,6 +136,11 @@ public class WindowManagerUnitTest {
 			@Override
 			public int getNumWindows() {
 				return TEST_NUM_WINDOWS;
+			}
+
+			@Override
+			public int getGlobalIndexLimit() {
+				return TEST_MAX_GLOBAL_INDEX_LIMIT;
 			}
 			
 		}, testClock, Arrays.asList(new WindowUpdatedListener() {

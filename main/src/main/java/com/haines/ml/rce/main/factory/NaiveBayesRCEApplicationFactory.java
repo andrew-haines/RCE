@@ -23,24 +23,26 @@ import com.haines.ml.rce.naivebayes.NaiveBayesLocalIndexes;
 import com.haines.ml.rce.naivebayes.NaiveBayesRCEApplication;
 import com.haines.ml.rce.naivebayes.NaiveBayesService;
 import com.haines.ml.rce.naivebayes.NaiveBayesGlobalIndexes.VolatileNaiveBayesGlobalIndexesProvider;
+import com.haines.ml.rce.window.WindowConfig;
 import com.haines.ml.rce.window.WindowEventConsumer;
 import com.haines.ml.rce.window.WindowManager;
 import com.haines.ml.rce.window.WindowUpdatedListener;
 
 public class NaiveBayesRCEApplicationFactory<E extends ClassifiedEvent> implements RCEApplicationFactory<E>{
 
-	public static <E extends ClassifiedEvent> AccumulatorRCEApplicationFactory<E, RONaiveBayesMapBasedLookupStrategy<E>> getSyncNaiveBayesRCEApplicationFactory(EventMarshalBuffer<E> marshalBuffer, RCEConfig config, WindowManager manager, Clock clock, FeatureHandlerRepository<E> featureHandlerRepo){
-		return getNaiveBayesRCEApplicationFactory(Mode.SYNC, marshalBuffer, config, manager, clock, featureHandlerRepo);
+	public static <E extends ClassifiedEvent> AccumulatorRCEApplicationFactory<E, RONaiveBayesMapBasedLookupStrategy<E>> getSyncNaiveBayesRCEApplicationFactory(EventMarshalBuffer<E> marshalBuffer, RCEConfig config, WindowManager manager, Clock clock, FeatureHandlerRepository<E> featureHandlerRepo, WindowConfig windowConfig){
+		return getNaiveBayesRCEApplicationFactory(Mode.SYNC, marshalBuffer, config, manager, clock, featureHandlerRepo, windowConfig);
 	}
 	
-	public static <E extends ClassifiedEvent> AccumulatorRCEApplicationFactory<E, RONaiveBayesMapBasedLookupStrategy<E>> getASyncNaiveBayesRCEApplicationFactory(EventMarshalBuffer<E> marshalBuffer, RCEConfig config, WindowManager manager, Clock clock, FeatureHandlerRepository<E> featureHandlerRepo){
-		return getNaiveBayesRCEApplicationFactory(Mode.ASYNC, marshalBuffer, config, manager, clock, featureHandlerRepo);
+	public static <E extends ClassifiedEvent> AccumulatorRCEApplicationFactory<E, RONaiveBayesMapBasedLookupStrategy<E>> getASyncNaiveBayesRCEApplicationFactory(EventMarshalBuffer<E> marshalBuffer, RCEConfig config, WindowManager manager, Clock clock, FeatureHandlerRepository<E> featureHandlerRepo, WindowConfig windowConfig){
+		return getNaiveBayesRCEApplicationFactory(Mode.ASYNC, marshalBuffer, config, manager, clock, featureHandlerRepo, windowConfig);
 	}
 	
-	private static <E extends ClassifiedEvent> AccumulatorRCEApplicationFactory<E, RONaiveBayesMapBasedLookupStrategy<E>> getNaiveBayesRCEApplicationFactory(Mode mode, EventMarshalBuffer<E> marshalBuffer, RCEConfig config, WindowManager manager, Clock clock, FeatureHandlerRepository<E> featureHandlerRepo){
+	private static <E extends ClassifiedEvent> AccumulatorRCEApplicationFactory<E, RONaiveBayesMapBasedLookupStrategy<E>> getNaiveBayesRCEApplicationFactory(Mode mode, EventMarshalBuffer<E> marshalBuffer, RCEConfig config, WindowManager manager, Clock clock, FeatureHandlerRepository<E> featureHandlerRepo, WindowConfig windowConfig){
 		
-		EventConsumer<AccumulatedEvent<RONaiveBayesMapBasedLookupStrategy<E>>> windowEventConsumer = new WindowEventConsumer<E>(manager, featureHandlerRepo);
 		final VolatileNaiveBayesGlobalIndexesProvider globalIndexes = new VolatileNaiveBayesGlobalIndexesProvider(new NaiveBayesGlobalIndexes());
+		
+		EventConsumer<AccumulatedEvent<RONaiveBayesMapBasedLookupStrategy<E>>> windowEventConsumer = new WindowEventConsumer<E>(manager, featureHandlerRepo, windowConfig, globalIndexes);
 		
 		return new AccumulatorRCEApplicationFactory<E, RONaiveBayesMapBasedLookupStrategy<E>>(marshalBuffer, mode, config, windowEventConsumer, clock, new AccumulatorLookupStrategyFactory<E>() {
 
@@ -81,11 +83,13 @@ public class NaiveBayesRCEApplicationFactory<E extends ClassifiedEvent> implemen
 			
 			FeatureHandlerRepository<E> repo = featureHandlerRepo.create();
 			
-			WindowManager manager = new WindowManager(RCEConfig.UTIL.getWindowConfig(config), clock, Iterables.filter(startupListeners, WindowUpdatedListener.class), repo);
+			WindowConfig windowConfig = RCEConfig.UTIL.getWindowConfig(config);
+			
+			WindowManager manager = new WindowManager(windowConfig, clock, Iterables.filter(startupListeners, WindowUpdatedListener.class), repo);
 			
 			NaiveBayesService classifierService = new NaiveBayesService(manager);
 			
-			RCEApplicationFactory<E> factory = NaiveBayesRCEApplicationFactory.getNaiveBayesRCEApplicationFactory(mode, marshalBuffer, config, manager, clock, repo);
+			RCEApplicationFactory<E> factory = NaiveBayesRCEApplicationFactory.getNaiveBayesRCEApplicationFactory(mode, marshalBuffer, config, manager, clock, repo, windowConfig);
 			
 			if (startupListeners != null){
 				factory.addSystemListeners(startupListeners);

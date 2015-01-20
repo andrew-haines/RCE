@@ -6,8 +6,8 @@ import java.util.Map;
 
 import javax.inject.Inject;
 
+import com.google.common.collect.Iterables;
 import com.haines.ml.rce.accumulator.AccumulatorProvider;
-import com.haines.ml.rce.accumulator.DistributionProvider;
 import com.haines.ml.rce.accumulator.FeatureHandlerRepository;
 import com.haines.ml.rce.accumulator.handlers.ClassificationHandler;
 import com.haines.ml.rce.accumulator.handlers.FeatureHandler;
@@ -21,6 +21,7 @@ import com.haines.ml.rce.naivebayes.NaiveBayesAccumulatorBackedCountsProvider;
 import com.haines.ml.rce.naivebayes.NaiveBayesCountsProvider;
 import com.haines.ml.rce.naivebayes.NaiveBayesGlobalIndexes;
 import com.haines.ml.rce.naivebayes.NaiveBayesIndexes;
+import com.haines.ml.rce.naivebayes.NaiveBayesIndexesProvider;
 import com.haines.ml.rce.naivebayes.NaiveBayesProbabilities;
 import com.haines.ml.rce.naivebayes.NaiveBayesProbabilitiesProvider;
 import com.haines.ml.rce.naivebayes.NaiveBayesIndexes.NaiveBayesPosteriorDistributionProperty;
@@ -34,11 +35,15 @@ public class WindowEventConsumer<E extends ClassifiedEvent> implements EventCons
 
 	private final WindowManager aggregator;
 	private final FeatureHandlerRepository<E> featureHandlers;
+	private final WindowConfig config;
+	private final NaiveBayesIndexesProvider globalIndexProvider;
 	
 	@Inject
-	public WindowEventConsumer(WindowManager aggregator, FeatureHandlerRepository<E> featureHandlers){
+	public WindowEventConsumer(WindowManager aggregator, FeatureHandlerRepository<E> featureHandlers, WindowConfig config, NaiveBayesIndexesProvider globalIndexProvider){
 		this.aggregator = aggregator;
 		this.featureHandlers = featureHandlers;
+		this.config = config;
+		this.globalIndexProvider = globalIndexProvider;
 	}
 	
 	@Override
@@ -71,7 +76,7 @@ public class WindowEventConsumer<E extends ClassifiedEvent> implements EventCons
 				Map<Integer, int[]> priorTypeIndexes = new THashMap<Integer, int[]>();
 				
 				int indexLocation = 0;
-				for (NaiveBayesProperty property: probabilities.getOrderedProperties()){
+				for (NaiveBayesProperty property: Iterables.limit(probabilities.getOrderedProperties(), config.getGlobalIndexLimit())){ // limit to the global index limit
 					if (property.getType() == PropertyType.DISCRETE_POSTERIOR_TYPE){
 						DiscreteNaiveBayesPosteriorProperty posterior = PropertyType.DISCRETE_POSTERIOR_TYPE.cast(property);
 						
@@ -127,7 +132,7 @@ public class WindowEventConsumer<E extends ClassifiedEvent> implements EventCons
 				
 				NaiveBayesIndexes newGlobalIndexes = new NaiveBayesGlobalIndexes(discretePosteriors, discretePriors, posteriorTypeIndexes, priorTypeIndexes);
 				
-				strategy.getIndexes().getGlobalIndexes().setIndexes(newGlobalIndexes);
+				globalIndexProvider.setIndexes(newGlobalIndexes);
 			}
 		});
 		

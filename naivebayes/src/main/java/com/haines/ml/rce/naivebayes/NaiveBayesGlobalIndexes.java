@@ -74,26 +74,21 @@ public class NaiveBayesGlobalIndexes extends DefaultNaiveBayesIndexes{
 	protected <K, V> Map<K, V> checkIsEmpty(Map<K, V> map) {
 		return map; // global indexes can have items in them
 	}
+	
+	@Override
+	public String toString(){
+		return "Global Indexes";
+	}
 
 	@Override
-	public NaiveBayesIndexesProvider getGlobalIndexes() {
-		return new NaiveBayesIndexesProvider() {
-			
-			@Override
-			public void setIndexes(NaiveBayesIndexes indexes) {
-				throw new UnsupportedOperationException("indexes cannot be updated on the global index directly");
-			}
-			
-			@Override
-			public NaiveBayesIndexes getIndexes() {
-				return NaiveBayesGlobalIndexes.this;
-			}
-		};
+	public NaiveBayesIndexes getGlobalIndexes() {
+		return this;
 	}
 	
 	public static class VolatileNaiveBayesGlobalIndexesProvider implements NaiveBayesIndexesProvider{
 
 		private volatile NaiveBayesGlobalIndexes indexes;
+		private Thread currentThread; // used for debugging
 		
 		@Inject
 		public VolatileNaiveBayesGlobalIndexesProvider(NaiveBayesGlobalIndexes indexes){
@@ -101,12 +96,15 @@ public class NaiveBayesGlobalIndexes extends DefaultNaiveBayesIndexes{
 		}
 		
 		@Override
-		public NaiveBayesGlobalIndexes getIndexes() {
+		public NaiveBayesGlobalIndexes getIndexes() { // this can be read by multiple threads.
 			return indexes;
 		}
 
 		@Override
 		public void setIndexes(NaiveBayesIndexes indexes) {
+			
+			assert((currentThread == null)? (currentThread = Thread.currentThread()) == Thread.currentThread(): currentThread == Thread.currentThread()); // when running with assertions on, ensure that only one thread has access to update this index.
+
 			this.indexes = (NaiveBayesGlobalIndexes)indexes;
 		}	
 	}

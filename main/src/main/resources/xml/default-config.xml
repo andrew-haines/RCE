@@ -4,6 +4,7 @@
     <microBatchIntervalMs>2000</microBatchIntervalMs>
     <disruptorRingSize>1024</disruptorRingSize>
     <eventByteOrder>big</eventByteOrder>
+    <globalIndexLimit>1000000</globalIndexLimit>
     <transport>
         <protocol>UDP</protocol>
         <host>localhost</host>

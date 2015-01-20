@@ -13,27 +13,38 @@ import com.haines.ml.rce.model.Feature;
 public class NaiveBayesLocalIndexes extends DefaultNaiveBayesIndexes{
 
 	public static final String INJECT_BINDING_GLOBAL_INDEXES_KEY = "com.haines.ml.rce.naivebayes.globalIndexes";
-	private final NaiveBayesIndexesProvider globalIndexes;
+	private final NaiveBayesIndexesProvider globalIndexesProvider;
+	private NaiveBayesIndexes currentGlobalIndexes;
 	private Thread currentThread = null; // used for debugging purposes.
 	
 	@Inject
-	public NaiveBayesLocalIndexes(Map<Classification, Map<Feature, Integer>> posteriorProbabilityIndexes, Map<Classification, Integer> priorProbabilityIndexes, Map<NaiveBayesPosteriorDistributionProperty, int[]> posteriorTypeIndexes, Map<Integer, int[]> priorTypeIndexes, NaiveBayesIndexesProvider globalIndexes){
-		super(posteriorProbabilityIndexes, priorProbabilityIndexes, posteriorTypeIndexes, priorTypeIndexes, globalIndexes.getIndexes().getMaxIndex());
-		this.globalIndexes = globalIndexes;
+	public NaiveBayesLocalIndexes(Map<Classification, Map<Feature, Integer>> posteriorProbabilityIndexes, Map<Classification, Integer> priorProbabilityIndexes, Map<NaiveBayesPosteriorDistributionProperty, int[]> posteriorTypeIndexes, Map<Integer, int[]> priorTypeIndexes, NaiveBayesIndexesProvider globalIndexesProvider){
+		super(posteriorProbabilityIndexes, priorProbabilityIndexes, posteriorTypeIndexes, priorTypeIndexes, globalIndexesProvider.getIndexes().getMaxIndex());
+		
+		this.globalIndexesProvider = globalIndexesProvider;
+		this.currentGlobalIndexes = globalIndexesProvider.getIndexes();
 	}
 	
+	@Override
+	public void clear() {
+		super.clear();
+		
+		this.currentGlobalIndexes = globalIndexesProvider.getIndexes(); // update the global index. Remember that due to the chain and order of events, this means that the global index will actually be 2 windows behind.
+		
+		this.maxIndex = currentGlobalIndexes.getMaxIndex(); // update to the global index max when clearing so that the global name space is 0->g.maxIdx and local name space is g.maxId -> Integer.MAX_VALUE
+	}
+
 	@Inject
 	public NaiveBayesLocalIndexes(@Named(INJECT_BINDING_GLOBAL_INDEXES_KEY) NaiveBayesIndexesProvider globalIndexes){
 		this(new THashMap<Classification, Map<Feature, Integer>>(), new THashMap<Classification, Integer>(), new THashMap<NaiveBayesPosteriorDistributionProperty, int[]>(), new THashMap<Integer, int[]>(), globalIndexes);
 	}
-	
 	
 	@Override
 	public int[] getPriorDistributionIndexes(int classificationIndex, int numIndexes) {
 		
 		assert((currentThread == null)? (currentThread = Thread.currentThread()) == Thread.currentThread(): currentThread == Thread.currentThread()); // when running with assertions on, ensure that only one thread has access to this local index cache
 		
-		int[] idxes = globalIndexes.getIndexes().getPriorDistributionIndexes(classificationIndex, numIndexes);
+		int[] idxes = currentGlobalIndexes.getPriorDistributionIndexes(classificationIndex, numIndexes);
 		
 		if (idxes == NaiveBayesIndexes.NO_INDEXES_FOUND){
 			int[] localIndexes = priorTypeIndexes.get(classificationIndex);
@@ -60,7 +71,7 @@ public class NaiveBayesLocalIndexes extends DefaultNaiveBayesIndexes{
 		
 		assert((currentThread == null)? (currentThread = Thread.currentThread()) == Thread.currentThread(): currentThread == Thread.currentThread()); // when running with assertions on, ensure that only one thread has access to this local index cache
 		
-		int[] idxes = globalIndexes.getIndexes().getPosteriorDistributionIndexes(types, numIdxes);
+		int[] idxes = currentGlobalIndexes.getPosteriorDistributionIndexes(types, numIdxes);
 		
 		if (idxes == NaiveBayesIndexes.NO_INDEXES_FOUND){
 			int[] localIndexes = posteriorTypeIndexes.get(types);
@@ -87,7 +98,7 @@ public class NaiveBayesLocalIndexes extends DefaultNaiveBayesIndexes{
 		
 		assert((currentThread == null)? (currentThread = Thread.currentThread()) == Thread.currentThread(): currentThread == Thread.currentThread()); // when running with assertions on, ensure that only one thread has access to this local index cache
 		
-		int globalIndex = globalIndexes.getIndexes().getDiscretePosteriorIndex(feature, classification);
+		int globalIndex = currentGlobalIndexes.getDiscretePosteriorIndex(feature, classification);
 		
 		if (globalIndex == NaiveBayesIndexes.NO_INDEX_FOUND){
 			// see if we have a local index
@@ -103,8 +114,10 @@ public class NaiveBayesLocalIndexes extends DefaultNaiveBayesIndexes{
 			} else {
 				innerMap = new THashMap<Feature, Integer>();
 				posteriorProbabilityIndexes.put(classification, innerMap);
-			}
-			int newIndex = ++super.maxIndex;
+			}	
+			
+			int	newIndex = ++super.maxIndex;
+			
 			innerMap.put(feature, newIndex);
 			
 			return newIndex;
@@ -117,7 +130,7 @@ public class NaiveBayesLocalIndexes extends DefaultNaiveBayesIndexes{
 		
 		assert((currentThread == null)? (currentThread = Thread.currentThread()) == Thread.currentThread(): currentThread == Thread.currentThread()); // when running with assertions on, ensure that only one thread has access to this local index cache
 		
-		int globalIndex = globalIndexes.getIndexes().getDiscretePriorIndex(classification);
+		int globalIndex = currentGlobalIndexes.getDiscretePriorIndex(classification);
 		
 		if (globalIndex == NaiveBayesIndexes.NO_INDEX_FOUND){
 			Integer localIndex = priorProbabilityIndexes.get(classification);
@@ -134,7 +147,7 @@ public class NaiveBayesLocalIndexes extends DefaultNaiveBayesIndexes{
 	}
 
 	@Override
-	public NaiveBayesIndexesProvider getGlobalIndexes() {
-		return globalIndexes;
+	public NaiveBayesIndexes getGlobalIndexes() {
+		return currentGlobalIndexes;
 	}
 }

@@ -4,14 +4,14 @@ import java.util.ArrayList;
 import java.util.Collection;
 
 import com.haines.ml.rce.accumulator.Accumulator;
-import com.haines.ml.rce.accumulator.AccumulatorEventConsumerUnitTest;
+import com.haines.ml.rce.accumulator.AccumulatorUnitTest;
 import com.haines.ml.rce.accumulator.AccumulatorLookupStrategy;
 import com.haines.ml.rce.accumulator.FeatureHandlerRepository;
 import com.haines.ml.rce.model.Feature;
 import com.haines.ml.rce.model.FeaturedEvent;
 import com.haines.ml.rce.test.TestFeature;
 
-public class FeaturedEventAccumulatorEventConsumerUnitTest extends AccumulatorEventConsumerUnitTest {
+public class FeaturedEventAccumulatorEventConsumerUnitTest extends AccumulatorUnitTest {
 	
 	@Override
 	protected Accumulator<? extends TestEvent> getNewAccumulator(AccumulatorLookupStrategy<? extends TestEvent> lookupStrategy) {

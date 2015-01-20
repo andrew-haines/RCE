@@ -77,7 +77,7 @@ public class RONaiveBayesMapBasedLookupStrategy<E extends ClassifiedEvent> imple
 		return getClassificationSlot(classification);
 	}
 	
-	public final int getPosteriorIndex(Feature feature, Classification classification){
+	private final int getPosteriorIndex(Feature feature, Classification classification){
 		int accumulatorIdx = indexes.getDiscretePosteriorIndex(feature, classification);
 		
 		if (accumulatorIdx != NaiveBayesIndexes.NO_INDEX_FOUND){
@@ -87,7 +87,7 @@ public class RONaiveBayesMapBasedLookupStrategy<E extends ClassifiedEvent> imple
 		}
 	}
 	
-	public final int getPriorIndex(Classification classification){
+	private final int getPriorIndex(Classification classification){
 		int potentialClassificationIdx = indexes.getDiscretePriorIndex(classification);
 		
 		if (potentialClassificationIdx != NaiveBayesIndexes.NO_INDEX_FOUND){

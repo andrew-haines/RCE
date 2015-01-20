@@ -34,6 +34,8 @@ public class RCEConfigJAXB implements RCEConfig{
 	private long microBatchIntervalMs;
 	
 	private WindowConfigJaxB window;
+	
+	private int globalIndexLimit;
 
 	@Override
 	@XmlElement
@@ -173,5 +175,15 @@ public class RCEConfigJAXB implements RCEConfig{
 
 	public void setTransport(TransportConfigJaxB transport) {
 		this.transport = transport;
+	}
+
+	@Override
+	@XmlElement
+	public int getGlobalIndexLimit() {
+		return globalIndexLimit;
+	}
+
+	public void setGlobalIndexLimit(int globalIndexLimit) {
+		this.globalIndexLimit = globalIndexLimit;
 	}
 }

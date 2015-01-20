@@ -19,17 +19,17 @@ public class TestFeature implements Feature {
 	
 	@Override
 	public int hashCode() {
-		return featureStr.hashCode();
+		return 31 * featureStr.hashCode() + 31 * type;
 	}
 
 	@Override
 	public boolean equals(Object obj) {
-		return featureStr.equals(((TestFeature)obj).featureStr);
+		return featureStr.equals(((TestFeature)obj).featureStr) && type == ((TestFeature)obj).type;
 	}
 	
 	@Override
 	public String toString(){
-		return featureStr;
+		return type+":"+featureStr;
 	}
 
 	@Override

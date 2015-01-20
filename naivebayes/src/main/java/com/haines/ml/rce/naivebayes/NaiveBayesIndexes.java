@@ -39,7 +39,7 @@ public interface NaiveBayesIndexes {
 
 	NaiveBayesIndexes copy();
 
-	NaiveBayesIndexesProvider getGlobalIndexes();
+	NaiveBayesIndexes getGlobalIndexes();
 	
 	public static class NaiveBayesPosteriorDistributionProperty implements NaiveBayesPosteriorProperty{
 		private final int featureType;

@@ -12,6 +12,8 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.Function;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Maps.EntryTransformer;
 import com.haines.ml.rce.model.Classification;
 import com.haines.ml.rce.model.Feature;
 import com.haines.ml.rce.naivebayes.model.NaiveBayesProperty.DiscreteNaiveBayesPriorProperty;
@@ -175,6 +177,7 @@ public abstract class DefaultNaiveBayesIndexes implements NaiveBayesIndexes {
 		return Iterables.transform(new THashMap<>(priorProbabilityIndexes).keySet(), CLASSIFICATION_TO_PRIOR_PROPERTY_FUNC);
 	}
 
+	@Override
 	public void clear() {
 		posteriorProbabilityIndexes.clear();
 		priorProbabilityIndexes.clear();
@@ -184,18 +187,24 @@ public abstract class DefaultNaiveBayesIndexes implements NaiveBayesIndexes {
 		maxIndex = 0;
 	}
 	
-	public abstract NaiveBayesIndexesProvider getGlobalIndexes();
+	public abstract NaiveBayesIndexes getGlobalIndexes();
 
 	public NaiveBayesIndexes copy() {
 		
-		final NaiveBayesIndexesProvider globalIndexes = this.getGlobalIndexes();
+		final NaiveBayesIndexes globalIndexes = this.getGlobalIndexes();
 		
-		return new DefaultNaiveBayesIndexes(copyPosterior(posteriorProbabilityIndexes), copyPriors(priorProbabilityIndexes), copyPosteriorTypes(posteriorTypeIndexes), copyPriorTypes(priorTypeIndexes), this.getMaxIndex()) {
+		return new NaiveBayesLocalIndexes(copyPosterior(posteriorProbabilityIndexes), copyPriors(priorProbabilityIndexes), copyPosteriorTypes(posteriorTypeIndexes), copyPriorTypes(priorTypeIndexes), new NaiveBayesIndexesProvider() {
 			
 			@Override
-			public NaiveBayesIndexesProvider getGlobalIndexes() {
+			public void setIndexes(NaiveBayesIndexes indexes) {
+				throw new UnsupportedOperationException("Can update copy indexes");
+			}
+			
+			@Override
+			public NaiveBayesIndexes getIndexes() {
 				return globalIndexes;
 			}
+		}) {
 
 			@Override
 			protected <K, V> Map<K, V> checkIsEmpty(Map<K, V> map) {
@@ -213,7 +222,18 @@ public abstract class DefaultNaiveBayesIndexes implements NaiveBayesIndexes {
 	}
 	
 	private final static Map<NaiveBayesPosteriorDistributionProperty, int[]> copyPosteriorTypes(Map<NaiveBayesPosteriorDistributionProperty, int[]> posteriorTypes){
-		return ImmutableMap.copyOf(posteriorTypes);
+		return ImmutableMap.copyOf(Maps.transformEntries(posteriorTypes, new EntryTransformer<NaiveBayesPosteriorDistributionProperty, int[], int[]>(){
+
+			@Override
+			public int[] transformEntry(NaiveBayesPosteriorDistributionProperty key, int[] value) {
+				int[] arrayCopy = new int[value.length];
+				
+				System.arraycopy(value, 0, arrayCopy, 0, value.length);
+				
+				return arrayCopy;
+			}
+			
+		}));
 	}
 	
 	private final static Map<Integer, int[]> copyPriorTypes(Map<Integer, int[]> priorTypes){

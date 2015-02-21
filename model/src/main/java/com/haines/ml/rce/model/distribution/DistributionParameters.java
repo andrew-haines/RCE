@@ -63,13 +63,14 @@ public class DistributionParameters {
 		}
 		
 		public DistributionParameters sub(DistributionParameters dist1, DistributionParameters dist2){
+			
 			int numSamples = dist1.numSamples - dist2.numSamples;
 			
-			double mean = ((dist1.numSamples * dist1.mean) - (dist2.numSamples * dist2.mean)) / numSamples;
-			double variance = (dist1.numSamples * dist1.variance) - (dist2.numSamples * dist2.variance);
+			double mean = ((dist1.mean * dist1.numSamples) - (dist2.numSamples * dist2.mean)) / numSamples;
 			
-			variance = variance - dist1.numSamples * FastMath.pow(dist1.mean - mean, 2);
-			variance = variance - dist2.numSamples * FastMath.pow(dist2.mean - mean, 2);
+			double variance = (dist1.variance * dist1.numSamples) - (dist2.numSamples * dist2.variance);
+			variance = variance - dist2.numSamples * (FastMath.pow(dist2.mean - dist1.mean, 2));
+			variance = variance - numSamples * (FastMath.pow(mean - dist1.mean, 2));
 			variance = variance / numSamples;
 			
 			return new DistributionParameters(numSamples, mean, variance);

@@ -6,7 +6,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import com.haines.ml.rce.accumulator.Accumulator;
-import com.haines.ml.rce.accumulator.FeatureHandlerRepository;
+import com.haines.ml.rce.accumulator.HandlerRepository;
 import com.haines.ml.rce.accumulator.handlers.ClassifiedEventAccumulatorConsumer;
 import com.haines.ml.rce.accumulator.lookups.RONaiveBayesMapBasedLookupStrategy;
 import com.haines.ml.rce.model.Classification;
@@ -60,7 +60,7 @@ public class NaiveBayesServiceUnitTest {
 		
 		RONaiveBayesMapBasedLookupStrategy<ClassifiedEvent> lookupStrategy = new RONaiveBayesMapBasedLookupStrategy<ClassifiedEvent>(indexes);
 		
-		FeatureHandlerRepository<ClassifiedEvent> handlers = FeatureHandlerRepository.create();
+		HandlerRepository<ClassifiedEvent> handlers = HandlerRepository.create();
 		
 		Accumulator<ClassifiedEvent> eventConsumer = new ClassifiedEventAccumulatorConsumer<ClassifiedEvent>(Accumulator.DEFAULT_CONFIG, lookupStrategy, handlers);
 
@@ -68,7 +68,7 @@ public class NaiveBayesServiceUnitTest {
 		
 		NaiveBayesAccumulatorBackedCountsProvider provider = new NaiveBayesAccumulatorBackedCountsProvider(eventConsumer.getAccumulatorProvider(), indexes, handlers);
 		
-		final NaiveBayesProbabilities probabilities = new CountsProviderNaiveBayesProbabilities(provider, FeatureHandlerRepository.create());
+		final NaiveBayesProbabilities probabilities = new CountsProviderNaiveBayesProbabilities(provider, HandlerRepository.create());
 		
 		this.candidate = new NaiveBayesService(new NaiveBayesProbabilitiesProvider() {
 			

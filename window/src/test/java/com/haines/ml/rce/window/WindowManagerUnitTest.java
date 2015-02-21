@@ -13,7 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.Iterables;
-import com.haines.ml.rce.accumulator.FeatureHandlerRepository;
+import com.haines.ml.rce.accumulator.HandlerRepository;
 import com.haines.ml.rce.model.system.Clock.StaticClock;
 import com.haines.ml.rce.naivebayes.NaiveBayesCountsProvider;
 import com.haines.ml.rce.naivebayes.NaiveBayesProbabilities;
@@ -150,7 +150,7 @@ public class WindowManagerUnitTest {
 				numUpdatedWindows.incrementAndGet();
 			}
 		}),
-		FeatureHandlerRepository.create());
+		HandlerRepository.create());
 	}
 	
 	@Test

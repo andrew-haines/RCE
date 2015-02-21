@@ -8,7 +8,7 @@ import javax.inject.Inject;
 
 import com.google.common.collect.Iterables;
 import com.haines.ml.rce.accumulator.AccumulatorProvider;
-import com.haines.ml.rce.accumulator.FeatureHandlerRepository;
+import com.haines.ml.rce.accumulator.HandlerRepository;
 import com.haines.ml.rce.accumulator.handlers.ClassificationHandler;
 import com.haines.ml.rce.accumulator.handlers.FeatureHandler;
 import com.haines.ml.rce.accumulator.lookups.RONaiveBayesMapBasedLookupStrategy;
@@ -34,12 +34,12 @@ import com.haines.ml.rce.naivebayes.model.NaiveBayesProperty.PropertyType;
 public class WindowEventConsumer<E extends ClassifiedEvent> implements EventConsumer<AccumulatedEvent<RONaiveBayesMapBasedLookupStrategy<E>>>{
 
 	private final WindowManager aggregator;
-	private final FeatureHandlerRepository<E> featureHandlers;
+	private final HandlerRepository<E> featureHandlers;
 	private final WindowConfig config;
 	private final NaiveBayesIndexesProvider globalIndexProvider;
 	
 	@Inject
-	public WindowEventConsumer(WindowManager aggregator, FeatureHandlerRepository<E> featureHandlers, WindowConfig config, NaiveBayesIndexesProvider globalIndexProvider){
+	public WindowEventConsumer(WindowManager aggregator, HandlerRepository<E> featureHandlers, WindowConfig config, NaiveBayesIndexesProvider globalIndexProvider){
 		this.aggregator = aggregator;
 		this.featureHandlers = featureHandlers;
 		this.config = config;

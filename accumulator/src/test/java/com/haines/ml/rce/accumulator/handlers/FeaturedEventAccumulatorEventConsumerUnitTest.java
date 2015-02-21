@@ -6,7 +6,7 @@ import java.util.Collection;
 import com.haines.ml.rce.accumulator.Accumulator;
 import com.haines.ml.rce.accumulator.AccumulatorUnitTest;
 import com.haines.ml.rce.accumulator.AccumulatorLookupStrategy;
-import com.haines.ml.rce.accumulator.FeatureHandlerRepository;
+import com.haines.ml.rce.accumulator.HandlerRepository;
 import com.haines.ml.rce.model.Feature;
 import com.haines.ml.rce.model.FeaturedEvent;
 import com.haines.ml.rce.test.TestFeature;
@@ -19,15 +19,15 @@ public class FeaturedEventAccumulatorEventConsumerUnitTest extends AccumulatorUn
 		@SuppressWarnings("unchecked")
 		AccumulatorLookupStrategy<FeaturedTestEvent> featuredLookupStrategy = (AccumulatorLookupStrategy<FeaturedTestEvent>)lookupStrategy;
 		
-		return new FeaturedEventAccumulatorEventConsumer<FeaturedTestEvent>(Accumulator.DEFAULT_CONFIG, featuredLookupStrategy, FeatureHandlerRepository.<FeaturedTestEvent>create());
+		return new FeaturedEventAccumulatorEventConsumer<FeaturedTestEvent>(Accumulator.DEFAULT_CONFIG, featuredLookupStrategy, HandlerRepository.<FeaturedTestEvent>create());
 	}
 
-	private static class FeaturedTestEvent extends TestEvent implements FeaturedEvent {
+	protected static class FeaturedTestEvent extends TestEvent implements FeaturedEvent {
 
 		private final Collection<TestFeature> featureList;
 		
-		FeaturedTestEvent(int[] slotsToIncrement) {
-			super(slotsToIncrement);
+		protected FeaturedTestEvent(int[] slotsToIncrement, int classificationSlot) {
+			super(slotsToIncrement, classificationSlot);
 			
 			this.featureList = new ArrayList<>();
 			this.featureList.add(new TestFeature(""));
@@ -40,7 +40,8 @@ public class FeaturedEventAccumulatorEventConsumerUnitTest extends AccumulatorUn
 		
 	}
 	
-	protected TestEvent createTestEvent(int[] indexes){
-		return new FeaturedTestEvent(indexes);
+	@Override
+	protected TestEvent createTestEvent(int[] indexes, int classificationSlot){
+		return new FeaturedTestEvent(indexes, classificationSlot);
 	}
 }

@@ -6,7 +6,7 @@ import java.util.concurrent.ThreadFactory;
 
 import com.haines.ml.rce.accumulator.AccumulatorLookupStrategy;
 import com.haines.ml.rce.accumulator.AccumulatorLookupStrategy.AccumulatorLookupStrategyFactory;
-import com.haines.ml.rce.accumulator.FeatureHandlerRepository;
+import com.haines.ml.rce.accumulator.HandlerRepository;
 import com.haines.ml.rce.accumulator.SyncPipelineEventConsumer;
 import com.haines.ml.rce.accumulator.lookups.RONaiveBayesMapBasedLookupStrategy;
 import com.haines.ml.rce.accumulator.model.AccumulatedEvent;
@@ -39,7 +39,7 @@ public class AccumulatorRCEApplicationFactory<E extends ClassifiedEvent, T exten
 	
 	private final RCEApplicationFactory<E> defaultFactory;
 	
-	public AccumulatorRCEApplicationFactory(EventMarshalBuffer<E> marshalBuffer, Mode mode, RCEConfig config, EventConsumer<AccumulatedEvent<RONaiveBayesMapBasedLookupStrategy<E>>> windowEventConsumer, Clock clock, AccumulatorLookupStrategyFactory<E> lookUpStrategy, FeatureHandlerRepository<E> featureHandlerRepo){
+	public AccumulatorRCEApplicationFactory(EventMarshalBuffer<E> marshalBuffer, Mode mode, RCEConfig config, EventConsumer<AccumulatedEvent<RONaiveBayesMapBasedLookupStrategy<E>>> windowEventConsumer, Clock clock, AccumulatorLookupStrategyFactory<E> lookUpStrategy, HandlerRepository<E> featureHandlerRepo){
 		
 		FeaturedAccumulatorEventConsumerFactory<E> factory = new FeaturedAccumulatorEventConsumerFactory<E>(RCEConfig.UTIL.getAccumulatorConfig(config), lookUpStrategy, featureHandlerRepo);
 		

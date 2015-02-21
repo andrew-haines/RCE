@@ -16,7 +16,7 @@ import com.google.common.collect.Iterables;
 import com.haines.ml.rce.accumulator.AccumulatorConfig;
 import com.haines.ml.rce.accumulator.Accumulator;
 import com.haines.ml.rce.accumulator.AccumulatorLookupStrategy;
-import com.haines.ml.rce.accumulator.FeatureHandlerRepository;
+import com.haines.ml.rce.accumulator.HandlerRepository;
 import com.haines.ml.rce.accumulator.AccumulatorLookupStrategy.AccumulatorLookupStrategyFactory;
 import com.haines.ml.rce.accumulator.AsyncPipelineAccumulatorController;
 import com.haines.ml.rce.accumulator.PipelineAccumulatorController.PipelineAccumulatorControllerFactory;
@@ -174,10 +174,10 @@ public class DefaultRCEApplicationFactory<E extends Event, EC extends EventConsu
 
 		private final AccumulatorConfig config;
 		private final AccumulatorLookupStrategyFactory<E> lookupStrategyFactory;
-		private final FeatureHandlerRepository<E> featureHandlerRepo;
+		private final HandlerRepository<E> featureHandlerRepo;
 		
 		@Inject
-		public FeaturedAccumulatorEventConsumerFactory(AccumulatorConfig config, AccumulatorLookupStrategyFactory<E> lookupStrategyFactory, FeatureHandlerRepository<E> featureHandlerRepo){
+		public FeaturedAccumulatorEventConsumerFactory(AccumulatorConfig config, AccumulatorLookupStrategyFactory<E> lookupStrategyFactory, HandlerRepository<E> featureHandlerRepo){
 			this.config = config;
 			this.lookupStrategyFactory = lookupStrategyFactory;
 			this.featureHandlerRepo = featureHandlerRepo;

@@ -19,7 +19,7 @@ import com.google.common.base.Function;
 import com.google.common.collect.Iterables;
 import com.google.common.primitives.Ints;
 import com.haines.ml.rce.accumulator.DistributionProvider;
-import com.haines.ml.rce.accumulator.FeatureHandlerRepository;
+import com.haines.ml.rce.accumulator.HandlerRepository;
 import com.haines.ml.rce.accumulator.handlers.ClassificationHandler;
 import com.haines.ml.rce.accumulator.handlers.FeatureHandler;
 import com.haines.ml.rce.model.Classification;
@@ -62,9 +62,9 @@ public class CountsProviderNaiveBayesProbabilities implements NaiveBayesProbabil
 	private final Map<Classification, TIntObjectMap<PosteriorProbability>> posteriorProbabilities;
 	private final TIntObjectMap<PriorProbability> priorProbabilities;
 	private final Iterable<NaiveBayesProperty> orderedProbabilities;
-	private final FeatureHandlerRepository<?> featureHandlers;
+	private final HandlerRepository<?> featureHandlers;
 	
-	public CountsProviderNaiveBayesProbabilities(NaiveBayesCountsProvider provider, FeatureHandlerRepository<?> featureHandlers){
+	public CountsProviderNaiveBayesProbabilities(NaiveBayesCountsProvider provider, HandlerRepository<?> featureHandlers){
 		
 		
 		this.featureHandlers = featureHandlers;

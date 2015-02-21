@@ -7,7 +7,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.Iterables;
-import com.haines.ml.rce.accumulator.FeatureHandlerRepository;
+import com.haines.ml.rce.accumulator.HandlerRepository;
 import com.haines.ml.rce.aggregator.Aggregator;
 import com.haines.ml.rce.model.Classification;
 import com.haines.ml.rce.model.Feature;
@@ -36,7 +36,7 @@ public class WindowManager implements NaiveBayesProbabilitiesProvider{
 	private final Clock clock;
 	private final Iterable<? extends WindowUpdatedListener> staticWindowListeners;
 	
-	public WindowManager(WindowConfig config, Clock clock, Iterable<? extends WindowUpdatedListener> staticWindowListeners, FeatureHandlerRepository<?> featureHandlers){
+	public WindowManager(WindowConfig config, Clock clock, Iterable<? extends WindowUpdatedListener> staticWindowListeners, HandlerRepository<?> featureHandlers){
 		this.clock = clock;
 		this.config = config;
 		this.cyclicWindowBuffer = new Window[config.getNumWindows()];
@@ -195,9 +195,9 @@ public class WindowManager implements NaiveBayesProbabilitiesProvider{
 		
 		private final SubtractableAggregator aggregator;
 		private volatile NaiveBayesProbabilities probabilities = NaiveBayesProbabilities.NOMINAL_PROBABILITIES;
-		private final FeatureHandlerRepository<?> featureHandlers;
+		private final HandlerRepository<?> featureHandlers;
 		
-		private WindowProbabilities(SubtractableAggregator aggregator, FeatureHandlerRepository<?> featureHandlers){
+		private WindowProbabilities(SubtractableAggregator aggregator, HandlerRepository<?> featureHandlers){
 			this.aggregator = aggregator;
 			this.featureHandlers = featureHandlers;
 		}

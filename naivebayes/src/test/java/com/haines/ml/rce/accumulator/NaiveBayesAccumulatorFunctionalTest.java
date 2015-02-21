@@ -40,7 +40,7 @@ public class NaiveBayesAccumulatorFunctionalTest {
 	private Accumulator<TestEvent> candidate;
 	private NaiveBayesLocalIndexes localIndexes;
 	private NaiveBayesIndexesProvider globalIndexes;
-	private FeatureHandlerRepository<TestEvent> featureHandlers;
+	private HandlerRepository<TestEvent> featureHandlers;
 	
 	@Before
 	public void before(){
@@ -51,7 +51,7 @@ public class NaiveBayesAccumulatorFunctionalTest {
 		
 		RONaiveBayesMapBasedLookupStrategy<TestEvent> lookup = new RONaiveBayesMapBasedLookupStrategy<TestEvent>(localIndexes);
 		
-		featureHandlers = FeatureHandlerRepository.create();
+		featureHandlers = HandlerRepository.create();
 		
 		candidate = new ClassifiedEventAccumulatorConsumer<TestEvent>(Accumulator.DEFAULT_CONFIG, lookup, featureHandlers);
 	}

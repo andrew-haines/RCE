@@ -4,7 +4,7 @@ import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
 import com.haines.ml.rce.accumulator.AccumulatorProvider;
-import com.haines.ml.rce.accumulator.FeatureHandlerRepository;
+import com.haines.ml.rce.accumulator.HandlerRepository;
 import com.haines.ml.rce.accumulator.handlers.ClassificationHandler;
 import com.haines.ml.rce.accumulator.handlers.FeatureHandler;
 import com.haines.ml.rce.model.distribution.DistributionParameters;
@@ -32,9 +32,9 @@ public class NaiveBayesAccumulatorBackedCountsProvider implements NaiveBayesCoun
 	private final Function<NaiveBayesPriorProperty, NaiveBayesCounts<?>> priorPropertyToCountsFunction;
 	
 	private final NaiveBayesIndexes indexes;
-	private final FeatureHandlerRepository<?> featureHandlers;
+	private final HandlerRepository<?> featureHandlers;
 	
-	public NaiveBayesAccumulatorBackedCountsProvider(final AccumulatorProvider<?> accumulator, NaiveBayesIndexes indexes, FeatureHandlerRepository<?> featureHandlers){
+	public NaiveBayesAccumulatorBackedCountsProvider(final AccumulatorProvider<?> accumulator, NaiveBayesIndexes indexes, HandlerRepository<?> featureHandlers){
 		this.indexes = indexes;
 		this.featureHandlers = featureHandlers;
 		

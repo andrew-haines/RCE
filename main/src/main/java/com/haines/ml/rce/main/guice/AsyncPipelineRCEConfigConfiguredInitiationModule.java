@@ -13,7 +13,7 @@ import com.google.inject.name.Names;
 import com.haines.ml.rce.accumulator.AccumulatorConfig;
 import com.haines.ml.rce.accumulator.Accumulator;
 import com.haines.ml.rce.accumulator.AccumulatorLookupStrategy;
-import com.haines.ml.rce.accumulator.FeatureHandlerRepository;
+import com.haines.ml.rce.accumulator.HandlerRepository;
 import com.haines.ml.rce.accumulator.handlers.FeaturedEventAccumulatorEventConsumer;
 import com.haines.ml.rce.main.config.RCEConfig;
 import com.haines.ml.rce.model.Event;
@@ -98,10 +98,10 @@ public class AsyncPipelineRCEConfigConfiguredInitiationModule<T extends Selectab
 
 		private final AccumulatorConfig config;
 		private final AccumulatorLookupStrategy<E> lookupStrategy;
-		private final FeatureHandlerRepository<E> featureHandlers;
+		private final HandlerRepository<E> featureHandlers;
 		
 		@Inject
-		public FeaturedAccumulatorEventConsumerFactory(AccumulatorConfig config, AccumulatorLookupStrategy<E> lookupStrategy, FeatureHandlerRepository<E> featureHandlers){
+		public FeaturedAccumulatorEventConsumerFactory(AccumulatorConfig config, AccumulatorLookupStrategy<E> lookupStrategy, HandlerRepository<E> featureHandlers){
 			this.config = config;
 			this.lookupStrategy = lookupStrategy;
 			this.featureHandlers = featureHandlers;

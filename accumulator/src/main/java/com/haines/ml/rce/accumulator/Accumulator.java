@@ -207,7 +207,7 @@ public abstract class Accumulator<T extends Event> implements EventConsumer<T>, 
 	public void sumAccumulator(int slot, float valueToSum){
 		int accumulatorIdx = getAccumulatorIdx(slot);
 		
-		getAccumulatorLine(slot)[accumulatorIdx] =+ Float.floatToIntBits(valueToSum);
+		getAccumulatorLine(slot)[accumulatorIdx] = Float.floatToIntBits(getAccumulatorValueAsFloat(slot) + valueToSum);
 	}
 	
 	public int getAccumulatorValue(int slot) {

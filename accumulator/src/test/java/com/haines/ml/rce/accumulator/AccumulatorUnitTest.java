@@ -252,7 +252,7 @@ public class AccumulatorUnitTest {
 
 	}
 	
-	protected static class TestEventAccumulatorLookupStrategy implements AccumulatorLookupStrategy<TestEvent>{
+	public static class TestEventAccumulatorLookupStrategy implements AccumulatorLookupStrategy<TestEvent>{
 
 		@Override
 		public int[] getSlots(Feature feature, TestEvent event) {

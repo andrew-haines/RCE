@@ -5,15 +5,15 @@ import com.haines.ml.rce.model.Feature;
 public class TestFeature implements Feature {
 	
 	private static final int DEFAULT_TYPE = 0;
-	private final String featureStr;
+	private final Object featureStr;
 	private final int type;
 	
-	public TestFeature(String featureStr, int type){
+	public TestFeature(Object featureStr, int type){
 		this.featureStr = featureStr;
 		this.type = type;
 	}
 	
-	public TestFeature(String featureStr){
+	public TestFeature(Object featureStr){
 		this(featureStr, DEFAULT_TYPE);
 	}
 	

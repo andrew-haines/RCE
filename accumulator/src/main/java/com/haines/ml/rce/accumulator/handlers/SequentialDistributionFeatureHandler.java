@@ -54,7 +54,7 @@ public class SequentialDistributionFeatureHandler<T extends ClassifiedEvent> imp
 		
 		accumulator.sumAccumulator(meanIdx, (float)(delta / getNumSamples(accumulator, slots))); // slight loss of precision from double to float here...
 		
-		accumulator.sumAccumulator(slots[M2_IDX], (float)(delta * (x - mean))); // slight loss of precision from double to float here...
+		accumulator.sumAccumulator(slots[M2_IDX], (float)(delta * (x - getMean(accumulator, slots)))); // slight loss of precision from double to float here...
 	}
 	
 	@Override
@@ -76,7 +76,11 @@ public class SequentialDistributionFeatureHandler<T extends ClassifiedEvent> imp
 	}
 	
 	private final double getVariance(AccumulatorProvider<?> accumulator, int[] slots, int numSamples){
-		return accumulator.getAccumulatorValueAsFloat(slots[M2_IDX]) / (numSamples -1);
+		if (numSamples != 0){
+			return accumulator.getAccumulatorValueAsFloat(slots[M2_IDX]) / (numSamples -1);
+		} else{
+			return 0;
+		}
 	}
 
 	@Override

@@ -21,13 +21,13 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-public class SequentialDistributionFeatureHandlerUnitTet {
+public class SequentialDistributionFeatureHandlerUnitTest {
 	
 	private static final TestFeature TEST_FEATURE1 = new TestFeature(5, 1);
 	private static final TestFeature TEST_FEATURE2 = new TestFeature(8, 1);
 	private static final TestFeature TEST_FEATURE3 = new TestFeature(3, 1);
 	private static final TestFeature TEST_FEATURE4 = new TestFeature(333, 1);
-	private static final TestFeature TEST_FEATURE5 = new TestFeature(5, 1);
+	private static final TestFeature TEST_FEATURE5 = new TestFeature(34, 1);
 	
 	private static final TestClassification TEST_CLASSIFICATION1 = new TestClassification("testClass1", 1);
 	private static final TestClassification TEST_CLASSIFICATION2 = new TestClassification("testClass2", 1);
@@ -36,8 +36,14 @@ public class SequentialDistributionFeatureHandlerUnitTet {
 	private static final TestEvent TEST_EVENT_2 = new TestEvent(Lists.newArrayList(TEST_FEATURE2), Lists.newArrayList(TEST_CLASSIFICATION1));
 	private static final TestEvent TEST_EVENT_3 = new TestEvent(Lists.newArrayList(TEST_FEATURE3), Lists.newArrayList(TEST_CLASSIFICATION1));
 	private static final TestEvent TEST_EVENT_4 = new TestEvent(Lists.newArrayList(TEST_FEATURE4), Lists.newArrayList(TEST_CLASSIFICATION1));
+	private static final TestEvent TEST_EVENT_5 = new TestEvent(Lists.newArrayList(TEST_FEATURE1), Lists.newArrayList(TEST_CLASSIFICATION2));
+	private static final TestEvent TEST_EVENT_6 = new TestEvent(Lists.newArrayList(TEST_FEATURE2), Lists.newArrayList(TEST_CLASSIFICATION1, TEST_CLASSIFICATION2));
+	private static final TestEvent TEST_EVENT_7 = new TestEvent(Lists.newArrayList(TEST_FEATURE3), Lists.newArrayList(TEST_CLASSIFICATION1, TEST_CLASSIFICATION2));
+	private static final TestEvent TEST_EVENT_8 = new TestEvent(Lists.newArrayList(TEST_FEATURE5), Lists.newArrayList(TEST_CLASSIFICATION1, TEST_CLASSIFICATION2));
 	
-	private static final int[] CLASS_2_SLOTS = new int[]{0, 1, 2};
+	private static final int[] CLASS_1_SLOTS = new int[]{0, 1, 2};
+	private static final int[] CLASS_2_SLOTS = new int[]{3, 4, 5};
+	
 
 	private SequentialDistributionFeatureHandler<TestEvent> candidate;
 	private Accumulator<TestEvent> accumulator;
@@ -50,10 +56,17 @@ public class SequentialDistributionFeatureHandlerUnitTet {
 		
 		lookup = mock(AccumulatorLookupStrategy.class);
 		
-		when(lookup.getPosteriorSlots(TEST_FEATURE1, TEST_CLASSIFICATION1, 3)).thenReturn(CLASS_2_SLOTS);
-		when(lookup.getPosteriorSlots(TEST_FEATURE2, TEST_CLASSIFICATION1, 3)).thenReturn(CLASS_2_SLOTS);
-		when(lookup.getPosteriorSlots(TEST_FEATURE3, TEST_CLASSIFICATION1, 3)).thenReturn(CLASS_2_SLOTS);
-		when(lookup.getPosteriorSlots(TEST_FEATURE4, TEST_CLASSIFICATION1, 3)).thenReturn(CLASS_2_SLOTS);
+		when(lookup.getPosteriorSlots(TEST_FEATURE1, TEST_CLASSIFICATION1, 3)).thenReturn(CLASS_1_SLOTS);
+		when(lookup.getPosteriorSlots(TEST_FEATURE2, TEST_CLASSIFICATION1, 3)).thenReturn(CLASS_1_SLOTS);
+		when(lookup.getPosteriorSlots(TEST_FEATURE3, TEST_CLASSIFICATION1, 3)).thenReturn(CLASS_1_SLOTS);
+		when(lookup.getPosteriorSlots(TEST_FEATURE4, TEST_CLASSIFICATION1, 3)).thenReturn(CLASS_1_SLOTS);
+		when(lookup.getPosteriorSlots(TEST_FEATURE5, TEST_CLASSIFICATION1, 3)).thenReturn(CLASS_1_SLOTS);
+		
+		when(lookup.getPosteriorSlots(TEST_FEATURE1, TEST_CLASSIFICATION2, 3)).thenReturn(CLASS_2_SLOTS);
+		when(lookup.getPosteriorSlots(TEST_FEATURE2, TEST_CLASSIFICATION2, 3)).thenReturn(CLASS_2_SLOTS);
+		when(lookup.getPosteriorSlots(TEST_FEATURE3, TEST_CLASSIFICATION2, 3)).thenReturn(CLASS_2_SLOTS);
+		when(lookup.getPosteriorSlots(TEST_FEATURE4, TEST_CLASSIFICATION2, 3)).thenReturn(CLASS_2_SLOTS);
+		when(lookup.getPosteriorSlots(TEST_FEATURE5, TEST_CLASSIFICATION2, 3)).thenReturn(CLASS_2_SLOTS);
 		
 		accumulator = new ClassifiedEventAccumulatorConsumer<TestEvent>(Accumulator.DEFAULT_CONFIG, lookup, HandlerRepository.<TestEvent>create(ImmutableMap.<Integer, FeatureHandler<TestEvent>>builder().put(1, new SequentialDistributionFeatureHandler()).build(), Collections.<Integer, ClassificationHandler<TestEvent>>emptyMap()));
 	}
@@ -61,7 +74,7 @@ public class SequentialDistributionFeatureHandlerUnitTet {
 	@Test
 	public void givenCandidate_whenCallingIncrementWithSingleEvent_thenCorrectValuesReturned(){
 		
-		DistributionParameters params = candidate.getDistribution(accumulator, CLASS_2_SLOTS);
+		DistributionParameters params = candidate.getDistribution(accumulator, CLASS_1_SLOTS);
 		
 		assertThat(params.getMean(), is(equalTo(0.0)));
 		assertThat(params.getVariance(), is(equalTo(0.0)));
@@ -69,7 +82,7 @@ public class SequentialDistributionFeatureHandlerUnitTet {
 		
 		candidate.increment(TEST_FEATURE1, TEST_EVENT_1, accumulator, lookup);
 		
-		params = candidate.getDistribution(accumulator, CLASS_2_SLOTS);
+		params = candidate.getDistribution(accumulator, CLASS_1_SLOTS);
 		
 		assertThat(params.getMean(), is(equalTo(5.0)));
 		assertThat(params.getVariance(), is(equalTo(Double.NaN)));
@@ -82,7 +95,7 @@ public class SequentialDistributionFeatureHandlerUnitTet {
 		candidate.increment(TEST_FEATURE1, TEST_EVENT_1, accumulator, lookup);
 		candidate.increment(TEST_FEATURE2, TEST_EVENT_2, accumulator, lookup);
 		
-		DistributionParameters params = candidate.getDistribution(accumulator, CLASS_2_SLOTS);
+		DistributionParameters params = candidate.getDistribution(accumulator, CLASS_1_SLOTS);
 		
 		assertThat(params.getMean(), is(equalTo(6.5)));
 		assertThat(params.getVariance(), is(equalTo(4.5)));
@@ -96,7 +109,7 @@ public class SequentialDistributionFeatureHandlerUnitTet {
 		candidate.increment(TEST_FEATURE2, TEST_EVENT_2, accumulator, lookup);
 		candidate.increment(TEST_FEATURE3, TEST_EVENT_3, accumulator, lookup);
 		
-		DistributionParameters params = candidate.getDistribution(accumulator, CLASS_2_SLOTS);
+		DistributionParameters params = candidate.getDistribution(accumulator, CLASS_1_SLOTS);
 		
 		assertThat(params.getMean(), is(equalTo(5.333333492279053)));
 		assertThat(params.getVariance(), is(equalTo(6.333333492279053)));
@@ -111,10 +124,32 @@ public class SequentialDistributionFeatureHandlerUnitTet {
 		candidate.increment(TEST_FEATURE3, TEST_EVENT_3, accumulator, lookup);
 		candidate.increment(TEST_FEATURE4, TEST_EVENT_4, accumulator, lookup);
 		
-		DistributionParameters params = candidate.getDistribution(accumulator, CLASS_2_SLOTS);
+		DistributionParameters params = candidate.getDistribution(accumulator, CLASS_1_SLOTS);
 		
 		assertThat(params.getMean(), is(equalTo(87.25)));
 		assertThat(params.getVariance(), is(equalTo(26845.583984375)));
+		assertThat(params.getNumSamples(), is(equalTo(4)));
+	}
+	
+	@Test
+	public void givenCandidate_whenCallingIncrementWithFourEventsOf2Classes_thenCorrectValuesReturned(){
+		
+		candidate.increment(TEST_FEATURE4, TEST_EVENT_4, accumulator, lookup);
+		candidate.increment(TEST_FEATURE1, TEST_EVENT_5, accumulator, lookup);
+		candidate.increment(TEST_FEATURE2, TEST_EVENT_6, accumulator, lookup);
+		candidate.increment(TEST_FEATURE3, TEST_EVENT_7, accumulator, lookup);
+		candidate.increment(TEST_FEATURE5, TEST_EVENT_8, accumulator, lookup);
+		
+		DistributionParameters params = candidate.getDistribution(accumulator, CLASS_1_SLOTS);
+		
+		assertThat(params.getMean(), is(equalTo(94.5)));
+		assertThat(params.getVariance(), is(equalTo(25465.669921875)));
+		assertThat(params.getNumSamples(), is(equalTo(4)));
+		
+		params = candidate.getDistribution(accumulator, CLASS_2_SLOTS);
+		
+		assertThat(params.getMean(), is(equalTo(12.5)));
+		assertThat(params.getVariance(), is(equalTo(209.6666717529297)));
 		assertThat(params.getNumSamples(), is(equalTo(4)));
 	}
 }

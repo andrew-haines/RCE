@@ -22,10 +22,12 @@ import org.junit.Before;
 import org.junit.Test;
 
 import com.dyuproject.protostuff.LinkedBuffer;
+import com.dyuproject.protostuff.Message;
 import com.dyuproject.protostuff.ProtostuffIOUtil;
 import com.google.common.collect.Lists;
 import com.haines.ml.rce.eventstream.EventStreamListener;
 import com.haines.ml.rce.main.config.RCEConfig;
+import com.haines.ml.rce.main.factory.FeatureHandlerRepositoryFactory;
 import com.haines.ml.rce.naivebayes.NaiveBayesProbabilitiesProvider;
 import com.haines.ml.rce.naivebayes.NaiveBayesRCEApplication;
 import com.haines.ml.rce.naivebayes.NaiveBayesService.PredicatedClassification;
@@ -98,11 +100,15 @@ public class RCEApplicationStartupTest {
 				}
 			}
 		})
-		.setConfig(new RCEConfig.DefaultRCEConfig(defaultConfig)).build();
+		.setConfig(new RCEConfig.DefaultRCEConfig(defaultConfig)).setHandlerRepositoryFactory(getFeatureHandlerRepositoryFactory()).build();
 		
 		startServerAndWait();
 	}
 	
+	protected FeatureHandlerRepositoryFactory getFeatureHandlerRepositoryFactory() {
+		return FeatureHandlerRepositoryFactory.ALL_DISCRETE_FEATURES;
+	}
+
 	@After
 	public void after() throws RCEApplicationException, InterruptedException{
 		shutdownAndWait();
@@ -237,7 +243,7 @@ public class RCEApplicationStartupTest {
 		assertThat(eventNum, is(equalTo(eventsSeen.get())));
 	}
 	
-	protected void sendViaSelector(Event testEvent) throws IOException, InterruptedException {
+	protected <T extends Message<T>> void sendViaSelector(T testEvent) throws IOException, InterruptedException {
 		DatagramChannel channel = getClientChannel(serverAddress);
 		//LOG.debug("Sending event: "+event.testString1+"("+Integer.toBinaryString(event.testInt1)+"##"+event.testInt1+")");
 		// dont need to worry about efficiency in test case...

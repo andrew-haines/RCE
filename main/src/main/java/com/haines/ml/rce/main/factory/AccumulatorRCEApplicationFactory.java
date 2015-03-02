@@ -82,4 +82,10 @@ public class AccumulatorRCEApplicationFactory<E extends ClassifiedEvent, T exten
 	public void useSpecificConfig(RCEConfig config) {
 		this.defaultFactory.useSpecificConfig(config);
 	}
+
+	@Override
+	public void useSpecificHandlerRepository(FeatureHandlerRepositoryFactory featureHandlerRepo) {
+		this.defaultFactory.useSpecificHandlerRepository(featureHandlerRepo);
+		
+	}
 }

@@ -15,6 +15,7 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.dyuproject.protostuff.Message;
 import com.haines.ml.rce.main.RCEApplicationStartupTest;
 import com.haines.ml.rce.naivebayes.NaiveBayesService;
 import com.haines.ml.rce.transport.Event;
@@ -25,9 +26,9 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.equalTo;
 
-public class PerformanceTest extends RCEApplicationStartupTest{
+public class DiscretePerformanceTest extends RCEApplicationStartupTest{
 	
-	private static final Logger LOG = LoggerFactory.getLogger(PerformanceTest.class);
+	private static final Logger LOG = LoggerFactory.getLogger(DiscretePerformanceTest.class);
 
 	private static final String POSITIVE_CLASS = "<=50K";
 	private static final String NEGATIVE_CLASS = ">50K";
@@ -48,11 +49,12 @@ public class PerformanceTest extends RCEApplicationStartupTest{
 	private static final String HOURS_PER_WEEK_COLUMN_NAME = "hours-per-week";
 	private static final String NATIVE_COUNTRY_COLUMN_NAME = "native-country";
 
+	@SuppressWarnings("unchecked")
 	@Test
 	public void givenRCEApplication_whenTrained_thenGetAndReportClassifierPerformance() throws IOException, InterruptedException {
-		Iterable<Event> trainingEvents = loadTrainingEvents();
+		Iterable<? extends Message<?>> trainingEvents = loadTrainingEvents();
 		
-		for (Event event: trainingEvents){
+		for (@SuppressWarnings("rawtypes") Message event: trainingEvents){
 			super.sendViaSelector(event);
 		}
 		
@@ -91,22 +93,41 @@ public class PerformanceTest extends RCEApplicationStartupTest{
 			}
 		}
 		
-		LOG.info("classifier results: tp="+tp+" tn="+tn+" fp="+fp+" fn="+fn+" total="+total);
+		LOG.info(getTestName()+":: classifier results: tp="+tp+" tn="+tn+" fp="+fp+" fn="+fn+" total="+total);
 		LOG.info("classifier accuracy: "+((tp+tn) / total));
 		LOG.info("classifier fmeasure: "+(2*tp / (2*tp + fp + fn)));
 	}
+	
+	protected String getTestName() {
+		return "discrete";
+	}
 
-	private Iterable<Event> loadTrainingEvents() throws IOException {
+	@Override
+	public void givenRCEApplication_whenTrainedWithSimpleSyntheticData_thenClassifierWorksAsExpected(){
+		// overload to disable inheriting test
+	}
+	
+	@Override
+	public void givenCandidate_whenCallingStart_thenApplicationStartsUpCorrectly(){
+		// overload to disable inheriting test
+	}
+	
+	@Override
+	public void givenCandidate_whenCallingStartAndSendingEventsViaSelector_thenApplicationStartsUpCorrectly(){
+		// overload to disable inheriting test
+	}
+
+	private <E extends Message<E>> Iterable<E> loadTrainingEvents() throws IOException {
 		return loadEvents("adult.data.txt");
 	}
 	
-	private Iterable<Event> loadTestEvents() throws IOException {
+	private <E extends Message<E>> Iterable<E> loadTestEvents() throws IOException {
 		return loadEvents("adult.test.txt");
 	}
 
-	private Iterable<Event> loadEvents(String dataFileLocation) throws IOException {
+	private <E extends Message<E>> Iterable<E> loadEvents(String dataFileLocation) throws IOException {
 		
-		InputStream dataStream = PerformanceTest.class.getResourceAsStream("/"+dataFileLocation);
+		InputStream dataStream = DiscretePerformanceTest.class.getResourceAsStream("/"+dataFileLocation);
 		
 		try(CSVParser parser = new CSVParser(new InputStreamReader(dataStream), CSVFormat.DEFAULT
 																				.withSkipHeaderRecord(true)
@@ -127,17 +148,18 @@ public class PerformanceTest extends RCEApplicationStartupTest{
 																							CLASSIFICATION_COLUMN_NAME
 																	).withDelimiter(','))){
 		
-			Collection<Event> events = new ArrayList<Event>();
+			Collection<E> events = new ArrayList<E>();
 			
 			for (CSVRecord record: parser){
 				
-				events.add(convertCSVRecordToEvent(record));
+				addCSVRecordToEvents(record, events);
 			}
 			return events;
 		}
 	}
 
-	private Event convertCSVRecordToEvent(CSVRecord record) {
+	@SuppressWarnings("unchecked")
+	protected <E extends Message<E>> void addCSVRecordToEvents(CSVRecord record, Collection<E> events) {
 		Event event = new Event();
 		
 		List<Feature> features = new ArrayList<Feature>();
@@ -160,7 +182,7 @@ public class PerformanceTest extends RCEApplicationStartupTest{
 		event.setFeaturesList(features);
 		event.setClassificationsList(Arrays.asList(getClassification(record)));
 		
-		return event;
+		events.add((E)event);
 	}
 	
 	private Feature getFeature(String value, int type){

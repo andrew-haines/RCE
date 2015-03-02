@@ -18,6 +18,7 @@ import org.apache.commons.cli.ParseException;
 import com.haines.ml.rce.eventstream.EventStreamController;
 import com.haines.ml.rce.eventstream.EventStreamException;
 import com.haines.ml.rce.main.config.RCEConfig;
+import com.haines.ml.rce.main.factory.FeatureHandlerRepositoryFactory;
 import com.haines.ml.rce.main.factory.RCEApplicationFactory;
 import com.haines.ml.rce.model.Event;
 import com.haines.ml.rce.model.EventConsumer;
@@ -96,6 +97,7 @@ public interface RCEApplication<E extends Event> {
 		private String configOverrideLocation;
 		private Collection<SystemListener> startupListeners = new ArrayList<SystemListener>();
 		private RCEConfig config = null;
+		private FeatureHandlerRepositoryFactory featureHandlerRepo;
 		
 		public RCEApplicationBuilder(String configOverrideLocation){
 			this.configOverrideLocation = configOverrideLocation;
@@ -113,6 +115,12 @@ public interface RCEApplication<E extends Event> {
 			return this;
 		}
 		
+		public RCEApplicationBuilder<T> setHandlerRepositoryFactory(FeatureHandlerRepositoryFactory featureHandlerRepo){
+			this.featureHandlerRepo = featureHandlerRepo;
+			
+			return this;
+		}
+		
 		public RCEApplication<T> build() throws RCEApplicationException{
 			@SuppressWarnings({ "rawtypes", "unchecked" })
 			ServiceLoader<RCEApplicationFactory<T>> loader = (ServiceLoader)ServiceLoader.load(RCEApplicationFactory.class);
@@ -122,6 +130,11 @@ public interface RCEApplication<E extends Event> {
 				if (config != null){
 					factory.useSpecificConfig(config);
 				}
+				
+				if (featureHandlerRepo != null){
+					factory.useSpecificHandlerRepository(featureHandlerRepo);
+				}
+				
 				return factory.createApplication(configOverrideLocation);
 			}
 			

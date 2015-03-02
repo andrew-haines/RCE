@@ -57,6 +57,7 @@ public class NaiveBayesRCEApplicationFactory<E extends ClassifiedEvent> implemen
 	private final Mode mode;
 	private Iterable<SystemListener> startupListeners = null;
 	private RCEConfig config;
+	private FeatureHandlerRepositoryFactory featureHandlerRepo = null;
 	
 	public NaiveBayesRCEApplicationFactory(EventMarshalBuffer<E> marshalBuffer, Mode mode){
 		this.marshalBuffer = marshalBuffer;
@@ -75,10 +76,14 @@ public class NaiveBayesRCEApplicationFactory<E extends ClassifiedEvent> implemen
 			}
 			Clock clock = Clock.SYSTEM_CLOCK;
 			
-			FeatureHandlerRepositoryFactory featureHandlerRepo = FeatureHandlerRepositoryFactory.ALL_DISCRETE_FEATURES;
-			
-			for (FeatureHandlerRepositoryFactory factory: ServiceLoader.load(FeatureHandlerRepositoryFactory.class)){
-				featureHandlerRepo = factory;
+			if (featureHandlerRepo == null){ // if we haven't had a hander explicitly set then use the service loader to find one
+				for (FeatureHandlerRepositoryFactory factory: ServiceLoader.load(FeatureHandlerRepositoryFactory.class)){
+					featureHandlerRepo = factory;
+				}
+				
+				if (featureHandlerRepo == null){ // if we still do not have a feature hnadler set then use the universally discrete one
+					featureHandlerRepo = FeatureHandlerRepositoryFactory.ALL_DISCRETE_FEATURES;
+				}
 			}
 			
 			HandlerRepository<E> repo = featureHandlerRepo.create();
@@ -111,5 +116,9 @@ public class NaiveBayesRCEApplicationFactory<E extends ClassifiedEvent> implemen
 	@Override
 	public void useSpecificConfig(RCEConfig config) {
 		this.config = config;
+	}
+	
+	public void useSpecificHandlerRepository(FeatureHandlerRepositoryFactory featureHandlerRepo){
+		this.featureHandlerRepo = featureHandlerRepo;
 	}
 }

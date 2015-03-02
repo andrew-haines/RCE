@@ -10,7 +10,8 @@ import com.haines.ml.rce.transport.Event;
 public class ProtostuffNaiveBayesRCEApplicationFactory implements RCEApplicationFactory<Event>{
 	
 	private Iterable<SystemListener> startupListeners = null;
-	private RCEConfig testConfig;
+	private RCEConfig rceConfig;
+	private FeatureHandlerRepositoryFactory featureHandlerRepo;
 
 	@Override
 	public NaiveBayesRCEApplication<Event> createApplication(String configOverrideLocation) {
@@ -18,7 +19,8 @@ public class ProtostuffNaiveBayesRCEApplicationFactory implements RCEApplication
 		NaiveBayesRCEApplicationFactory<Event> factory = new NaiveBayesRCEApplicationFactory<>(new ProtostuffEventMarshalBuffer<Event>(Event.getSchema()), Mode.SYNC);
 	
 		factory.addSystemListeners(startupListeners);
-		factory.useSpecificConfig(testConfig);
+		factory.useSpecificConfig(rceConfig);
+		factory.useSpecificHandlerRepository(featureHandlerRepo);
 		
 		return factory.createApplication(configOverrideLocation);
 	}
@@ -30,7 +32,12 @@ public class ProtostuffNaiveBayesRCEApplicationFactory implements RCEApplication
 
 	@Override
 	public void useSpecificConfig(RCEConfig config) {
-		this.testConfig = config;
+		this.rceConfig = config;
+	}
+
+	@Override
+	public void useSpecificHandlerRepository(FeatureHandlerRepositoryFactory featureHandlerRepo) {
+		this.featureHandlerRepo = featureHandlerRepo;
 	}
 
 }

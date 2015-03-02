@@ -34,4 +34,6 @@ public interface RCEApplicationFactory<E extends Event> {
 	void addSystemListeners(Iterable<SystemListener> startupListeners);
 	
 	void useSpecificConfig(RCEConfig config);
+	
+	void useSpecificHandlerRepository(FeatureHandlerRepositoryFactory featureHandlerRepo); 
 }

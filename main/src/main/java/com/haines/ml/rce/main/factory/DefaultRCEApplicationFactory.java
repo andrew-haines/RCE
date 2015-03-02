@@ -62,6 +62,7 @@ public class DefaultRCEApplicationFactory<E extends Event, EC extends EventConsu
 	private final EventConsumer<AccumulatedEvent<T>> accumulatedEventConsumer;
 	private final Collection<SystemListener> systemListeners;
 	private RCEConfig overrideConfig;
+	private FeatureHandlerRepositoryFactory featureHandlerRepo;
 	private final Clock clock;
 	
 	private DefaultRCEApplicationFactory(EventMarshalBuffer<E> marshalBuffer, Clock clock, EventConsumerFactory<E, EC> eventConsumerFactory, EventConsumer<AccumulatedEvent<T>> accumulatedEventConsumer){
@@ -263,5 +264,14 @@ public class DefaultRCEApplicationFactory<E extends Event, EC extends EventConsu
 	@Override
 	public void useSpecificConfig(RCEConfig config) {
 		this.overrideConfig = config;
+	}
+
+	@Override
+	public void useSpecificHandlerRepository(FeatureHandlerRepositoryFactory featureHandlerRepo) {
+		this.featureHandlerRepo = featureHandlerRepo;
+	}
+	
+	protected FeatureHandlerRepositoryFactory getFeatureHandlerRepo() {
+		return featureHandlerRepo;
 	}
 }

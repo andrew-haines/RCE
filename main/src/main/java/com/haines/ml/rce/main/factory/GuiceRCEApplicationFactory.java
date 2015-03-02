@@ -37,4 +37,11 @@ public class GuiceRCEApplicationFactory<E extends Event> implements RCEApplicati
 		// TODO Auto-generated method stub
 		
 	}
+
+	@Override
+	public void useSpecificHandlerRepository(
+			FeatureHandlerRepositoryFactory featureHandlerRepo) {
+		// TODO Auto-generated method stub
+		
+	}
 }

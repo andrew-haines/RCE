@@ -120,7 +120,7 @@ public abstract class DefaultNaiveBayesIndexes implements NaiveBayesIndexes {
 
 	protected final void checkIndexLength(NaiveBayesPosteriorDistributionProperty types, int[] indexes, int numIdxes) {
 		if (indexes.length != numIdxes && numIdxes != UNKNOWN_NUM_INDEXES){
-			throw new IllegalArgumentException("Existing slots for type: "+types+" does not have the required num of requested slots. Wanted: "+numIdxes+" slots, found: "+numIdxes+" slots");
+			throw new IllegalArgumentException("Existing slots for type: "+types+" does not have the required num of requested slots. Wanted: "+numIdxes+" slots, found: "+indexes.length+" slots");
 		}
 	}
 	

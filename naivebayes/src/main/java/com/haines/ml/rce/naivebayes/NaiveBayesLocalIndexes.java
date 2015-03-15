@@ -84,7 +84,7 @@ public class NaiveBayesLocalIndexes extends DefaultNaiveBayesIndexes{
 				}
 				posteriorTypeIndexes.put(types, localIndexes);
 			} else{
-				checkIndexLength(types, idxes, numIdxes);
+				checkIndexLength(types, localIndexes, numIdxes);
 			}
 			
 			idxes = localIndexes;

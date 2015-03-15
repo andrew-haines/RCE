@@ -57,6 +57,15 @@ public class RCEApplicationStartupTest {
 	protected AtomicBoolean waitingForNextWindow;
 	protected AtomicInteger eventsSeen;
 	protected SocketAddress serverAddress;
+	private ClassLoader classLoader;
+	
+	protected RCEApplicationStartupTest(ClassLoader classLoader){
+		this.classLoader = classLoader;
+	}
+	
+	public RCEApplicationStartupTest(){
+		this(null);
+	}
 	
 	@Before
 	public void before() throws RCEApplicationException, JAXBException, IOException, InterruptedException{
@@ -72,7 +81,7 @@ public class RCEApplicationStartupTest {
 		
 		serverAddress = defaultConfig.getEventStreamSocketAddress();
 		
-		candidate = (NaiveBayesRCEApplication<Event>)new RCEApplication.RCEApplicationBuilder<Event>(null).addSystemStartedListener(new EventStreamListener() {
+		RCEApplication.RCEApplicationBuilder<Event> builder = new RCEApplication.RCEApplicationBuilder<Event>(null).addSystemStartedListener(new EventStreamListener() {
 
 			@Override
 			public void streamStarted() {
@@ -100,7 +109,13 @@ public class RCEApplicationStartupTest {
 				}
 			}
 		})
-		.setConfig(new RCEConfig.DefaultRCEConfig(defaultConfig)).setHandlerRepositoryFactory(getFeatureHandlerRepositoryFactory()).build();
+		.setConfig(new RCEConfig.DefaultRCEConfig(defaultConfig)).setHandlerRepositoryFactory(getFeatureHandlerRepositoryFactory());
+		
+		if (classLoader != null){
+			builder.setClassLoader(classLoader);
+		}
+		
+		candidate = (NaiveBayesRCEApplication<Event>)builder.build();
 		
 		startServerAndWait();
 	}

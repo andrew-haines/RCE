@@ -16,7 +16,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.dyuproject.protostuff.Message;
+import com.google.common.collect.Iterables;
 import com.haines.ml.rce.main.RCEApplicationStartupTest;
+import com.haines.ml.rce.model.ClassifiedEvent;
 import com.haines.ml.rce.naivebayes.NaiveBayesService;
 import com.haines.ml.rce.transport.Event;
 import com.haines.ml.rce.transport.Event.Classification;
@@ -27,27 +29,35 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.equalTo;
 
 public class DiscretePerformanceTest extends RCEApplicationStartupTest{
-	
+
 	private static final Logger LOG = LoggerFactory.getLogger(DiscretePerformanceTest.class);
 
 	private static final String POSITIVE_CLASS = "<=50K";
 	private static final String NEGATIVE_CLASS = ">50K";
 
 	private static final String CLASSIFICATION_COLUMN_NAME = "classification";
-	private static final String AGE_COLUMN_NAME = "age";
-	private static final String WORKCLASS_COLUMN_NAME = "workclass";
-	private static final String FNLWGT_COLUMN_NAME = "fnlwgt";
-	private static final String EDUCATION_COLUMN_NAME = "education";
-	private static final String EDUCATION_NUM_COLUMN_NAME = "education-num";
-	private static final String MARITAL_STATUS_COLUMN_NAME = "marital-status";
-	private static final String OCCUPATION_COLUMN_NAME = "occupation";
-	private static final String RELATIONSHIP_COLUMN_NAME = "relationship";
-	private static final String RACE_COLUMN_NAME = "race";
-	private static final String SEX_COLUMN_NAME = "sex";
-	private static final String CAPITAL_GAIN_COLUMN_NAME = "capital-gain";
-	private static final String CAPITAL_LOSS_COLUMN_NAME = "capital-loss";
-	private static final String HOURS_PER_WEEK_COLUMN_NAME = "hours-per-week";
-	private static final String NATIVE_COUNTRY_COLUMN_NAME = "native-country";
+	protected static final String AGE_COLUMN_NAME = "age";
+	protected static final String WORKCLASS_COLUMN_NAME = "workclass";
+	protected static final String FNLWGT_COLUMN_NAME = "fnlwgt";
+	protected static final String EDUCATION_COLUMN_NAME = "education";
+	protected static final String EDUCATION_NUM_COLUMN_NAME = "education-num";
+	protected static final String MARITAL_STATUS_COLUMN_NAME = "marital-status";
+	protected static final String OCCUPATION_COLUMN_NAME = "occupation";
+	protected static final String RELATIONSHIP_COLUMN_NAME = "relationship";
+	protected static final String RACE_COLUMN_NAME = "race";
+	protected static final String SEX_COLUMN_NAME = "sex";
+	protected static final String CAPITAL_GAIN_COLUMN_NAME = "capital-gain";
+	protected static final String CAPITAL_LOSS_COLUMN_NAME = "capital-loss";
+	protected static final String HOURS_PER_WEEK_COLUMN_NAME = "hours-per-week";
+	protected static final String NATIVE_COUNTRY_COLUMN_NAME = "native-country";
+	
+	protected DiscretePerformanceTest(ClassLoader classLoader) {
+		super(classLoader);
+	}
+	
+	public DiscretePerformanceTest(){
+		super();
+	}
 
 	@SuppressWarnings("unchecked")
 	@Test
@@ -65,7 +75,7 @@ public class DiscretePerformanceTest extends RCEApplicationStartupTest{
 		
 		NaiveBayesService classifierService = super.candidate.getNaiveBayesService();
 		
-		Iterable<Event> testingEvents = loadTestEvents();
+		Iterable<? extends ClassifiedEvent> testingEvents = loadTestEvents();
 		
 		double tp = 0;
 		double fp = 0;
@@ -73,12 +83,12 @@ public class DiscretePerformanceTest extends RCEApplicationStartupTest{
 		double fn = 0;
 		double total = 0;
 		
-		for (Event event: testingEvents){
+		for (ClassifiedEvent event: testingEvents){
 			total++;
 			
 			com.haines.ml.rce.model.Classification classification = classifierService.getMaximumLikelihoodClassification(event.getFeaturesList()).getClassification();
 			
-			if (classification.getValue().equals(event.getClassificationsList().get(0).getValue())){
+			if (classification.getValue().equals(Iterables.get(event.getClassificationsList(), 0).getValue())){
 				if (classification.getValue().equals(POSITIVE_CLASS)){
 					tp++;
 				} else{
@@ -94,8 +104,14 @@ public class DiscretePerformanceTest extends RCEApplicationStartupTest{
 		}
 		
 		LOG.info(getTestName()+":: classifier results: tp="+tp+" tn="+tn+" fp="+fp+" fn="+fn+" total="+total);
-		LOG.info("classifier accuracy: "+((tp+tn) / total));
-		LOG.info("classifier fmeasure: "+(2*tp / (2*tp + fp + fn)));
+		
+		double accuracy = ((tp+tn) / total);
+		double fmeasure = (2*tp / (2*tp + fp + fn));
+		LOG.info("classifier accuracy: "+accuracy);
+		LOG.info("classifier fmeasure: "+fmeasure);
+		
+		//assertThat(accuracy > 0.82, is(equalTo(true))); TODO get continuous classifier working better
+		//assertThat(fmeasure > 0.88, is(equalTo(true))); TODO get continuous classifier working better
 	}
 	
 	protected String getTestName() {
@@ -121,7 +137,7 @@ public class DiscretePerformanceTest extends RCEApplicationStartupTest{
 		return loadEvents("adult.data.txt");
 	}
 	
-	private <E extends Message<E>> Iterable<E> loadTestEvents() throws IOException {
+	private <E extends Message<E> & ClassifiedEvent> Iterable<E> loadTestEvents() throws IOException {
 		return loadEvents("adult.test.txt");
 	}
 
@@ -194,7 +210,7 @@ public class DiscretePerformanceTest extends RCEApplicationStartupTest{
 		return feature;
 	}
 
-	private Classification getClassification(CSVRecord record) {
+	protected Classification getClassification(CSVRecord record) {
 		Classification classification = new Classification();
 		
 		classification.setValue(record.get(CLASSIFICATION_COLUMN_NAME).trim());

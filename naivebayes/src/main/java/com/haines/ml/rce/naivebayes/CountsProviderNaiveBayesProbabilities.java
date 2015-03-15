@@ -25,6 +25,7 @@ import com.haines.ml.rce.accumulator.handlers.FeatureHandler;
 import com.haines.ml.rce.model.Classification;
 import com.haines.ml.rce.model.Feature;
 import com.haines.ml.rce.naivebayes.NaiveBayesCountsProvider.Counts;
+import com.haines.ml.rce.naivebayes.NaiveBayesIndexes.NaiveBayesPosteriorDistributionProperty;
 import com.haines.ml.rce.naivebayes.model.NaiveBayesCounts;
 import com.haines.ml.rce.naivebayes.model.NaiveBayesProperty;
 import com.haines.ml.rce.naivebayes.model.NaiveBayesCounts.NaiveBayesDistributionCounts;
@@ -96,7 +97,7 @@ public class CountsProviderNaiveBayesProbabilities implements NaiveBayesProbabil
 			if (property.getType() == PropertyType.DISCRETE_POSTERIOR_TYPE){
 				probability = convertDiscretePosteriorCounts(PropertyType.DISCRETE_POSTERIOR_TYPE.cast(property), probability, posterior, posteriorTotals.get(property.getClassification()).get(property.getFeatureType()));
 			} else { // distribution type
-				probability = convertDistributionPosteriorCounts(PropertyType.DISCRETE_POSTERIOR_TYPE.cast(property), probability, (NaiveBayesDistributionCounts)posterior, posteriorTotals.get(property.getClassification()).get(property.getFeatureType()));
+				probability = convertDistributionPosteriorCounts(PropertyType.DISTRIBUTION_POSTERIOR_TYPE.cast(property), probability, (NaiveBayesDistributionCounts)posterior, posteriorTotals.get(property.getClassification()).get(property.getFeatureType()));
 			} 
 			
 			features.put(featureType, probability);
@@ -233,7 +234,7 @@ public class CountsProviderNaiveBayesProbabilities implements NaiveBayesProbabil
 	}
 
 	private PosteriorProbability convertDistributionPosteriorCounts(
-			DiscreteNaiveBayesPosteriorProperty property,
+			NaiveBayesPosteriorDistributionProperty property,
 			PosteriorProbability probability, 
 			NaiveBayesDistributionCounts counts,
 			int totalCountsForPosteriorType) {
@@ -242,7 +243,7 @@ public class CountsProviderNaiveBayesProbabilities implements NaiveBayesProbabil
 			throw new IllegalArgumentException("There cant already be an existing distribution probability for this classifcation/featuretype");
 		}
 		
-		FeatureHandler<?> handler = featureHandlers.getFeatureHandler(property.getFeature().getType());
+		FeatureHandler<?> handler = featureHandlers.getFeatureHandler(property.getFeatureType());
 		
 		DistributionProvider distributionProvider = handler.getDistributionProvider();
 		

@@ -98,6 +98,7 @@ public interface RCEApplication<E extends Event> {
 		private Collection<SystemListener> startupListeners = new ArrayList<SystemListener>();
 		private RCEConfig config = null;
 		private FeatureHandlerRepositoryFactory featureHandlerRepo;
+		private ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
 		
 		public RCEApplicationBuilder(String configOverrideLocation){
 			this.configOverrideLocation = configOverrideLocation;
@@ -115,6 +116,12 @@ public interface RCEApplication<E extends Event> {
 			return this;
 		}
 		
+		public RCEApplicationBuilder<T> setClassLoader(ClassLoader classLoader){
+			this.classLoader = classLoader;
+			
+			return this;
+		}
+		
 		public RCEApplicationBuilder<T> setHandlerRepositoryFactory(FeatureHandlerRepositoryFactory featureHandlerRepo){
 			this.featureHandlerRepo = featureHandlerRepo;
 			
@@ -123,7 +130,7 @@ public interface RCEApplication<E extends Event> {
 		
 		public RCEApplication<T> build() throws RCEApplicationException{
 			@SuppressWarnings({ "rawtypes", "unchecked" })
-			ServiceLoader<RCEApplicationFactory<T>> loader = (ServiceLoader)ServiceLoader.load(RCEApplicationFactory.class);
+			ServiceLoader<RCEApplicationFactory<T>> loader = (ServiceLoader)ServiceLoader.load(RCEApplicationFactory.class, classLoader);
 			
 			for (RCEApplicationFactory<T> factory: loader){
 				factory.addSystemListeners(startupListeners);

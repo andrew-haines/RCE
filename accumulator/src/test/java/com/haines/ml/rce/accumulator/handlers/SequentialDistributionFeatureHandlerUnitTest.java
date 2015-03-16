@@ -132,6 +132,18 @@ public class SequentialDistributionFeatureHandlerUnitTest {
 	}
 	
 	@Test
+	public void givenCandidate_whenCallingIncrementWithSingleEvents_thenCorrectValuesReturned(){
+		
+		candidate.increment(TEST_FEATURE1, TEST_EVENT_1, accumulator, lookup);
+		
+		DistributionParameters params = candidate.getDistribution(accumulator, CLASS_1_SLOTS);
+		
+		assertThat(params.getMean(), is(equalTo(5.0)));
+		assertThat(params.getVariance(), is(equalTo(Double.NaN))); // when we only have 1 sample, the variance should be NaN
+		assertThat(params.getNumSamples(), is(equalTo(1)));
+	}
+	
+	@Test
 	public void givenCandidate_whenCallingIncrementWithFourEventsOf2Classes_thenCorrectValuesReturned(){
 		
 		candidate.increment(TEST_FEATURE4, TEST_EVENT_4, accumulator, lookup);

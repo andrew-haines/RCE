@@ -62,11 +62,18 @@ public class DiscretePerformanceTest extends RCEApplicationStartupTest{
 	@SuppressWarnings("unchecked")
 	@Test
 	public void givenRCEApplication_whenTrained_thenGetAndReportClassifierPerformance() throws IOException, InterruptedException {
+		
+		long heapSize = getMemoryAfterGC();
+		
 		Iterable<? extends Message<?>> trainingEvents = loadTrainingEvents();
+		
+		// take a snapshot of memory usage before we send events to the system
 		
 		for (@SuppressWarnings("rawtypes") Message event: trainingEvents){
 			super.sendViaSelector(event);
 		}
+		
+		trainingEvents = null; // gc food. Most jvm's will do this automatically but this belts and braces
 		
 		waitingForNextWindow.set(true);
 		
@@ -83,7 +90,13 @@ public class DiscretePerformanceTest extends RCEApplicationStartupTest{
 		double fn = 0;
 		double total = 0;
 		
+		ClassifiedEvent firstEvent = null;
+		
 		for (ClassifiedEvent event: testingEvents){
+			
+			if (firstEvent == null){
+				firstEvent = event;
+			}
 			total++;
 			
 			com.haines.ml.rce.model.Classification classification = classifierService.getMaximumLikelihoodClassification(event.getFeaturesList()).getClassification();
@@ -103,6 +116,12 @@ public class DiscretePerformanceTest extends RCEApplicationStartupTest{
 			}
 		}
 		
+		testingEvents = null; // gc food.
+		
+		long heapAfterTrainingSize = getMemoryAfterGC();
+		
+		LOG.info("classifier trained with: {} MB of memory used for model", ((heapAfterTrainingSize - heapSize) / (1024 * 1024)));
+		
 		LOG.info(getTestName()+":: classifier results: tp="+tp+" tn="+tn+" fp="+fp+" fn="+fn+" total="+total);
 		
 		double accuracy = ((tp+tn) / total);
@@ -110,10 +129,23 @@ public class DiscretePerformanceTest extends RCEApplicationStartupTest{
 		LOG.info("classifier accuracy: "+accuracy);
 		LOG.info("classifier fmeasure: "+fmeasure);
 		
-		//assertThat(accuracy > 0.82, is(equalTo(true))); TODO get continuous classifier working better
-		//assertThat(fmeasure > 0.88, is(equalTo(true))); TODO get continuous classifier working better
+		classifierService.getMaximumLikelihoodClassification(firstEvent.getFeaturesList()); // in order to prevent JVM making model available for GC prior to obtaining memory usage above.
+		
+		assertThat(accuracy > 0.82, is(equalTo(true)));
+		assertThat(fmeasure > 0.88, is(equalTo(true)));
 	}
 	
+	private long getMemoryAfterGC() {
+		
+		Runtime rt = Runtime.getRuntime();
+		
+		rt.gc();
+		
+		long usedMemory = rt.totalMemory() - rt.freeMemory();
+		
+		return usedMemory;
+	}
+
 	protected String getTestName() {
 		return "discrete";
 	}

@@ -6,6 +6,9 @@ import java.util.Map;
 
 import javax.inject.Inject;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.google.common.collect.Iterables;
 import com.haines.ml.rce.model.Classification;
 import com.haines.ml.rce.model.Feature;
@@ -26,6 +29,7 @@ import com.haines.ml.rce.model.Feature;
  */
 public class NaiveBayesGlobalIndexes extends DefaultNaiveBayesIndexes{
 
+	private static final Logger LOG = LoggerFactory.getLogger(NaiveBayesGlobalIndexes.class);
 	/**
 	 * Enables constructions of this class to use a more fitting map (such as EnumMap) if
 	 * feature/classification instances can be constrained.
@@ -61,6 +65,8 @@ public class NaiveBayesGlobalIndexes extends DefaultNaiveBayesIndexes{
 				}
 			}
 		}
+		
+		LOG.debug("New global indexes updated with a max Idx of {}", currentMax);
 		
 		return currentMax;
 	}

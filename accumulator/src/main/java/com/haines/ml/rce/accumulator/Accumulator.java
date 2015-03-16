@@ -226,7 +226,9 @@ public abstract class Accumulator<T extends Event> implements EventConsumer<T>, 
 
 	public AccumulatorProvider<T> getAccumulatorProvider() {
 		
-		return new MemorySafeAccumulatorProvider<T>(accumulators, currentMaxIdx, finalAccumulatorLineSize, lookup);
+		//LOG.debug("current maxId: {}", lookup.getMaxIndex());
+		
+		return new MemorySafeAccumulatorProvider<T>(accumulators, lookup.getMaxIndex(), finalAccumulatorLineSize, lookup);
 	}
 	
 	public int getMaxIndex() {

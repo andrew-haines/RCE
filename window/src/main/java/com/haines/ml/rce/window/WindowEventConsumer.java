@@ -6,6 +6,9 @@ import java.util.Map;
 
 import javax.inject.Inject;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.google.common.collect.Iterables;
 import com.haines.ml.rce.accumulator.AccumulatorProvider;
 import com.haines.ml.rce.accumulator.HandlerRepository;
@@ -32,7 +35,7 @@ import com.haines.ml.rce.naivebayes.model.NaiveBayesProperty.NaiveBayesPriorDist
 import com.haines.ml.rce.naivebayes.model.NaiveBayesProperty.PropertyType;
 
 public class WindowEventConsumer<E extends ClassifiedEvent> implements EventConsumer<AccumulatedEvent<RONaiveBayesMapBasedLookupStrategy<E>>>{
-
+	
 	private final WindowManager aggregator;
 	private final HandlerRepository<E> featureHandlers;
 	private final WindowConfig config;
@@ -63,7 +66,7 @@ public class WindowEventConsumer<E extends ClassifiedEvent> implements EventCons
 				
 				//update the global indexes with a sorted version of the posterior and prior properties, sorted by most probable
 				
-				NaiveBayesProbabilities probabilities = window.getProbabilities();
+				NaiveBayesProbabilities probabilities = window.getProbabilities(); // this is the entire view of the windowing system, not just the new window
 				
 				/*
 				 * represents the classification/feature mapping. This does not need to be broken down to feature type as this 

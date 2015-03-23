@@ -30,7 +30,7 @@ import com.haines.ml.rce.main.config.RCEConfig;
 import com.haines.ml.rce.main.factory.FeatureHandlerRepositoryFactory;
 import com.haines.ml.rce.naivebayes.NaiveBayesProbabilitiesProvider;
 import com.haines.ml.rce.naivebayes.NaiveBayesRCEApplication;
-import com.haines.ml.rce.naivebayes.NaiveBayesService.PredicatedClassification;
+import com.haines.ml.rce.service.ClassifierService.PredicatedClassification;
 import com.haines.ml.rce.transport.Event;
 import com.haines.ml.rce.transport.Event.Classification;
 import com.haines.ml.rce.transport.Event.Feature;
@@ -159,7 +159,7 @@ public class RCEApplicationStartupTest {
 			
 			Thread.sleep(2000);
 			
-			PredicatedClassification classification = candidate.getNaiveBayesService().getMaximumLikelihoodClassification(Arrays.asList(getFeature("true", 1), getFeature("false", 2), getFeature("mild", 3), getFeature("false", 4)));
+			PredicatedClassification classification = candidate.getNaiveBayesService().getClassification(Arrays.asList(getFeature("true", 1), getFeature("false", 2), getFeature("mild", 3), getFeature("false", 4)));
 			
 			assertThat((String)classification.getClassification().getValue(), is(equalTo(TEST_CLASS_2.getValue())));
 			assertThat(classification.getCertainty(), is(closeTo(0.0185, 0.0001)));
@@ -186,7 +186,7 @@ public class RCEApplicationStartupTest {
 		for (int i = 0; i < 5; i++){
 			
 			System.out.println(candidate.getNaiveBayesService().toString());
-			PredicatedClassification classification = candidate.getNaiveBayesService().getMaximumLikelihoodClassification(Arrays.asList(getFeature("true", 1), getFeature("false", 2), getFeature("mild", 3), getFeature("false", 4)));
+			PredicatedClassification classification = candidate.getNaiveBayesService().getClassification(Arrays.asList(getFeature("true", 1), getFeature("false", 2), getFeature("mild", 3), getFeature("false", 4)));
 		
 			Thread.sleep(2000);
 			

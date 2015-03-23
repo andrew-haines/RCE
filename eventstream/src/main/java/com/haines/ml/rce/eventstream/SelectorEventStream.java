@@ -60,6 +60,7 @@ public class SelectorEventStream<T extends SelectableChannel & NetworkChannel, E
 	public void start() throws EventStreamException{
 		
 		executingThread = Thread.currentThread();
+		executingThread.setName("Selector Thread - started");
 		ChannelDetails<T> channelDetails = initiateSelectorAndChannel();
 		
 		ByteBuffer buffer = createBuffer();
@@ -195,6 +196,7 @@ public class SelectorEventStream<T extends SelectableChannel & NetworkChannel, E
 	@Override
 	public void stop() throws EventStreamException{
 		
+		executingThread.setName("Selector Thread - started");
 		if (isAlive()){
 			executingThread.interrupt();
 			isAlive = false;

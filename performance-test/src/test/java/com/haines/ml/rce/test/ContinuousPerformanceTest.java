@@ -116,7 +116,7 @@ public class ContinuousPerformanceTest extends DiscretePerformanceTest {
 		events.add((E)event);
 	}
 	
-	private DynamicFeature<?> getFeature(String featureValue, int type){
+	protected DynamicFeature<?> getFeature(String featureValue, int type){
 		
 		featureValue = featureValue.trim();
 		

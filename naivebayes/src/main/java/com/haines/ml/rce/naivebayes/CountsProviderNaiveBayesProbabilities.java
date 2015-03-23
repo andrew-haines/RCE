@@ -97,7 +97,7 @@ public class CountsProviderNaiveBayesProbabilities implements NaiveBayesProbabil
 			if (property.getType() == PropertyType.DISCRETE_POSTERIOR_TYPE){
 				probability = convertDiscretePosteriorCounts(PropertyType.DISCRETE_POSTERIOR_TYPE.cast(property), probability, posterior, posteriorTotals.get(property.getClassification()).get(property.getFeatureType()));
 			} else { // distribution type
-				probability = convertDistributionPosteriorCounts(PropertyType.DISTRIBUTION_POSTERIOR_TYPE.cast(property), probability, (NaiveBayesDistributionCounts)posterior, posteriorTotals.get(property.getClassification()).get(property.getFeatureType()));
+				probability = convertDistributionPosteriorCounts(PropertyType.DISTRIBUTION_POSTERIOR_TYPE.cast(property), (NaiveBayesDistributionCounts)posterior, posteriorTotals.get(property.getClassification()).get(property.getFeatureType()));
 			} 
 			
 			features.put(featureType, probability);
@@ -114,8 +114,8 @@ public class CountsProviderNaiveBayesProbabilities implements NaiveBayesProbabil
 			if (property.getType() == PropertyType.DISCRETE_PRIOR_TYPE){
 				probability = convertDiscretePriorCounts(PropertyType.DISCRETE_PRIOR_TYPE.cast(property), probability, prior, priorTotal);
 			} else { // distribution type
-				probability = convertDistributionPriorCounts(PropertyType.DISCRETE_PRIOR_TYPE.cast(property), probability, (NaiveBayesDistributionCounts)prior, priorTotal);
-			} 
+				probability = convertDistributionPriorCounts(PropertyType.DISCRETE_PRIOR_TYPE.cast(property), (NaiveBayesDistributionCounts)prior, priorTotal);
+			}
 			
 			priorProbabilities.put(property.getClassificationType(), probability);
 		}
@@ -150,9 +150,7 @@ public class CountsProviderNaiveBayesProbabilities implements NaiveBayesProbabil
 									sortedProperties.add(new NaiveBayesProbability(new DiscreteNaiveBayesPosteriorProperty(featureProbability.getKey(), classification.getKey()), featureProbability.getValue()));
 
 								}
-							} else {
-								FeatureHandler<?> handler = CountsProviderNaiveBayesProbabilities.this.featureHandlers.getFeatureHandler(it.key());
-								
+							} else {								
 								sortedProperties.add(new NaiveBayesProbability(new NaiveBayesIndexes.NaiveBayesPosteriorDistributionProperty(it.key(), classification.getKey()), probabilities));
 							}
 						}
@@ -177,7 +175,6 @@ public class CountsProviderNaiveBayesProbabilities implements NaiveBayesProbabil
 						} else{
 							sortedProperties.add(new NaiveBayesProbability(new NaiveBayesProperty.NaiveBayesPriorDistributionProperty(it.key()), probability));
 						}
-						
 					}
 				}
 				
@@ -196,13 +193,8 @@ public class CountsProviderNaiveBayesProbabilities implements NaiveBayesProbabil
 	
 	private PriorProbability convertDistributionPriorCounts(
 			DiscreteNaiveBayesPriorProperty property,
-			PriorProbability probability, 
 			NaiveBayesDistributionCounts counts,
 			int priorTotal) {
-		
-		if (probability != null){ // TODO maybe convert this to an assertion?
-			throw new IllegalArgumentException("There cant already be an existing distribution probability for this classifcation/featuretype");
-		}
 		
 		ClassificationHandler<?> handler = featureHandlers.getClassificationHandler(property.getClassification().getType());
 		
@@ -235,13 +227,8 @@ public class CountsProviderNaiveBayesProbabilities implements NaiveBayesProbabil
 
 	private PosteriorProbability convertDistributionPosteriorCounts(
 			NaiveBayesPosteriorDistributionProperty property,
-			PosteriorProbability probability, 
 			NaiveBayesDistributionCounts counts,
 			int totalCountsForPosteriorType) {
-		
-		if (probability != null){ // TODO maybe convert this to an assertion?
-			throw new IllegalArgumentException("There cant already be an existing distribution probability for this classifcation/featuretype");
-		}
 		
 		FeatureHandler<?> handler = featureHandlers.getFeatureHandler(property.getFeatureType());
 		

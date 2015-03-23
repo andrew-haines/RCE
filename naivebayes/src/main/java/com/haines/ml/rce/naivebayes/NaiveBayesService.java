@@ -9,8 +9,9 @@ import com.google.common.base.Function;
 import com.google.common.collect.Iterables;
 import com.haines.ml.rce.model.Classification;
 import com.haines.ml.rce.model.Feature;
+import com.haines.ml.rce.service.ClassifierService;
 
-public class NaiveBayesService {
+public class NaiveBayesService implements ClassifierService {
 	
 	private static final Function<Entry<Double, Classification>, PredicatedClassification> PREDICTED_CLASSIFICATION_FUNCTION = new Function<Entry<Double, Classification>, PredicatedClassification>(){
 
@@ -60,7 +61,7 @@ public class NaiveBayesService {
 		return Iterables.limit(Iterables.transform(sortedClassifications.entrySet(), PREDICTED_CLASSIFICATION_FUNCTION), numClassifications);
 	}
 	
-	public PredicatedClassification getMaximumLikelihoodClassification(Iterable<? extends Feature> features){
+	private PredicatedClassification getMaximumLikelihoodClassification(Iterable<? extends Feature> features){
 		return getMaximumLikelihoodClassifications(features, 1).iterator().next();
 	}
 	
@@ -68,23 +69,9 @@ public class NaiveBayesService {
 	public String toString(){
 		return probabilitiesProvider.toString();
 	}
-	
-	public static class PredicatedClassification {
-		
-		private final double certainty;
-		private final Classification classification;
-		
-		private PredicatedClassification(double certainty, Classification classification){
-			this.certainty = certainty;
-			this.classification = classification;
-		}
 
-		public double getCertainty() {
-			return Math.exp(certainty);
-		}
-
-		public Classification getClassification() {
-			return classification;
-		}
+	@Override
+	public PredicatedClassification getClassification(Iterable<? extends Feature> features) {
+		return getMaximumLikelihoodClassification(features);
 	}
 }

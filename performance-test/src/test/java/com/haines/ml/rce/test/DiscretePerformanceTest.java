@@ -20,6 +20,7 @@ import com.google.common.collect.Iterables;
 import com.haines.ml.rce.main.RCEApplicationStartupTest;
 import com.haines.ml.rce.model.ClassifiedEvent;
 import com.haines.ml.rce.naivebayes.NaiveBayesService;
+import com.haines.ml.rce.test.ReportGenerator.Report;
 import com.haines.ml.rce.transport.Event;
 import com.haines.ml.rce.transport.Event.Classification;
 import com.haines.ml.rce.transport.Event.Feature;
@@ -28,14 +29,14 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.equalTo;
 
-public class DiscretePerformanceTest extends RCEApplicationStartupTest{
+public class DiscretePerformanceTest extends RCEApplicationStartupTest implements PerformanceTest{
 
 	private static final Logger LOG = LoggerFactory.getLogger(DiscretePerformanceTest.class);
 
 	private static final String POSITIVE_CLASS = "<=50K";
 	private static final String NEGATIVE_CLASS = ">50K";
 
-	private static final String CLASSIFICATION_COLUMN_NAME = "classification";
+	protected static final String CLASSIFICATION_COLUMN_NAME = "classification";
 	protected static final String AGE_COLUMN_NAME = "age";
 	protected static final String WORKCLASS_COLUMN_NAME = "workclass";
 	protected static final String FNLWGT_COLUMN_NAME = "fnlwgt";
@@ -59,91 +60,33 @@ public class DiscretePerformanceTest extends RCEApplicationStartupTest{
 		super();
 	}
 
-	@SuppressWarnings("unchecked")
 	@Test
 	public void givenRCEApplication_whenTrained_thenGetAndReportClassifierPerformance() throws IOException, InterruptedException {
 		
-		long heapSize = getMemoryAfterGC();
+		String existingThreadName = Thread.currentThread().getName();
 		
-		Iterable<? extends Message<?>> trainingEvents = loadTrainingEvents();
+		Thread.currentThread().setName(existingThreadName+" - "+getTestName());
+		LOG.info("Loading required data...");
 		
-		// take a snapshot of memory usage before we send events to the system
-		
-		for (@SuppressWarnings("rawtypes") Message event: trainingEvents){
-			super.sendViaSelector(event);
-		}
-		
-		trainingEvents = null; // gc food. Most jvm's will do this automatically but this belts and braces
-		
-		waitingForNextWindow.set(true);
-		
-		super.nextWindowUpdated.await();
-		Thread.sleep(6000);
-		
-		NaiveBayesService classifierService = super.candidate.getNaiveBayesService();
+		Iterable<? extends ClassifiedEvent> trainingEvents = loadTrainingEvents();
 		
 		Iterable<? extends ClassifiedEvent> testingEvents = loadTestEvents();
 		
-		double tp = 0;
-		double fp = 0;
-		double tn = 0;
-		double fn = 0;
-		double total = 0;
+		LOG.info("Finished loading required data. Starting tests");
 		
-		ClassifiedEvent firstEvent = null;
+		Report report = new ReportGenerator(2, this).getReport(trainingEvents, testingEvents);
 		
-		for (ClassifiedEvent event: testingEvents){
-			
-			if (firstEvent == null){
-				firstEvent = event;
-			}
-			total++;
-			
-			com.haines.ml.rce.model.Classification classification = classifierService.getMaximumLikelihoodClassification(event.getFeaturesList()).getClassification();
-			
-			if (classification.getValue().equals(Iterables.get(event.getClassificationsList(), 0).getValue())){
-				if (classification.getValue().equals(POSITIVE_CLASS)){
-					tp++;
-				} else{
-					tn++;
-				}
-			} else{
-				if (classification.getValue().equals(POSITIVE_CLASS)){
-					fp++;
-				} else{
-					fn++;
-				}
-			}
-		}
+		LOG.info("\n\n\t\t\t----------------------------Report completed-----------------------------\n"+
+				     "\t\t\t| classifier accuracy: "+report.getAccuracy()+"\t\t\t\t|\n" +
+				     "\t\t\t| classifier fmeasure: "+report.getFmeasure()+"\t\t\t\t\t\t|\n" +
+				     "\t\t\t| classifier roc: "+report.getRoc()+"\t\t\t\t\t\t\t|\n" +
+				     "\t\t\t| classifier model Size: "+report.getNumBytesUsedForModel()+"\t\t\t\t\t|\n" +
+					 "\t\t\t----------------------------Report completed-----------------------------\n\n");
 		
-		testingEvents = null; // gc food.
+		assertThat("Accuracy "+report.getAccuracy()+" is not above 0.82", report.getAccuracy() > 0.82, is(equalTo(true)));
+		//assertThat(report.getFmeasure() > 0.88, is(equalTo(true)));
 		
-		long heapAfterTrainingSize = getMemoryAfterGC();
-		
-		LOG.info("classifier trained with: {} MB of memory used for model", ((heapAfterTrainingSize - heapSize) / (1024 * 1024)));
-		
-		LOG.info(getTestName()+":: classifier results: tp="+tp+" tn="+tn+" fp="+fp+" fn="+fn+" total="+total);
-		
-		double accuracy = ((tp+tn) / total);
-		double fmeasure = (2*tp / (2*tp + fp + fn));
-		LOG.info("classifier accuracy: "+accuracy);
-		LOG.info("classifier fmeasure: "+fmeasure);
-		
-		classifierService.getMaximumLikelihoodClassification(firstEvent.getFeaturesList()); // in order to prevent JVM making model available for GC prior to obtaining memory usage above.
-		
-		assertThat(accuracy > 0.82, is(equalTo(true)));
-		assertThat(fmeasure > 0.88, is(equalTo(true)));
-	}
-	
-	private long getMemoryAfterGC() {
-		
-		Runtime rt = Runtime.getRuntime();
-		
-		rt.gc();
-		
-		long usedMemory = rt.totalMemory() - rt.freeMemory();
-		
-		return usedMemory;
+		Thread.currentThread().setName(existingThreadName);
 	}
 
 	protected String getTestName() {
@@ -165,36 +108,40 @@ public class DiscretePerformanceTest extends RCEApplicationStartupTest{
 		// overload to disable inheriting test
 	}
 
-	private <E extends Message<E>> Iterable<E> loadTrainingEvents() throws IOException {
+	protected <E extends Message<E>> Iterable<E> loadTrainingEvents() throws IOException {
 		return loadEvents("adult.data.txt");
 	}
 	
-	private <E extends Message<E> & ClassifiedEvent> Iterable<E> loadTestEvents() throws IOException {
+	protected <E extends Message<E> & ClassifiedEvent> Iterable<E> loadTestEvents() throws IOException {
 		return loadEvents("adult.test.txt");
 	}
+	
+	private <E extends Message<E>> Iterable<E> loadEvents(String datafileLocation) throws IOException{
+		return loadEvents(datafileLocation, true, ',', AGE_COLUMN_NAME,
+				WORKCLASS_COLUMN_NAME,
+				FNLWGT_COLUMN_NAME,
+				EDUCATION_COLUMN_NAME,
+				EDUCATION_NUM_COLUMN_NAME, 
+				MARITAL_STATUS_COLUMN_NAME,
+				OCCUPATION_COLUMN_NAME, 
+				RELATIONSHIP_COLUMN_NAME,
+				RACE_COLUMN_NAME,
+				SEX_COLUMN_NAME,
+				CAPITAL_GAIN_COLUMN_NAME,
+				CAPITAL_LOSS_COLUMN_NAME,
+				HOURS_PER_WEEK_COLUMN_NAME,
+				NATIVE_COUNTRY_COLUMN_NAME,
+				CLASSIFICATION_COLUMN_NAME);
+	}
 
-	private <E extends Message<E>> Iterable<E> loadEvents(String dataFileLocation) throws IOException {
+	protected <E extends Message<E>> Iterable<E> loadEvents(String dataFileLocation, boolean skipHeader, char delimiter, String... headers) throws IOException {
 		
 		InputStream dataStream = DiscretePerformanceTest.class.getResourceAsStream("/"+dataFileLocation);
 		
 		try(CSVParser parser = new CSVParser(new InputStreamReader(dataStream), CSVFormat.DEFAULT
-																				.withSkipHeaderRecord(true)
-																				.withHeader(AGE_COLUMN_NAME,
-																							WORKCLASS_COLUMN_NAME,
-																							FNLWGT_COLUMN_NAME,
-																							EDUCATION_COLUMN_NAME,
-																							EDUCATION_NUM_COLUMN_NAME, 
-																							MARITAL_STATUS_COLUMN_NAME,
-																							OCCUPATION_COLUMN_NAME, 
-																							RELATIONSHIP_COLUMN_NAME,
-																							RACE_COLUMN_NAME,
-																							SEX_COLUMN_NAME,
-																							CAPITAL_GAIN_COLUMN_NAME,
-																							CAPITAL_LOSS_COLUMN_NAME,
-																							HOURS_PER_WEEK_COLUMN_NAME,
-																							NATIVE_COUNTRY_COLUMN_NAME,
-																							CLASSIFICATION_COLUMN_NAME
-																	).withDelimiter(','))){
+																				.withSkipHeaderRecord(skipHeader)
+																				.withHeader(headers
+																	).withDelimiter(delimiter))){
 		
 			Collection<E> events = new ArrayList<E>();
 			
@@ -247,6 +194,35 @@ public class DiscretePerformanceTest extends RCEApplicationStartupTest{
 		
 		classification.setValue(record.get(CLASSIFICATION_COLUMN_NAME).trim());
 		return classification;
+	}
+
+	@Override
+	public NaiveBayesService getClassifierService() {
+		return super.candidate.getNaiveBayesService();
+	}
+
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+	@Override
+	public void sendEvent(com.haines.ml.rce.model.Event event) {
+		try {
+			super.sendViaSelector((Message)event);
+		} catch (IOException | InterruptedException e) {
+			throw new RuntimeException("Unable to send event "+event+" to selector ", e);
+		}
+	}
+
+	@Override
+	public void notifyTrainingCompleted() {
+		
+		// pause the test to ensure that the training events will propagate through to the model
+		waitingForNextWindow.set(true);
+		
+		try {
+			super.nextWindowUpdated.await();
+			Thread.sleep(6000);
+		} catch (InterruptedException e) {
+			throw new RuntimeException("Unable to wait for system", e);
+		}
 	}
 	
 }

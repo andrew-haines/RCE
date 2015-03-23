@@ -9,7 +9,6 @@ import com.haines.ml.rce.model.Feature;
 import com.haines.ml.rce.model.distribution.Distribution;
 import com.haines.ml.rce.model.distribution.DistributionParameters;
 import com.haines.ml.rce.naivebayes.NaiveBayesProbabilities;
-import com.haines.ml.rce.naivebayes.model.Probability.DiscreteProbability;
 
 public interface Probability {
 	

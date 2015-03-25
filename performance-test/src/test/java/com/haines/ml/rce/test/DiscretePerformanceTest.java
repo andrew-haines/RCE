@@ -1,5 +1,6 @@
 package com.haines.ml.rce.test;
 
+import java.awt.GraphicsEnvironment;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -7,6 +8,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+
+import javax.xml.bind.JAXBException;
 
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
@@ -16,7 +19,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.dyuproject.protostuff.Message;
-import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
+import com.haines.ml.rce.main.RCEApplicationException;
 import com.haines.ml.rce.main.RCEApplicationStartupTest;
 import com.haines.ml.rce.model.ClassifiedEvent;
 import com.haines.ml.rce.naivebayes.NaiveBayesService;
@@ -74,19 +78,39 @@ public class DiscretePerformanceTest extends RCEApplicationStartupTest implement
 		
 		LOG.info("Finished loading required data. Starting tests");
 		
-		Report report = new ReportGenerator(2, this).getReport(trainingEvents, testingEvents);
+		Report report = new ReportGenerator(getTestName(), 2, 200, this).getReport(trainingEvents, testingEvents, getExpectedClasses());
 		
-		LOG.info("\n\n\t\t\t----------------------------Report completed-----------------------------\n"+
-				     "\t\t\t| classifier accuracy: "+report.getAccuracy()+"\t\t\t\t|\n" +
-				     "\t\t\t| classifier fmeasure: "+report.getFmeasure()+"\t\t\t\t\t\t|\n" +
-				     "\t\t\t| classifier roc: "+report.getRoc()+"\t\t\t\t\t\t\t|\n" +
-				     "\t\t\t| classifier model Size: "+report.getNumBytesUsedForModel()+"\t\t\t\t\t|\n" +
-					 "\t\t\t----------------------------Report completed-----------------------------\n\n");
+		Report randomReport = new ReportGenerator("Random", 2, 100, new RandomPerformanceTest(getExpectedClasses())).getReport(trainingEvents, testingEvents, getExpectedClasses());
+		
+		getReportRenderer().render(Lists.newArrayList(report, randomReport));
+		
+		if (System.getProperty("waitForKeyInput") != null){
+			System.in.read();
+		}
 		
 		assertThat("Accuracy "+report.getAccuracy()+" is not above 0.82", report.getAccuracy() > 0.82, is(equalTo(true)));
 		//assertThat(report.getFmeasure() > 0.88, is(equalTo(true)));
 		
 		Thread.currentThread().setName(existingThreadName);
+	}
+
+	private ReportRenderer getReportRenderer() {
+		ReportRenderer renderer = new ReportRenderer.SLF4JReportRenderer();
+		
+		if (!GraphicsEnvironment.isHeadless()){
+			renderer = ReportRenderer.UTIL.chain(renderer, new ReportRenderer.JPanelJChartROCRenderer());
+		}
+		
+		return renderer;
+		
+	}
+
+	protected List<? extends com.haines.ml.rce.model.Classification> getExpectedClasses() {
+		return Lists.newArrayList(getClassification(POSITIVE_CLASS), getClassification(NEGATIVE_CLASS));
+	}
+	
+	private Classification getClassification(String classification){
+		return new Classification(classification);
 	}
 
 	protected String getTestName() {
@@ -223,6 +247,17 @@ public class DiscretePerformanceTest extends RCEApplicationStartupTest implement
 		} catch (InterruptedException e) {
 			throw new RuntimeException("Unable to wait for system", e);
 		}
+	}
+
+	@Override
+	public void reset() {
+		try {
+			super.after();
+			super.before();
+		} catch (RCEApplicationException | InterruptedException | JAXBException | IOException e) {
+			throw new RuntimeException("Unable to stop existing service", e);
+		}
+		
 	}
 	
 }

@@ -5,6 +5,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TreeMap;
 
+import org.apache.commons.math3.util.FastMath;
+
 import com.google.common.base.Function;
 import com.google.common.collect.Iterables;
 import com.haines.ml.rce.model.Classification;
@@ -17,7 +19,7 @@ public class NaiveBayesService implements ClassifierService {
 
 		@Override
 		public PredicatedClassification apply(Entry<Double, Classification> input) {
-			return new PredicatedClassification(input.getKey(), input.getValue());
+			return new PredicatedClassification(FastMath.exp(input.getKey()), input.getValue());
 		}
 		
 	};
@@ -47,11 +49,8 @@ public class NaiveBayesService implements ClassifierService {
 		//System.out.println("considering classification with: "+probabilities.toString());
 		
 		for (Classification possibleClassification: probabilities.getAllClassifications()){
-			double logLikelihoodProbability = 0;
-			for (Feature feature: features){
-				logLikelihoodProbability += Math.log(probabilities.getPosteriorProbability(feature, possibleClassification));
-			}
-			logLikelihoodProbability += Math.log(probabilities.getPriorProbability(possibleClassification));
+			
+			double logLikelihoodProbability = getLoggedLikelihoodProbability(probabilities, features, possibleClassification);
 			
 			// now add to the sorted map where sortedClassifications.values[0] is the maximum a posteriori
 			
@@ -61,6 +60,16 @@ public class NaiveBayesService implements ClassifierService {
 		return Iterables.limit(Iterables.transform(sortedClassifications.entrySet(), PREDICTED_CLASSIFICATION_FUNCTION), numClassifications);
 	}
 	
+	private final double getLoggedLikelihoodProbability(NaiveBayesProbabilities probabilities, Iterable<? extends Feature> features, Classification possibleClassification) {
+		double logLikelihoodProbability = 0;
+		for (Feature feature: features){
+			logLikelihoodProbability += Math.log(probabilities.getPosteriorProbability(feature, possibleClassification));
+		}
+		logLikelihoodProbability += Math.log(probabilities.getPriorProbability(possibleClassification));
+		
+		return logLikelihoodProbability;
+	}
+
 	private PredicatedClassification getMaximumLikelihoodClassification(Iterable<? extends Feature> features){
 		return getMaximumLikelihoodClassifications(features, 1).iterator().next();
 	}
@@ -73,5 +82,13 @@ public class NaiveBayesService implements ClassifierService {
 	@Override
 	public PredicatedClassification getClassification(Iterable<? extends Feature> features) {
 		return getMaximumLikelihoodClassification(features);
+	}
+
+	@Override
+	public double getScore(Iterable<? extends Feature> features, Classification classification) {
+		
+		NaiveBayesProbabilities probabilities = probabilitiesProvider.getProbabilities();
+		
+		return FastMath.exp(getLoggedLikelihoodProbability(probabilities, features, classification));
 	}
 }

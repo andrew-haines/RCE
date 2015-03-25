@@ -1,5 +1,9 @@
 package com.haines.ml.rce.service;
 
+import java.util.List;
+
+import org.apache.commons.math3.util.FastMath;
+
 import com.haines.ml.rce.model.Classification;
 import com.haines.ml.rce.model.Feature;
 
@@ -11,6 +15,15 @@ public interface ClassifierService {
 	 * @return
 	 */
 	PredicatedClassification getClassification(Iterable<? extends Feature> features);
+	
+	/**
+	 * Returns a score that represents how well an instance with the supplied feature set would describe the supplied classification given this
+	 * model.
+	 * @param features
+	 * @param classification
+	 * @return
+	 */
+	double getScore(Iterable<? extends Feature> features, Classification classification);
 
 	public static class PredicatedClassification {
 		
@@ -23,11 +36,35 @@ public interface ClassifierService {
 		}
 
 		public double getCertainty() {
-			return Math.exp(certainty);
+			return certainty;
 		}
 
 		public Classification getClassification() {
 			return classification;
 		}
+	}
+	
+	public static class RandomisedClassifierService implements ClassifierService {
+
+		private final List<? extends Classification> possibleClassifications;
+		
+		public RandomisedClassifierService(List<? extends Classification> possibleClassifications){
+			this.possibleClassifications = possibleClassifications;
+		}
+		
+		@Override
+		public PredicatedClassification getClassification(Iterable<? extends Feature> features) {
+			
+			double randomNumber = FastMath.random();
+			int idx = (int)(randomNumber * possibleClassifications.size());
+			
+			return new PredicatedClassification(FastMath.random(), possibleClassifications.get(idx));
+		}
+
+		@Override
+		public double getScore(Iterable<? extends Feature> features, Classification classification) {
+			return FastMath.random();
+		}
+		
 	}
 }

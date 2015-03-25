@@ -32,7 +32,7 @@ import com.haines.ml.rce.test.ContinuousPerformanceTest.ContiuousTestEvent.Dynam
  * @author haines
  *
  */
-public class ShuttlePerformanceTest extends ContinuousPerformanceTest{
+public class ShuttlePerformanceTest extends ContinuousPerformanceTest {
 
 	private static final String FEATURE1 = "feature1";
 	private static final String FEATURE2 = "feature2";
@@ -115,5 +115,10 @@ public class ShuttlePerformanceTest extends ContinuousPerformanceTest{
 		feature.setType(type);
 		
 		return feature;
+	}
+
+	@Override
+	protected String getTestName() {
+		return "Shuttle";
 	}
 }

@@ -14,7 +14,7 @@ public interface ClassifierService {
 	 * @param features
 	 * @return
 	 */
-	PredicatedClassification getClassification(Iterable<? extends Feature> features);
+	PredictedClassification getClassification(Iterable<? extends Feature> features);
 	
 	/**
 	 * Returns a score that represents how well an instance with the supplied feature set would describe the supplied classification given this
@@ -25,12 +25,12 @@ public interface ClassifierService {
 	 */
 	double getScore(Iterable<? extends Feature> features, Classification classification);
 
-	public static class PredicatedClassification {
+	public static class PredictedClassification {
 		
 		private final double certainty;
 		private final Classification classification;
 		
-		public PredicatedClassification(double certainty, Classification classification){
+		public PredictedClassification(double certainty, Classification classification){
 			this.certainty = certainty;
 			this.classification = classification;
 		}
@@ -53,12 +53,12 @@ public interface ClassifierService {
 		}
 		
 		@Override
-		public PredicatedClassification getClassification(Iterable<? extends Feature> features) {
+		public PredictedClassification getClassification(Iterable<? extends Feature> features) {
 			
 			double randomNumber = FastMath.random();
 			int idx = (int)(randomNumber * possibleClassifications.size());
 			
-			return new PredicatedClassification(FastMath.random(), possibleClassifications.get(idx));
+			return new PredictedClassification(FastMath.random(), possibleClassifications.get(idx));
 		}
 
 		@Override

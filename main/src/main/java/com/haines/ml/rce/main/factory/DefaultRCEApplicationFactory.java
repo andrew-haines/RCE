@@ -3,7 +3,6 @@ package com.haines.ml.rce.main.factory;
 import java.nio.channels.NetworkChannel;
 import java.nio.channels.SelectableChannel;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.Executors;
@@ -125,7 +124,7 @@ public class DefaultRCEApplicationFactory<E extends Event, EC extends EventConsu
 		NetworkChannelProcessor<S> channelProcessor = (NetworkChannelProcessor<S>)channelProcessorProvider.get();
 		
 		EventMarshalBuffer<E> eventBuffer = this.marshalBuffer;
-		EventStreamListener streamListener = EventStreamListener.UTIL.chainListeners(Iterables.concat(Arrays.asList(new EventStreamListener.SLF4JStreamListener()), Iterables.filter(systemListeners, EventStreamListener.class)));
+		EventStreamListener streamListener = EventStreamListener.UTIL.chainListeners(Iterables.filter(systemListeners, EventStreamListener.class));
 		
 		SelectorEventStreamFactory<S, E> factory = new SelectorEventStreamFactory<S, E>(clock, RCEConfig.UTIL.getSelectorEventStreamConfig(config), channelProcessor, eventBuffer, streamListener);
 		

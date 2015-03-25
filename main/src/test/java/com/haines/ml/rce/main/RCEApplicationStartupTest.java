@@ -30,7 +30,7 @@ import com.haines.ml.rce.main.config.RCEConfig;
 import com.haines.ml.rce.main.factory.FeatureHandlerRepositoryFactory;
 import com.haines.ml.rce.naivebayes.NaiveBayesProbabilitiesProvider;
 import com.haines.ml.rce.naivebayes.NaiveBayesRCEApplication;
-import com.haines.ml.rce.service.ClassifierService.PredicatedClassification;
+import com.haines.ml.rce.service.ClassifierService.PredictedClassification;
 import com.haines.ml.rce.transport.Event;
 import com.haines.ml.rce.transport.Event.Classification;
 import com.haines.ml.rce.transport.Event.Feature;
@@ -67,9 +67,7 @@ public class RCEApplicationStartupTest {
 		this(null);
 	}
 	
-	@Before
-	public void before() throws RCEApplicationException, JAXBException, IOException, InterruptedException{
-		
+	protected void startUpRCE(FeatureHandlerRepositoryFactory repositoryFactory) throws InterruptedException, RCEApplicationException, JAXBException, IOException{
 		started = new CountDownLatch(1);
 		finished = new CountDownLatch(1);
 		windowUpdated = new CountDownLatch(3);
@@ -109,10 +107,15 @@ public class RCEApplicationStartupTest {
 				}
 			}
 		})
-		.setConfig(new RCEConfig.DefaultRCEConfig(defaultConfig)).setHandlerRepositoryFactory(getFeatureHandlerRepositoryFactory());
+		.setConfig(new RCEConfig.DefaultRCEConfig(defaultConfig))
+		.setHandlerRepositoryFactory(repositoryFactory);
 		
 		if (classLoader != null){
 			builder.setClassLoader(classLoader);
+		}
+		
+		if (isUsingSlf4jEventListener()){
+			builder.addSystemStartedListener(new EventStreamListener.SLF4JStreamListener());
 		}
 		
 		candidate = (NaiveBayesRCEApplication<Event>)builder.build();
@@ -120,6 +123,16 @@ public class RCEApplicationStartupTest {
 		startServerAndWait();
 	}
 	
+	@Before
+	public void before() throws RCEApplicationException, JAXBException, IOException, InterruptedException{
+		
+		startUpRCE(getFeatureHandlerRepositoryFactory());
+	}
+	
+	protected boolean isUsingSlf4jEventListener() {
+		return true;
+	}
+
 	protected FeatureHandlerRepositoryFactory getFeatureHandlerRepositoryFactory() {
 		return FeatureHandlerRepositoryFactory.ALL_DISCRETE_FEATURES;
 	}
@@ -159,7 +172,7 @@ public class RCEApplicationStartupTest {
 			
 			Thread.sleep(2000);
 			
-			PredicatedClassification classification = candidate.getNaiveBayesService().getClassification(Arrays.asList(getFeature("true", 1), getFeature("false", 2), getFeature("mild", 3), getFeature("false", 4)));
+			PredictedClassification classification = candidate.getNaiveBayesService().getClassification(Arrays.asList(getFeature("true", 1), getFeature("false", 2), getFeature("mild", 3), getFeature("false", 4)));
 			
 			assertThat((String)classification.getClassification().getValue(), is(equalTo(TEST_CLASS_2.getValue())));
 			assertThat(classification.getCertainty(), is(closeTo(0.0185, 0.0001)));
@@ -186,7 +199,7 @@ public class RCEApplicationStartupTest {
 		for (int i = 0; i < 5; i++){
 			
 			System.out.println(candidate.getNaiveBayesService().toString());
-			PredicatedClassification classification = candidate.getNaiveBayesService().getClassification(Arrays.asList(getFeature("true", 1), getFeature("false", 2), getFeature("mild", 3), getFeature("false", 4)));
+			PredictedClassification classification = candidate.getNaiveBayesService().getClassification(Arrays.asList(getFeature("true", 1), getFeature("false", 2), getFeature("mild", 3), getFeature("false", 4)));
 		
 			Thread.sleep(2000);
 			

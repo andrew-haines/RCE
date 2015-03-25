@@ -15,11 +15,11 @@ import com.haines.ml.rce.service.ClassifierService;
 
 public class NaiveBayesService implements ClassifierService {
 	
-	private static final Function<Entry<Double, Classification>, PredicatedClassification> PREDICTED_CLASSIFICATION_FUNCTION = new Function<Entry<Double, Classification>, PredicatedClassification>(){
+	private static final Function<Entry<Double, Classification>, PredictedClassification> PREDICTED_CLASSIFICATION_FUNCTION = new Function<Entry<Double, Classification>, PredictedClassification>(){
 
 		@Override
-		public PredicatedClassification apply(Entry<Double, Classification> input) {
-			return new PredicatedClassification(FastMath.exp(input.getKey()), input.getValue());
+		public PredictedClassification apply(Entry<Double, Classification> input) {
+			return new PredictedClassification(FastMath.exp(input.getKey()), input.getValue());
 		}
 		
 	};
@@ -39,7 +39,7 @@ public class NaiveBayesService implements ClassifierService {
 		this.probabilitiesProvider = probabilitiesProvider;
 	}
 	
-	public Iterable<PredicatedClassification> getMaximumLikelihoodClassifications(Iterable<? extends Feature> features, int numClassifications){
+	public Iterable<PredictedClassification> getMaximumLikelihoodClassifications(Iterable<? extends Feature> features, int numClassifications){
 		
 		Map<Double, Classification> sortedClassifications = new TreeMap<Double, Classification>(INVERSE_NUMBER_COMPARATOR);
 		sortedClassifications.put(Double.NEGATIVE_INFINITY, Classification.UNKNOWN);
@@ -70,7 +70,7 @@ public class NaiveBayesService implements ClassifierService {
 		return logLikelihoodProbability;
 	}
 
-	private PredicatedClassification getMaximumLikelihoodClassification(Iterable<? extends Feature> features){
+	private PredictedClassification getMaximumLikelihoodClassification(Iterable<? extends Feature> features){
 		return getMaximumLikelihoodClassifications(features, 1).iterator().next();
 	}
 	
@@ -80,7 +80,7 @@ public class NaiveBayesService implements ClassifierService {
 	}
 
 	@Override
-	public PredicatedClassification getClassification(Iterable<? extends Feature> features) {
+	public PredictedClassification getClassification(Iterable<? extends Feature> features) {
 		return getMaximumLikelihoodClassification(features);
 	}
 

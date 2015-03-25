@@ -1,23 +1,19 @@
 package com.haines.ml.rce.test;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
+import java.util.Collections;
 import java.util.Map;
 
-import org.apache.commons.csv.CSVRecord;
 
 import com.dyuproject.protostuff.Message;
 import com.google.common.collect.ImmutableMap;
 import com.haines.ml.rce.accumulator.HandlerRepository;
 import com.haines.ml.rce.accumulator.handlers.ClassificationHandler;
 import com.haines.ml.rce.accumulator.handlers.FeatureHandler;
-import com.haines.ml.rce.accumulator.handlers.SequentialDistributionFeatureHandler;
 import com.haines.ml.rce.main.factory.FeatureHandlerRepositoryFactory;
 import com.haines.ml.rce.model.ClassifiedEvent;
-import com.haines.ml.rce.test.ContinuousPerformanceTest.ContiuousTestEvent.DynamicFeature;
+import com.haines.ml.rce.test.model.CsvDataSet;
+import com.haines.ml.rce.test.model.DataSet;
 
 /**
  * Using the shuttle dataset. 
@@ -32,17 +28,19 @@ import com.haines.ml.rce.test.ContinuousPerformanceTest.ContiuousTestEvent.Dynam
  * @author haines
  *
  */
-public class ShuttlePerformanceTest extends ContinuousPerformanceTest {
-
-	private static final String FEATURE1 = "feature1";
-	private static final String FEATURE2 = "feature2";
-	private static final String FEATURE3 = "feature3";
-	private static final String FEATURE4 = "feature4";
-	private static final String FEATURE5 = "feature5";
-	private static final String FEATURE6 = "feature6";
-	private static final String FEATURE7 = "feature7";
-	private static final String FEATURE8 = "feature8";
-	private static final String FEATURE9 = "feature9";
+public class ShuttlePerformanceTest extends AbstractPerformanceTest {
+	
+	private CsvDataSet dataSet = new CsvDataSet.ShuttleDataSet(Collections.<Integer>emptyList());
+	
+	private final Iterable<Message<?>> trainingSet;
+	private final Iterable<Message<?>> testSet;
+	
+	public ShuttlePerformanceTest() throws IOException{
+		super(new DynamicClassLoader());
+		
+		trainingSet = loadEvents("adult.data.txt");
+		testSet = loadEvents("adult.test.txt");
+	}
 
 	@Override
 	protected FeatureHandlerRepositoryFactory getFeatureHandlerRepositoryFactory() {
@@ -71,54 +69,29 @@ public class ShuttlePerformanceTest extends ContinuousPerformanceTest {
 		};
 	}
 	
+	@SuppressWarnings("unchecked")
 	@Override
 	protected <E extends Message<E>> Iterable<E> loadTrainingEvents() throws IOException {
-		return loadEvents("shuttle-train", false, ' ', FEATURE1, FEATURE2, FEATURE3, FEATURE4, FEATURE5, FEATURE6, FEATURE7, FEATURE8, FEATURE9, CLASSIFICATION_COLUMN_NAME);
-	}
-	
-	@Override
-	protected <E extends Message<E> & ClassifiedEvent> Iterable<E> loadTestEvents() throws IOException {
-		return loadEvents("shuttle-test", false, ' ', FEATURE1, FEATURE2, FEATURE3, FEATURE4, FEATURE5, FEATURE6, FEATURE7, FEATURE8, FEATURE9, CLASSIFICATION_COLUMN_NAME);
+		return (Iterable<E>)trainingSet;
 	}
 	
 	@SuppressWarnings("unchecked")
 	@Override
-	protected <E extends Message<E>> void addCSVRecordToEvents(CSVRecord record, Collection<E> events) {
-		
-		ContiuousTestEvent event = new ContiuousTestEvent();
-		
-		List<DynamicFeature<?>> features = new ArrayList<DynamicFeature<?>>();
-		
-		features.add(getFeature(record.get(FEATURE1), 1));
-		features.add(getFeature(record.get(FEATURE2), 2));
-		features.add(getFeature(record.get(FEATURE3), 3));
-		features.add(getFeature(record.get(FEATURE4), 4));
-		features.add(getFeature(record.get(FEATURE5), 5));
-		features.add(getFeature(record.get(FEATURE6), 6));
-		features.add(getFeature(record.get(FEATURE7), 7));
-		features.add(getFeature(record.get(FEATURE8), 8));
-		features.add(getFeature(record.get(FEATURE9), 9));
-		
-		event.setFeaturesList(features);
-		event.setClassificationsList(Arrays.asList(getClassification(record)));
-		
-		events.add((E)event);
+	protected <E extends Message<E> & ClassifiedEvent> Iterable<E> loadTestEvents() throws IOException {
+		return (Iterable<E>)testSet;
 	}
 	
-	@Override
-	protected DynamicFeature<?> getFeature(String featureValue, int type){
-		featureValue = featureValue.trim();
-		
-		ContiuousTestEvent.IntegerFeature feature = new ContiuousTestEvent.IntegerFeature();
-		
-		feature.setValue(Integer.parseInt(featureValue));
-		feature.setType(type);
-		
-		return feature;
+	private Iterable<Message<?>> loadEvents(String datafileLocation) throws IOException{
+		return PerformanceTest.UTILS.loadEvents(datafileLocation, true, ',', dataSet);
 	}
 
 	@Override
 	protected String getTestName() {
 		return "Shuttle";
+	}
+
+	@Override
+	protected DataSet getDataSet() {
+		return dataSet;
 	}
 }

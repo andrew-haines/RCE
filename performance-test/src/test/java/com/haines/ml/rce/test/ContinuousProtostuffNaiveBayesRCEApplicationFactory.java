@@ -2,11 +2,11 @@ package com.haines.ml.rce.test;
 
 import com.haines.ml.rce.main.factory.AccumulatorRCEApplicationFactory.Mode;
 import com.haines.ml.rce.main.factory.ProtostuffNaiveBayesRCEApplicationFactory;
-import com.haines.ml.rce.test.ContinuousPerformanceTest.ContiuousTestEvent;
+import com.haines.ml.rce.test.model.ContinuousTestEvent;
 
-public class ContinuousProtostuffNaiveBayesRCEApplicationFactory extends ProtostuffNaiveBayesRCEApplicationFactory<ContiuousTestEvent>{
+public class ContinuousProtostuffNaiveBayesRCEApplicationFactory extends ProtostuffNaiveBayesRCEApplicationFactory<ContinuousTestEvent>{
 
 	public ContinuousProtostuffNaiveBayesRCEApplicationFactory() {
-		super(ContiuousTestEvent.SCHEMA, Mode.SYNC);
+		super(ContinuousTestEvent.SCHEMA, Mode.SYNC);
 	}
 }

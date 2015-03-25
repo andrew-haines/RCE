@@ -12,7 +12,7 @@ import com.google.common.math.DoubleMath;
 import com.haines.ml.rce.model.Classification;
 import com.haines.ml.rce.model.ClassifiedEvent;
 import com.haines.ml.rce.service.ClassifierService;
-import com.haines.ml.rce.service.ClassifierService.PredicatedClassification;
+import com.haines.ml.rce.service.ClassifierService.PredictedClassification;
 
 public class ReportGenerator {
 
@@ -57,7 +57,7 @@ public class ReportGenerator {
 		int[] rocFn = new int[numRocSteps+1];
 		
 		for (ClassifiedEvent event: testSet){
-			PredicatedClassification predictedClassification = classifierService.getClassification(event.getFeaturesList());
+			PredictedClassification predictedClassification = classifierService.getClassification(event.getFeaturesList());
 			
 			if (event.getClassificationsList().contains(predictedClassification.getClassification())){
 				numEventsCorrectlyPredicted++;
@@ -94,7 +94,7 @@ public class ReportGenerator {
 						}
 					}
 				}
-				
+
 				if (event.getClassificationsList().contains(predictedClassification.getClassification())){
 					if (predictedClassification.getClassification().getValue().equals(classification.getValue())){
 						tp[i]++;
@@ -113,6 +113,8 @@ public class ReportGenerator {
 		
 		double[][] rocData = getRocData(rocTp, rocFp, rocTn, rocFn);
 		
+		double auc = getAuc(rocData);
+		
 		// now average our 1 vs all results
 		
 		double avTp = getAverage(tp);
@@ -130,7 +132,30 @@ public class ReportGenerator {
 		
 		assert(DoubleMath.fuzzyEquals(accuracy1, accuracy2, 0.0001)) : "accuracies do not equate: "+accuracy1+", "+accuracy2;
 		
-		return new Report((double)numEventsCorrectlyPredicted / (double)numEventsSeen, fmeasure, 0, FastMath.max(0, heapAfterTrainingSize - heapSize), 1, rocData, reportName);
+		return new Report((double)numEventsCorrectlyPredicted / (double)numEventsSeen, fmeasure, auc, FastMath.max(0, heapAfterTrainingSize - heapSize), 1, rocData, reportName);
+	}
+
+	private double getAuc(double[][] rocData) {
+		
+		double sum = 0;
+		
+		double prevFpr = 0;
+		double prevTpr = 0;
+		
+		double[] fpr = rocData[0];
+		double[] tpr = rocData[1];
+		
+		for (int i = fpr.length - 1; i >= 0; i--){
+			assert(prevFpr <= fpr[i]); // check these are in the order we expect
+			assert(prevTpr <= tpr[i]);
+			
+			sum += getAreaOfTrapezoid(prevFpr, fpr[i], prevTpr, tpr[i]);
+			
+			prevFpr = fpr[i];
+			prevTpr = tpr[i];
+		}
+		
+		return sum;
 	}
 
 	private double[] getScores(List<? extends Classification> classes, ClassifiedEvent event, ClassifierService classifierService) {
@@ -150,6 +175,22 @@ public class ReportGenerator {
 		for (int step = 0; step <= numRocSteps; step++){
 			tpr[step] = getRecall(rocTp[step], rocFn[step]);
 			fpr[step] = getFallout(rocFp[step], rocTn[step]);
+		}
+		
+		// add the point (0,0) to data if it doesnt already exist
+		
+		if (tpr[tpr.length - 1] != 0 || fpr[fpr.length - 1] != 0){
+			double[] tmptpr = new double[tpr.length + 1];
+			double[] tmpfpr = new double[fpr.length + 1];
+			
+			System.arraycopy(tpr, 0, tmptpr, 0, tpr.length);
+			System.arraycopy(fpr, 0, tmpfpr, 0, fpr.length);
+			
+			tmptpr[tpr.length] = 0;
+			tmpfpr[fpr.length] = 0;
+			
+			tpr = tmptpr;
+			fpr = tmpfpr;
 		}
 		return new double[][]{fpr, tpr};
 	}
@@ -317,5 +358,13 @@ public class ReportGenerator {
 		public String getReportName() {
 			return reportName;
 		}
+	}
+	
+	private double getAreaOfTrapezoid(double x1, double x2, double y1, double y2){
+		double area = FastMath.abs(x1 - x2);
+		
+		double avHeight = (y1 + y2) / 2;
+		
+		return area * avHeight;
 	}
 }

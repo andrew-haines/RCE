@@ -32,9 +32,12 @@ public class ReportGenerator {
 		
 		long heapSize = getMemoryAfterGC();
 		
+		long startTime = System.currentTimeMillis();
 		for (ClassifiedEvent event: trainingSet){
 			test.sendEvent(event);
 		}
+		
+		long timeToTrain = System.currentTimeMillis() - startTime;
 		
 		test.notifyTrainingCompleted();
 		
@@ -55,6 +58,8 @@ public class ReportGenerator {
 		int[] rocFp = new int[numRocSteps+1];
 		int[] rocTn = new int[numRocSteps+1];
 		int[] rocFn = new int[numRocSteps+1];
+		
+		startTime = System.currentTimeMillis();
 		
 		for (ClassifiedEvent event: testSet){
 			PredictedClassification predictedClassification = classifierService.getClassification(event.getFeaturesList());
@@ -132,7 +137,9 @@ public class ReportGenerator {
 		
 		assert(DoubleMath.fuzzyEquals(accuracy1, accuracy2, 0.0001)) : "accuracies do not equate: "+accuracy1+", "+accuracy2;
 		
-		return new Report((double)numEventsCorrectlyPredicted / (double)numEventsSeen, fmeasure, auc, FastMath.max(0, heapAfterTrainingSize - heapSize), 1, rocData, reportName);
+		long timeToTest = System.currentTimeMillis() - startTime;
+		
+		return new Report((double)numEventsCorrectlyPredicted / (double)numEventsSeen, fmeasure, auc, FastMath.max(0, heapAfterTrainingSize - heapSize), 1, rocData, reportName, timeToTrain, timeToTest);
 	}
 
 	private double getAuc(double[][] rocData) {
@@ -300,8 +307,9 @@ public class ReportGenerator {
 		private final int numTestsRun;
 		private final double[][] rocData;
 		private final String reportName;
+		private final long timeToTrain, timeToTest;
 		
-		private Report(double accuracy, double fmeasure, double roc, long numBytesUsedForModel, int numTestsRun, double[][] rocData, String reportName){
+		private Report(double accuracy, double fmeasure, double roc, long numBytesUsedForModel, int numTestsRun, double[][] rocData, String reportName, long timeToTrain, long timeToTest){
 			this.accuracy = accuracy;
 			this.fmeasure = fmeasure;
 			this.roc = roc;
@@ -309,6 +317,8 @@ public class ReportGenerator {
 			this.numTestsRun = numTestsRun;
 			this.rocData = rocData;
 			this.reportName = reportName;
+			this.timeToTrain = timeToTrain;
+			this.timeToTest = timeToTest;
 		}
 		
 		private Report avg(Report otherReport){
@@ -317,7 +327,9 @@ public class ReportGenerator {
 					(getRoc() + otherReport.getRoc()) / 2, 
 					(long)FastMath.floor((getNumBytesUsedForModel() + otherReport.getNumBytesUsedForModel()) / 2), 
 					getNumTestsRun() + otherReport.getNumTestsRun(),
-					getAverage(this.rocData, otherReport.rocData), reportName);
+					getAverage(this.rocData, otherReport.rocData), reportName,
+					(this.timeToTrain + otherReport.timeToTrain) / 2,
+					(this.timeToTest + otherReport.timeToTest) / 2);
 		}
 
 		public double getAccuracy() {
@@ -346,6 +358,14 @@ public class ReportGenerator {
 
 		public String getReportName() {
 			return reportName;
+		}
+		
+		public long getTimeToTrain(){
+			return timeToTrain;
+		}
+		
+		public long getTimeToTest(){
+			return timeToTest;
 		}
 	}
 	

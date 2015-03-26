@@ -52,12 +52,11 @@ public class AccumulatorRCEApplicationFactory<E extends ClassifiedEvent, T exten
 					.addConsumer(windowEventConsumer)
 					.build());
 			
-			this.addSystemListeners(Arrays.asList(disrupterEventConsumer));
-			
 			windowEventConsumer = disrupterEventConsumer;
 			
 			
 			defaultFactory = new DefaultSyncRCEApplicationFactory<E, RONaiveBayesMapBasedLookupStrategy<E>>(marshalBuffer, factory, config, windowEventConsumer, clock);
+			this.addSystemListeners(Arrays.asList(disrupterEventConsumer));
 		} else{
 			throw new IllegalArgumentException("Unknown mode type: "+mode);
 		}

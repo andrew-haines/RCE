@@ -38,6 +38,8 @@ public interface ReportRenderer {
 					     "\t\t\t| classifier fmeasure: "+report.getFmeasure()+"\t\t\t\t\t\t|\n" +
 					     "\t\t\t| classifier roc: "+report.getRoc()+"\t\t\t\t\t\t\t|\n" +
 					     "\t\t\t| classifier model Size: "+report.getNumBytesUsedForModel()+"\t\t\t\t\t|\n" +
+					     "\t\t\t| Time in Millis to train: "+report.getTimeToTrain()+"\t\t\t\t\t|\n" +
+					     "\t\t\t| Time in Millis to test: "+report.getTimeToTest()+"\t\t\t\t\t|\n" +
 						 "\t\t\t----------------------------Report completed-----------------------------\n\n");
 			}
 		}

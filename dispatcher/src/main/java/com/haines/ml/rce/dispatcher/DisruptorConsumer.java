@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.TimeUnit;
 
 import com.google.common.base.Function;
 import com.google.common.collect.Iterables;
@@ -14,6 +15,7 @@ import com.lmax.disruptor.EventFactory;
 import com.lmax.disruptor.EventHandler;
 import com.lmax.disruptor.EventTranslatorOneArg;
 import com.lmax.disruptor.SleepingWaitStrategy;
+import com.lmax.disruptor.TimeoutException;
 import com.lmax.disruptor.dsl.Disruptor;
 import com.lmax.disruptor.dsl.ProducerType;
 
@@ -54,7 +56,16 @@ public class DisruptorConsumer<T extends Event> implements DispatcherConsumer<T>
 		
 		@SuppressWarnings("unchecked")
 		public DisruptorConsumer<T> build(){
-			Disruptor<DisruptorEvent<T>> queue = new Disruptor<DisruptorEvent<T>>(new DisruptorEventFactory<T>(), config.getRingSize(), executor, ProducerType.SINGLE, new SleepingWaitStrategy());
+			Disruptor<DisruptorEvent<T>> queue = new Disruptor<DisruptorEvent<T>>(new DisruptorEventFactory<T>(), config.getRingSize(), executor, ProducerType.SINGLE, new SleepingWaitStrategy()){
+
+				@Override
+				public void shutdown(long timeout, TimeUnit timeUnit) throws TimeoutException { // overload so that disruptor will shutdown the executor
+					super.shutdown(timeout, timeUnit);
+					
+					executor.shutdownNow();
+				}
+				
+			};
 			
 			List<EventHandler<DisruptorEvent<T>>> eventHandlers = Lists.newArrayList(Iterables.transform(consumers, new Function<EventConsumer<T>, EventHandler<DisruptorEvent<T>>>(){
 

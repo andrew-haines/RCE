@@ -4,6 +4,8 @@ import java.awt.GraphicsEnvironment;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 import javax.xml.bind.JAXBException;
 
@@ -13,13 +15,18 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.dyuproject.protostuff.Message;
+import com.google.common.collect.ImmutableMap;
+import com.haines.ml.rce.accumulator.HandlerRepository;
+import com.haines.ml.rce.accumulator.handlers.ClassificationHandler;
+import com.haines.ml.rce.accumulator.handlers.FeatureHandler;
+import com.haines.ml.rce.accumulator.handlers.SequentialDistributionFeatureHandler;
 import com.haines.ml.rce.main.RCEApplicationException;
 import com.haines.ml.rce.main.RCEApplicationStartupTest;
+import com.haines.ml.rce.main.factory.FeatureHandlerRepositoryFactory;
 import com.haines.ml.rce.model.ClassifiedEvent;
 import com.haines.ml.rce.naivebayes.NaiveBayesService;
 import com.haines.ml.rce.test.ReportGenerator.Report;
 import com.haines.ml.rce.test.model.DataSet;
-import com.haines.ml.rce.transport.Event;
 
 public abstract class AbstractPerformanceTest extends RCEApplicationStartupTest implements PerformanceTest{
 
@@ -106,7 +113,7 @@ public abstract class AbstractPerformanceTest extends RCEApplicationStartupTest 
 			Thread.sleep(2000);
 			
 			waitingForNextWindow.set(true);
-			super.nextWindowUpdated.await();
+			super.nextWindowUpdated.await(5, TimeUnit.SECONDS);
 			
 		} catch (InterruptedException e) {
 			throw new RuntimeException("Unable to wait for system", e);
@@ -149,6 +156,24 @@ public abstract class AbstractPerformanceTest extends RCEApplicationStartupTest 
 		} finally {
 			Thread.currentThread().setName(existingThreadName);
 		}
+	}
+	
+	protected FeatureHandlerRepositoryFactory getFeatureHandlerRepositoryFactory(final Iterable<Integer> continuousFeatureTypes) {
+		return new FeatureHandlerRepositoryFactory() {
+			
+			@Override
+			public <E extends ClassifiedEvent> HandlerRepository<E> create() {
+				
+				ImmutableMap.Builder<Integer, FeatureHandler<E>> featureHandlers = new ImmutableMap.Builder<Integer, FeatureHandler<E>>();
+				
+				for (Integer featureType: continuousFeatureTypes){
+					featureHandlers.put(featureType, new SequentialDistributionFeatureHandler<E>());
+				}
+				Map<Integer, ClassificationHandler<E>> classificationHandlers = new ImmutableMap.Builder<Integer, ClassificationHandler<E>>().build();
+				
+				return HandlerRepository.create(featureHandlers.build(), classificationHandlers);
+			}
+		};
 	}
 	
 	protected abstract String getTestName();

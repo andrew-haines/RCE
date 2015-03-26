@@ -61,24 +61,6 @@ public class ContinuousEarningsPerformanceTest extends AbstractPerformanceTest {
 		
 		dataSet = new CsvDataSet.EarningsDataSet(Collections.<Integer>emptyList());
 	}
-
-	protected FeatureHandlerRepositoryFactory getFeatureHandlerRepositoryFactory(final Iterable<Integer> continuousFeatureTypes) {
-		return new FeatureHandlerRepositoryFactory() {
-			
-			@Override
-			public <E extends ClassifiedEvent> HandlerRepository<E> create() {
-				
-				ImmutableMap.Builder<Integer, FeatureHandler<E>> featureHandlers = new ImmutableMap.Builder<Integer, FeatureHandler<E>>();
-				
-				for (Integer featureType: continuousFeatureTypes){
-					featureHandlers.put(featureType, new SequentialDistributionFeatureHandler<E>());
-				}
-				Map<Integer, ClassificationHandler<E>> classificationHandlers = new ImmutableMap.Builder<Integer, ClassificationHandler<E>>().build();
-				
-				return HandlerRepository.create(featureHandlers.build(), classificationHandlers);
-			}
-		};
-	}
 	
 	@Test
 	public void givenRCEApplicationConfiguredWithAllDiscreteData_whenTrainedUsingEarningDataSet_thenGetAndReportClassifierPerformance() throws IOException, InterruptedException, RCEApplicationException, JAXBException {

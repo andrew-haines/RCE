@@ -78,10 +78,14 @@ public class ContinuousTestEvent implements ClassifiedEvent, Message<ContinuousT
 
 		@Override
 		public int hashCode() {
-			final int prime = 31;
-			int result = 1;
-			result = prime * result + type;
-			return result;
+			int hash = 13;
+
+    	    hash ^= this.getValue().hashCode();
+
+    	    hash ^= this.type;
+
+    	    
+    	    return hash;
 		}
 
 		@Override

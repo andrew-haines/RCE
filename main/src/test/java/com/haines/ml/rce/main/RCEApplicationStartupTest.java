@@ -28,10 +28,10 @@ import com.google.common.collect.Lists;
 import com.haines.ml.rce.eventstream.EventStreamListener;
 import com.haines.ml.rce.main.config.RCEConfig;
 import com.haines.ml.rce.main.factory.FeatureHandlerRepositoryFactory;
+import com.haines.ml.rce.model.Event;
 import com.haines.ml.rce.naivebayes.NaiveBayesProbabilitiesProvider;
 import com.haines.ml.rce.naivebayes.NaiveBayesRCEApplication;
 import com.haines.ml.rce.service.ClassifierService.PredictedClassification;
-import com.haines.ml.rce.transport.Event;
 import com.haines.ml.rce.transport.Event.Classification;
 import com.haines.ml.rce.transport.Event.Feature;
 import com.haines.ml.rce.window.WindowUpdatedListener;
@@ -142,9 +142,9 @@ public class RCEApplicationStartupTest {
 		shutdownAndWait();
 	}
 	
-	private Event getTestEvent(Classification classification, Feature... features) {
+	private com.haines.ml.rce.transport.Event getTestEvent(Classification classification, Feature... features) {
 		
-		Event event = new Event();
+		com.haines.ml.rce.transport.Event event = new com.haines.ml.rce.transport.Event();
 		
 		event.setClassificationsList(Arrays.asList(classification));
 		event.setFeaturesList(Lists.newArrayList(features));
@@ -231,9 +231,11 @@ public class RCEApplicationStartupTest {
 		
 		// now stop the system
 		
-		candidate.stop();
+		if (candidate != null){
+			candidate.stop();
 		
-		finished.await();
+			finished.await();
+		}
 	}
 
 	protected void startServerAndWait() throws InterruptedException{
@@ -296,8 +298,8 @@ public class RCEApplicationStartupTest {
 		return channel;
 	}
 
-	private Event getTestEvent(int value) {
-		Event event = new Event();
+	private com.haines.ml.rce.transport.Event getTestEvent(int value) {
+		com.haines.ml.rce.transport.Event event = new com.haines.ml.rce.transport.Event();
 		
 		List<Classification> classifications = new ArrayList<Classification>();
 		List<Feature> features = new ArrayList<Feature>();

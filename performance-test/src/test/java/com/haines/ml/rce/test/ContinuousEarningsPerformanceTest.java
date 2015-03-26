@@ -58,6 +58,8 @@ public class ContinuousEarningsPerformanceTest extends AbstractPerformanceTest {
 	@Override
 	public void before(){
 		// override. Let tests start up the candidate directly to control how it initiates
+		
+		dataSet = new CsvDataSet.EarningsDataSet(Collections.<Integer>emptyList());
 	}
 
 	protected FeatureHandlerRepositoryFactory getFeatureHandlerRepositoryFactory(final Iterable<Integer> continuousFeatureTypes) {

@@ -28,7 +28,7 @@ public class GuiceRCEApplicationFactory<E extends Event> implements RCEApplicati
 	}
 
 	@Override
-	public void addSystemListeners(Iterable<SystemListener> startupListeners) {
+	public void addSystemListeners(Iterable<? extends SystemListener> startupListeners) {
 		// NOOP
 	}
 

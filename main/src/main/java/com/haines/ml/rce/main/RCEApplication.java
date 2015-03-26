@@ -15,6 +15,7 @@ import org.apache.commons.cli.OptionBuilder;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 
+import com.google.common.collect.Iterables;
 import com.haines.ml.rce.eventstream.EventStreamController;
 import com.haines.ml.rce.eventstream.EventStreamException;
 import com.haines.ml.rce.main.config.RCEConfig;
@@ -23,6 +24,8 @@ import com.haines.ml.rce.main.factory.RCEApplicationFactory;
 import com.haines.ml.rce.model.Event;
 import com.haines.ml.rce.model.EventConsumer;
 import com.haines.ml.rce.model.system.SystemListener;
+import com.haines.ml.rce.model.system.SystemStartedListener;
+import com.haines.ml.rce.model.system.SystemStoppedListener;
 
 public interface RCEApplication<E extends Event> {
 	
@@ -37,18 +40,24 @@ public interface RCEApplication<E extends Event> {
 		private final EventStreamController eventStream;
 		private final EventConsumer<E> consumer;
 		private final RCEConfig config;
+		private final Collection<SystemListener> systemListeners;
 		
 		@Inject
-		public DefaultRCEApplication(EventStreamController eventStream, EventConsumer<E> consumer, RCEConfig config){
+		public DefaultRCEApplication(EventStreamController eventStream, EventConsumer<E> consumer, RCEConfig config, Collection<SystemListener> systemListeners){
 			this.eventStream = eventStream;
 			this.consumer = consumer;
 			this.config = config;
+			this.systemListeners = systemListeners;
 		}
 	
 		@Override
 		public void start() throws RCEApplicationException {
 			try {
 				eventStream.start();
+				
+				for(SystemStartedListener listener: Iterables.filter(systemListeners, SystemStartedListener.class)){
+					listener.systemStarted();
+				}
 			} catch (EventStreamException e) {
 				throw new RCEApplicationException("Unable to start RCE", e);
 			}
@@ -58,6 +67,10 @@ public interface RCEApplication<E extends Event> {
 		public void stop() throws RCEApplicationException{
 			try {
 				eventStream.stop();
+				
+				for(SystemStoppedListener listener: Iterables.filter(systemListeners, SystemStoppedListener.class)){
+					listener.systemStopped();
+				}
 			} catch (EventStreamException e) {
 				throw new RCEApplicationException("Unable to stop RCE", e);
 			}

@@ -19,6 +19,7 @@ import com.haines.ml.rce.model.ClassifiedEvent;
 import com.haines.ml.rce.naivebayes.NaiveBayesService;
 import com.haines.ml.rce.test.ReportGenerator.Report;
 import com.haines.ml.rce.test.model.DataSet;
+import com.haines.ml.rce.transport.Event;
 
 public abstract class AbstractPerformanceTest extends RCEApplicationStartupTest implements PerformanceTest{
 
@@ -91,25 +92,22 @@ public abstract class AbstractPerformanceTest extends RCEApplicationStartupTest 
 		return false;
 	}
 	
-	@SuppressWarnings({ "rawtypes", "unchecked" })
 	@Override
 	public void sendEvent(com.haines.ml.rce.model.Event event) {
-		try {
-			super.sendViaSelector((Message)event);
-		} catch (IOException | InterruptedException e) {
-			throw new RuntimeException("Unable to send event "+event+" to selector ", e);
-		}
+		candidate.getEventConsumer().consume(event);
 	}
 
 	@Override
 	public void notifyTrainingCompleted() {
 		
 		// pause the test to ensure that the training events will propagate through to the model
-		waitingForNextWindow.set(true);
 		
 		try {
+			Thread.sleep(2000);
+			
+			waitingForNextWindow.set(true);
 			super.nextWindowUpdated.await();
-			Thread.sleep(1000);
+			
 		} catch (InterruptedException e) {
 			throw new RuntimeException("Unable to wait for system", e);
 		}

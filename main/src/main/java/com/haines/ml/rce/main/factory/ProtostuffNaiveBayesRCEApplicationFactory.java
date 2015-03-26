@@ -11,7 +11,7 @@ import com.haines.ml.rce.naivebayes.NaiveBayesRCEApplication;
 
 public abstract class ProtostuffNaiveBayesRCEApplicationFactory<E extends Message<E> & ClassifiedEvent> implements RCEApplicationFactory<E>{
 	
-	private Iterable<SystemListener> startupListeners = null;
+	private Iterable<? extends SystemListener> startupListeners = null;
 	private RCEConfig rceConfig;
 	private FeatureHandlerRepositoryFactory featureHandlerRepo;
 	private final Schema<E> schema;
@@ -35,7 +35,7 @@ public abstract class ProtostuffNaiveBayesRCEApplicationFactory<E extends Messag
 	}
 
 	@Override
-	public void addSystemListeners(Iterable<SystemListener> startupListeners) {
+	public void addSystemListeners(Iterable<? extends SystemListener> startupListeners) {
 		this.startupListeners = startupListeners;
 	}
 

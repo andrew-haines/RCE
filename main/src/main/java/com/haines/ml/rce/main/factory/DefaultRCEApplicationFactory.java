@@ -87,11 +87,7 @@ public class DefaultRCEApplicationFactory<E extends Event, EC extends EventConsu
 				config = RCEApplicationFactory.UTIL.loadConfig(configOverrideLocation);
 			}
 			SelectorEventStream<?, E> eventStream = getSelectorEventStream(config, clock);
-			RCEApplication<E> application = new DefaultRCEApplication<E>(eventStream, eventStream, config);
-			
-			for(SystemStartedListener listener: Iterables.filter(systemListeners, SystemStartedListener.class)){
-				listener.systemStarted();
-			}
+			RCEApplication<E> application = new DefaultRCEApplication<E>(eventStream, eventStream, config, systemListeners);
 			
 			return application;
 		} catch (Exception e){
@@ -100,13 +96,13 @@ public class DefaultRCEApplicationFactory<E extends Event, EC extends EventConsu
 	}
 	
 	@Override
-	public void addSystemListeners(Iterable<SystemListener> startupListeners) {
+	public void addSystemListeners(Iterable<? extends SystemListener> startupListeners) {
 		for (SystemListener listener: startupListeners){
 			this.systemListeners.add(listener);
 		}
 	}
 	
-	protected void addSystemStartedListener(SystemListener listener){
+	protected void addSystemListener(SystemListener listener){
 		this.systemListeners.add(listener);
 	}
 	
@@ -220,7 +216,7 @@ public class DefaultRCEApplicationFactory<E extends Event, EC extends EventConsu
 			
 			AsyncPipelineAccumulatorController<E, T> asyncController = new AsyncPipelineAccumulatorController<E, T>(getClock(), RCEConfig.UTIL.getPipelineAccumulatorConfig(config), consumers, windowEventConsumer, executorService);
 			
-			super.addSystemStartedListener(asyncController);
+			super.addSystemListener(asyncController);
 			return consumers;
 		}
 	}
@@ -236,7 +232,7 @@ public class DefaultRCEApplicationFactory<E extends Event, EC extends EventConsu
 			return new SyncEventConsumerFactory<E, T>(new PipelineAccumulatorControllerFactory(clock, RCEConfig.UTIL.getPipelineAccumulatorConfig(config)), factory, windowEventConsumer);
 		}
 		
-		private static class SyncEventConsumerFactory<E extends Event, T extends AccumulatorLookupStrategy<? super E>> implements EventConsumerFactory<E, SyncPipelineEventConsumer<E, T>>, SystemStartedListener{
+		private static class SyncEventConsumerFactory<E extends Event, T extends AccumulatorLookupStrategy<? super E>> implements EventConsumerFactory<E, SyncPipelineEventConsumer<E, T>>, SystemStartedListener {
 
 			private final PipelineAccumulatorControllerFactory controller;
 			private final EventConsumerFactory<E, Accumulator<E>> eventConsumerFactory;

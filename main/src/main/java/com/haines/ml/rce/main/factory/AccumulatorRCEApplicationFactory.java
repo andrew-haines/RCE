@@ -1,5 +1,6 @@
 package com.haines.ml.rce.main.factory;
 
+import java.util.Arrays;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ThreadFactory;
@@ -7,7 +8,7 @@ import java.util.concurrent.ThreadFactory;
 import com.haines.ml.rce.accumulator.AccumulatorLookupStrategy;
 import com.haines.ml.rce.accumulator.AccumulatorLookupStrategy.AccumulatorLookupStrategyFactory;
 import com.haines.ml.rce.accumulator.HandlerRepository;
-import com.haines.ml.rce.accumulator.SyncPipelineEventConsumer;
+import com.haines.ml.rce.accumulator.SyncPipelineEventConsumer.DisruptorEventConsumer;
 import com.haines.ml.rce.accumulator.lookups.RONaiveBayesMapBasedLookupStrategy;
 import com.haines.ml.rce.accumulator.model.AccumulatedEvent;
 import com.haines.ml.rce.dispatcher.DisruptorConsumer;
@@ -47,9 +48,14 @@ public class AccumulatorRCEApplicationFactory<E extends ClassifiedEvent, T exten
 			defaultFactory = new DefaultASyncRCEApplicationFactory<E, RONaiveBayesMapBasedLookupStrategy<E>>(marshalBuffer, factory, windowEventConsumer, getScheduledExecutor(), clock);
 		} else if (mode == Mode.SYNC){
 			
-			windowEventConsumer = new SyncPipelineEventConsumer.DisruptorEventConsumer<E, RONaiveBayesMapBasedLookupStrategy<E>>(new DisruptorConsumer.Builder<AccumulatedEvent<RONaiveBayesMapBasedLookupStrategy<E>>>(Executors.newSingleThreadExecutor(ACCUMULATED_EVENT_THREAD_FACTORY), RCEConfig.UTIL.getDisruptorConfig(config))
+			DisruptorEventConsumer<E, RONaiveBayesMapBasedLookupStrategy<E>> disrupterEventConsumer = new DisruptorEventConsumer<E, RONaiveBayesMapBasedLookupStrategy<E>>(new DisruptorConsumer.Builder<AccumulatedEvent<RONaiveBayesMapBasedLookupStrategy<E>>>(Executors.newSingleThreadExecutor(ACCUMULATED_EVENT_THREAD_FACTORY), RCEConfig.UTIL.getDisruptorConfig(config))
 					.addConsumer(windowEventConsumer)
 					.build());
+			
+			this.addSystemListeners(Arrays.asList(disrupterEventConsumer));
+			
+			windowEventConsumer = disrupterEventConsumer;
+			
 			
 			defaultFactory = new DefaultSyncRCEApplicationFactory<E, RONaiveBayesMapBasedLookupStrategy<E>>(marshalBuffer, factory, config, windowEventConsumer, clock);
 		} else{
@@ -69,7 +75,7 @@ public class AccumulatorRCEApplicationFactory<E extends ClassifiedEvent, T exten
 	}
 	
 	@Override
-	public void addSystemListeners(Iterable<SystemListener> startupListeners) {
+	public void addSystemListeners(Iterable<? extends SystemListener> startupListeners) {
 		this.defaultFactory.addSystemListeners(startupListeners);
 	}
 

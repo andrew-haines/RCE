@@ -30,4 +30,10 @@ public class Dispatcher<E extends Event> {
 			consumer.consumeEvent((E)Event.HEARTBEAT);
 		}
 	}
+
+	public void close() {
+		for (DispatcherConsumer<E> consumer: consumers){
+			consumer.shutdown();
+		}
+	}
 }

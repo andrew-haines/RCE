@@ -55,7 +55,7 @@ public class NaiveBayesRCEApplicationFactory<E extends ClassifiedEvent> implemen
 	
 	private final EventMarshalBuffer<E> marshalBuffer;
 	private final Mode mode;
-	private Iterable<SystemListener> startupListeners = null;
+	private Iterable<? extends SystemListener> startupListeners = null;
 	private RCEConfig config;
 	private FeatureHandlerRepositoryFactory featureHandlerRepo = null;
 	
@@ -109,7 +109,7 @@ public class NaiveBayesRCEApplicationFactory<E extends ClassifiedEvent> implemen
 	}
 
 	@Override
-	public void addSystemListeners(Iterable<SystemListener> startupListeners) {
+	public void addSystemListeners(Iterable<? extends SystemListener> startupListeners) {
 		this.startupListeners = startupListeners;
 	}
 

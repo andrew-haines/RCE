@@ -110,4 +110,9 @@ public class DisruptorConsumer<T extends Event> implements DispatcherConsumer<T>
 		}
 		
 	}
+
+	@Override
+	public void shutdown() {
+		queue.shutdown();
+	}
 }

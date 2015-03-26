@@ -179,19 +179,6 @@ public class ReportGenerator {
 		
 		// add the point (0,0) to data if it doesnt already exist
 		
-		if (tpr[tpr.length - 1] != 0 || fpr[fpr.length - 1] != 0){
-			double[] tmptpr = new double[tpr.length + 1];
-			double[] tmpfpr = new double[fpr.length + 1];
-			
-			System.arraycopy(tpr, 0, tmptpr, 0, tpr.length);
-			System.arraycopy(fpr, 0, tmpfpr, 0, fpr.length);
-			
-			tmptpr[tpr.length] = 0;
-			tmpfpr[fpr.length] = 0;
-			
-			tpr = tmptpr;
-			fpr = tmpfpr;
-		}
 		return new double[][]{fpr, tpr};
 	}
 
@@ -220,6 +207,8 @@ public class ReportGenerator {
 		double[][] averagedValues = new double[values1.length][values1[0].length];
 		
 		for (int i = 0;i < values1.length; i++){
+			
+			assert(values1[i].length == values2[i].length): "value1.length != value2.length:: value1.length="+values1.length+", values2.length="+values2.length;
 			
 			for (int j = 0; j < values1[i].length; j++){
 				averagedValues[i][j] = (values1[i][j] + values2[i][j]) / 2;

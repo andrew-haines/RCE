@@ -31,7 +31,7 @@ public interface RCEApplicationFactory<E extends Event> {
 		}
 	}
 
-	void addSystemListeners(Iterable<SystemListener> startupListeners);
+	void addSystemListeners(Iterable<? extends SystemListener> startupListeners);
 	
 	void useSpecificConfig(RCEConfig config);
 	

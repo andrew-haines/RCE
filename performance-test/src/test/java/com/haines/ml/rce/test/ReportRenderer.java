@@ -108,13 +108,38 @@ public interface ReportRenderer {
 			DefaultXYDataset dataset = new DefaultXYDataset();
 			
 			for (Report report: reports){
-				double[][] rocData = report.getRocData();
+				double[][] rocData = zeroBased(report.getRocData());
 				for (int i = 0; i < rocData.length; i++){
 					dataset.addSeries(report.getReportName(), rocData);
 				}
 			}
 			
 			return ChartFactory.createXYLineChart("ROC", "FPR", "TPR", dataset, PlotOrientation.VERTICAL, !Iterables.isEmpty((Iterables.skip(reports, 1))), false, false);
+		}
+
+		private static double[][] zeroBased(double[][] rocData) {
+			
+			double[] fpr = rocData[0];
+			double[] tpr = rocData[1];
+			
+			if (tpr[tpr.length - 1] != 0 || fpr[fpr.length - 1] != 0){
+				double[] tmptpr = new double[tpr.length + 1];
+				double[] tmpfpr = new double[fpr.length + 1];
+				
+				System.arraycopy(tpr, 0, tmptpr, 0, tpr.length);
+				System.arraycopy(fpr, 0, tmpfpr, 0, fpr.length);
+				
+				tmptpr[tpr.length] = 0;
+				tmpfpr[fpr.length] = 0;
+				
+				tpr = tmptpr;
+				fpr = tmpfpr;
+				
+				return new double[][]{fpr, tpr};
+				
+			} else{
+				return rocData;
+			}
 		}
 	}
 }

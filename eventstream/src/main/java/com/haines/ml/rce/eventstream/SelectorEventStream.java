@@ -2,6 +2,7 @@ package com.haines.ml.rce.eventstream;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.nio.channels.Channel;
 import java.nio.channels.NetworkChannel;
 import java.nio.channels.ScatteringByteChannel;
 import java.nio.channels.SelectableChannel;
@@ -43,6 +44,7 @@ public class SelectorEventStream<T extends SelectableChannel & NetworkChannel, E
 	private volatile Thread executingThread;
 	private long nextHeartBeatTime;
 	private final Clock clock;
+	private T channel;
 	
 	@Inject
 	public SelectorEventStream(Clock clock, Dispatcher<E> dispatcher, SelectorEventStreamConfig config, NetworkChannelProcessor<T> processor, EventMarshalBuffer<E> eventBuffer, EventStreamListener listener){
@@ -102,7 +104,9 @@ public class SelectorEventStream<T extends SelectableChannel & NetworkChannel, E
 			channel.configureBlocking(false);
 			
 			channel.register(socketSelector, processor.getRegisterOpCodes());
-			processor.connect(config.getAddress(), channel);
+			this.processor.connect(config.getAddress(), channel);
+			
+			this.channel = channel;
 			
 			return new ChannelDetails<T>(socketSelector, channel, processor);
 			
@@ -196,10 +200,18 @@ public class SelectorEventStream<T extends SelectableChannel & NetworkChannel, E
 	@Override
 	public void stop() throws EventStreamException{
 		
-		executingThread.setName("Selector Thread - started");
+		executingThread.setName("Selector Thread - stopped");
 		if (isAlive()){
 			executingThread.interrupt();
 			isAlive = false;
+		}
+		
+		dispatcher.close();
+		
+		try {
+			processor.close(channel);
+		} catch (IOException e) {
+			throw new EventStreamException("Unable to close stream", e);
 		}
 	}
 	

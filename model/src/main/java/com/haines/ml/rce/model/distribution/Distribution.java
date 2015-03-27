@@ -14,6 +14,17 @@ public interface Distribution {
 
 		@Override
 		public double getValue(DistributionParameters params, double input) {
+			
+			if (params.getVariance() == 0){
+				// we have no variance so just return 1 if the input is the same at the mean
+				
+				if (input == params.getMean()){
+					return 1;
+				} else{
+					return 0;
+				}
+			}
+			
 			return (params.get1OverSqrt2PiVarance()) * FastMath.exp(-(FastMath.pow(input - params.getMean(), 2) / params.getTwoVarianceSquared()));
 		}
 	}

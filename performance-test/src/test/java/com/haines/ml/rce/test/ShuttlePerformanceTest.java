@@ -79,7 +79,6 @@ public class ShuttlePerformanceTest extends AbstractPerformanceTest {
 	public void givenRCEApplicationConfiguredWithAllDiscreteData_whenTrainedUsingShuttleDataSet_thenGetAndReportClassifierPerformance() throws IOException, InterruptedException, RCEApplicationException, JAXBException {
 		this.dataSet = new CsvDataSet.ShuttleDataSet(Collections.<Integer>emptyList());
 		this.testName = "discrete";
-		super.before(); // perform the default setup
 		
 		Report report = testCurrentCandidate();
 		
@@ -87,11 +86,107 @@ public class ShuttlePerformanceTest extends AbstractPerformanceTest {
 	}
 	
 	@Test
-	public void givenRCEApplicationConfiguredWithAgeContinuousData_whenTrainedUsingShuttleDataSet_thenGetAndReportClassifierPerformance() throws IOException, InterruptedException, RCEApplicationException, JAXBException {
+	public void givenRCEApplicationConfiguredWithFeature1ContinuousData_whenTrainedUsingShuttleDataSet_thenGetAndReportClassifierPerformance() throws IOException, InterruptedException, RCEApplicationException, JAXBException {
 		featureTypes = Arrays.asList(1);
 		
 		this.dataSet = new CsvDataSet.ShuttleDataSet(featureTypes);
 		this.testName = "feature1";
+		
+		Report report = testCurrentCandidate();
+		
+		assertThat("Accuracy "+report.getAccuracy()+" is not above 0.83", DoubleMath.fuzzyEquals(report.getAccuracy(), 0.83, 0.01) || report.getAccuracy() > 0.83, is(equalTo(true)));
+	}
+	
+	@Test
+	public void givenRCEApplicationConfiguredWithFeature2ContinuousData_whenTrainedUsingShuttleDataSet_thenGetAndReportClassifierPerformance() throws IOException, InterruptedException, RCEApplicationException, JAXBException {
+		featureTypes = Arrays.asList(2);
+		
+		this.dataSet = new CsvDataSet.ShuttleDataSet(featureTypes);
+		this.testName = "feature2";
+		
+		Report report = testCurrentCandidate();
+		
+		assertThat("Accuracy "+report.getAccuracy()+" is not above 0.83", DoubleMath.fuzzyEquals(report.getAccuracy(), 0.83, 0.01) || report.getAccuracy() > 0.83, is(equalTo(true)));
+	}
+	
+	@Test
+	public void givenRCEApplicationConfiguredWithFeature3ContinuousData_whenTrainedUsingShuttleDataSet_thenGetAndReportClassifierPerformance() throws IOException, InterruptedException, RCEApplicationException, JAXBException {
+		featureTypes = Arrays.asList(3);
+		
+		this.dataSet = new CsvDataSet.ShuttleDataSet(featureTypes);
+		this.testName = "feature3";
+		
+		Report report = testCurrentCandidate();
+		
+		assertThat("Accuracy "+report.getAccuracy()+" is not above 0.83", DoubleMath.fuzzyEquals(report.getAccuracy(), 0.83, 0.01) || report.getAccuracy() > 0.83, is(equalTo(true)));
+	}
+	
+	@Test
+	public void givenRCEApplicationConfiguredWithFeature4ContinuousData_whenTrainedUsingShuttleDataSet_thenGetAndReportClassifierPerformance() throws IOException, InterruptedException, RCEApplicationException, JAXBException {
+		featureTypes = Arrays.asList(4);
+		
+		this.dataSet = new CsvDataSet.ShuttleDataSet(featureTypes);
+		this.testName = "feature4";
+		
+		Report report = testCurrentCandidate();
+		
+		assertThat("Accuracy "+report.getAccuracy()+" is not above 0.83", DoubleMath.fuzzyEquals(report.getAccuracy(), 0.83, 0.01) || report.getAccuracy() > 0.83, is(equalTo(true)));
+	}
+	
+	@Test
+	public void givenRCEApplicationConfiguredWithFeature5ContinuousData_whenTrainedUsingShuttleDataSet_thenGetAndReportClassifierPerformance() throws IOException, InterruptedException, RCEApplicationException, JAXBException {
+		featureTypes = Arrays.asList(5);
+		
+		this.dataSet = new CsvDataSet.ShuttleDataSet(featureTypes);
+		this.testName = "feature5";
+		
+		Report report = testCurrentCandidate();
+		
+		assertThat("Accuracy "+report.getAccuracy()+" is not above 0.83", DoubleMath.fuzzyEquals(report.getAccuracy(), 0.83, 0.01) || report.getAccuracy() > 0.83, is(equalTo(true)));
+	}
+	
+	@Test
+	public void givenRCEApplicationConfiguredWithFeature6ContinuousData_whenTrainedUsingShuttleDataSet_thenGetAndReportClassifierPerformance() throws IOException, InterruptedException, RCEApplicationException, JAXBException {
+		featureTypes = Arrays.asList(6);
+		
+		this.dataSet = new CsvDataSet.ShuttleDataSet(featureTypes);
+		this.testName = "feature6";
+		
+		Report report = testCurrentCandidate();
+		
+		assertThat("Accuracy "+report.getAccuracy()+" is not above 0.83", DoubleMath.fuzzyEquals(report.getAccuracy(), 0.83, 0.01) || report.getAccuracy() > 0.83, is(equalTo(true)));
+	}
+	
+	@Test
+	public void givenRCEApplicationConfiguredWithFeature7ContinuousData_whenTrainedUsingShuttleDataSet_thenGetAndReportClassifierPerformance() throws IOException, InterruptedException, RCEApplicationException, JAXBException {
+		featureTypes = Arrays.asList(7);
+		
+		this.dataSet = new CsvDataSet.ShuttleDataSet(featureTypes);
+		this.testName = "feature7";
+		
+		Report report = testCurrentCandidate();
+		
+		assertThat("Accuracy "+report.getAccuracy()+" is not above 0.83", DoubleMath.fuzzyEquals(report.getAccuracy(), 0.83, 0.01) || report.getAccuracy() > 0.83, is(equalTo(true)));
+	}
+	
+	@Test
+	public void givenRCEApplicationConfiguredWithFeature8ContinuousData_whenTrainedUsingShuttleDataSet_thenGetAndReportClassifierPerformance() throws IOException, InterruptedException, RCEApplicationException, JAXBException {
+		featureTypes = Arrays.asList(8);
+		
+		this.dataSet = new CsvDataSet.ShuttleDataSet(featureTypes);
+		this.testName = "feature8";
+		
+		Report report = testCurrentCandidate();
+		
+		assertThat("Accuracy "+report.getAccuracy()+" is not above 0.83", DoubleMath.fuzzyEquals(report.getAccuracy(), 0.83, 0.01) || report.getAccuracy() > 0.83, is(equalTo(true)));
+	}
+	
+	@Test
+	public void givenRCEApplicationConfiguredWithFeature9ContinuousData_whenTrainedUsingShuttleDataSet_thenGetAndReportClassifierPerformance() throws IOException, InterruptedException, RCEApplicationException, JAXBException {
+		featureTypes = Arrays.asList(9);
+		
+		this.dataSet = new CsvDataSet.ShuttleDataSet(featureTypes);
+		this.testName = "feature9";
 		
 		Report report = testCurrentCandidate();
 		

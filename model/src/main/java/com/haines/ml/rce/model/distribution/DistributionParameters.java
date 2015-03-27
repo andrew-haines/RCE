@@ -64,6 +64,15 @@ public class DistributionParameters {
 		 * @return
 		 */
 		public DistributionParameters add(DistributionParameters dist1, DistributionParameters dist2){
+			
+			if (dist1 == EMPTY_DISTRIBUTION_PARAMETERS){
+				return dist2;
+			}
+			
+			if (dist2 == EMPTY_DISTRIBUTION_PARAMETERS){
+				return dist1;
+			}
+			
 			int numSamples = dist1.numSamples + dist2.numSamples;
 			
 			double mean = ((dist1.numSamples * dist1.mean) + (dist2.numSamples * dist2.mean)) / numSamples;

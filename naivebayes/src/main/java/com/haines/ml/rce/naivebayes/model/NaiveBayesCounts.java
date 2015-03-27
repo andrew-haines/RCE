@@ -163,7 +163,13 @@ public interface NaiveBayesCounts<T extends NaiveBayesCounts.MutableNaiveBayesCo
 		
 		@Override
 		public MutableNaiveBayesDistributionCounts copy(){
-			return new MutableNaiveBayesDistributionCounts(getProperty(), new DistributionParameters(super.distribution.getNumSamples(), super.distribution.getMean(), super.distribution.getVariance()));
+			
+			DistributionParameters copiedParameters = DistributionParameters.EMPTY_DISTRIBUTION_PARAMETERS;
+			
+			if (super.distribution != DistributionParameters.EMPTY_DISTRIBUTION_PARAMETERS){
+				copiedParameters = new DistributionParameters(super.distribution.getNumSamples(), super.distribution.getMean(), super.distribution.getVariance());
+			}
+			return new MutableNaiveBayesDistributionCounts(getProperty(), copiedParameters);
 		}
 	}
 }

@@ -50,23 +50,28 @@ public class ContinuousEarningsPerformanceTest extends AbstractPerformanceTest {
 	
 	private CsvDataSet dataSet;
 	private String testName;
+	private Collection<Integer> featureTypes = Collections.<Integer>emptyList();
 	
 	public ContinuousEarningsPerformanceTest() throws IOException {
 		super(new DynamicClassLoader());
 	}
 	
 	@Override
-	public void before(){
-		// override. Let tests start up the candidate directly to control how it initiates
+	public void before() throws InterruptedException, RCEApplicationException, JAXBException, IOException{
+		if (featureTypes.isEmpty()){
+			dataSet = new CsvDataSet.EarningsDataSet(Collections.<Integer>emptyList());
+			
+			super.startUpRCE(getFeatureHandlerRepositoryFactory());
+		} else{
+			dataSet = new CsvDataSet.EarningsDataSet(featureTypes);
 		
-		dataSet = new CsvDataSet.EarningsDataSet(Collections.<Integer>emptyList());
+			super.startUpRCE(getFeatureHandlerRepositoryFactory(featureTypes));
+		}
 	}
 	
 	@Test
 	public void givenRCEApplicationConfiguredWithAllDiscreteData_whenTrainedUsingEarningDataSet_thenGetAndReportClassifierPerformance() throws IOException, InterruptedException, RCEApplicationException, JAXBException {
-		this.dataSet = new CsvDataSet.EarningsDataSet(Collections.<Integer>emptyList());
 		this.testName = "discrete";
-		super.before(); // perform the default setup
 		
 		Report report = testCurrentCandidate();
 		
@@ -75,11 +80,11 @@ public class ContinuousEarningsPerformanceTest extends AbstractPerformanceTest {
 	
 	@Test
 	public void givenRCEApplicationConfiguredWithAgeContinuousData_whenTrainedUsingEarningDataSet_thenGetAndReportClassifierPerformance() throws IOException, InterruptedException, RCEApplicationException, JAXBException {
-		Collection<Integer> ageContinuousFeatureTypes = Arrays.asList(1);
+		featureTypes = Arrays.asList(1);
 		
-		this.dataSet = new CsvDataSet.EarningsDataSet(ageContinuousFeatureTypes);
+		this.dataSet = new CsvDataSet.EarningsDataSet(featureTypes);
+	
 		this.testName = "ageC";
-		super.startUpRCE(getFeatureHandlerRepositoryFactory(ageContinuousFeatureTypes));
 		
 		Report report = testCurrentCandidate();
 		
@@ -88,11 +93,11 @@ public class ContinuousEarningsPerformanceTest extends AbstractPerformanceTest {
 	
 	@Test
 	public void givenRCEApplicationConfiguredWithCapGainsContinuousData_whenTrainedUsingEarningDataSet_thenGetAndReportClassifierPerformance() throws IOException, InterruptedException, RCEApplicationException, JAXBException {
-		Collection<Integer> ageContinuousFeatureTypes = Arrays.asList(11);
+		featureTypes = Arrays.asList(11);
 		
-		this.dataSet = new CsvDataSet.EarningsDataSet(ageContinuousFeatureTypes);
+		this.dataSet = new CsvDataSet.EarningsDataSet(featureTypes);
+		
 		this.testName = "capGainC";
-		super.startUpRCE(getFeatureHandlerRepositoryFactory(ageContinuousFeatureTypes));
 		
 		Report report = testCurrentCandidate();
 		
@@ -101,11 +106,11 @@ public class ContinuousEarningsPerformanceTest extends AbstractPerformanceTest {
 	
 	@Test
 	public void givenRCEApplicationConfiguredWithCapLossContinuousData_whenTrainedUsingEarningDataSet_thenGetAndReportClassifierPerformance() throws IOException, InterruptedException, RCEApplicationException, JAXBException {
-		Collection<Integer> ageContinuousFeatureTypes = Arrays.asList(12);
+		featureTypes = Arrays.asList(12);
 		
-		this.dataSet = new CsvDataSet.EarningsDataSet(ageContinuousFeatureTypes);
+		this.dataSet = new CsvDataSet.EarningsDataSet(featureTypes);
+		
 		this.testName = "capLossC";
-		super.startUpRCE(getFeatureHandlerRepositoryFactory(ageContinuousFeatureTypes));
 		
 		Report report = testCurrentCandidate();
 		
@@ -114,11 +119,23 @@ public class ContinuousEarningsPerformanceTest extends AbstractPerformanceTest {
 	
 	@Test
 	public void givenRCEApplicationConfiguredWithHoursPerWeekContinuousData_whenTrainedUsingEarningDataSet_thenGetAndReportClassifierPerformance() throws IOException, InterruptedException, RCEApplicationException, JAXBException {
-		Collection<Integer> ageContinuousFeatureTypes = Arrays.asList(13);
+		featureTypes = Arrays.asList(13);
+		this.dataSet = new CsvDataSet.EarningsDataSet(featureTypes);
 		
-		this.dataSet = new CsvDataSet.EarningsDataSet(ageContinuousFeatureTypes);
 		this.testName = "hrPerWkC";
-		super.startUpRCE(getFeatureHandlerRepositoryFactory(ageContinuousFeatureTypes));
+		
+		Report report = testCurrentCandidate();
+		
+		assertThat("Accuracy "+report.getAccuracy()+" is not above 0.83", DoubleMath.fuzzyEquals(report.getAccuracy(), 0.83, 0.01) || report.getAccuracy() > 0.83, is(equalTo(true)));
+	}
+	
+	@Test
+	public void givenRCEApplicationConfiguredWithAllContinuousData_whenTrainedUsingEarningDataSet_thenGetAndReportClassifierPerformance() throws IOException, InterruptedException, RCEApplicationException, JAXBException {
+		featureTypes = Arrays.asList(1, 11, 12, 13);
+		
+		this.dataSet = new CsvDataSet.EarningsDataSet(featureTypes);
+		
+		this.testName = "allContinuous";
 		
 		Report report = testCurrentCandidate();
 		

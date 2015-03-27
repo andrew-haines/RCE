@@ -14,7 +14,6 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.dyuproject.protostuff.Message;
 import com.google.common.collect.ImmutableMap;
 import com.haines.ml.rce.accumulator.HandlerRepository;
 import com.haines.ml.rce.accumulator.handlers.ClassificationHandler;
@@ -178,9 +177,9 @@ public abstract class AbstractPerformanceTest extends RCEApplicationStartupTest 
 	
 	protected abstract String getTestName();
 	
-	protected abstract <E extends Message<E>> Iterable<E> loadTrainingEvents() throws IOException;
+	protected abstract Iterable<ClassifiedEvent> loadTrainingEvents() throws IOException;
 	
-	protected abstract <E extends Message<E> & ClassifiedEvent> Iterable<E> loadTestEvents() throws IOException;
+	protected abstract Iterable<ClassifiedEvent> loadTestEvents() throws IOException;
 	
 	protected abstract DataSet getDataSet();
 }

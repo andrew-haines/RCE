@@ -20,21 +20,23 @@ import static org.hamcrest.Matchers.equalTo;
 public class DiscreteEarningsPerformanceTest extends AbstractPerformanceTest {
 	
 	private final CsvDataSet dataSet = new CsvDataSet.EarningsDataSet(Collections.<Integer>emptyList());
-	private final Iterable<Message<?>> trainingSet;
-	private final Iterable<Message<?>> testSet;
+	private final Iterable<ClassifiedEvent> trainingSet;
+	private final Iterable<ClassifiedEvent> testSet;
 	
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	protected DiscreteEarningsPerformanceTest(ClassLoader classLoader) throws IOException {
 		super(classLoader);
 		
-		trainingSet = Lists.newArrayList(loadEvents("adult.data.txt"));
-		testSet = Lists.newArrayList(loadEvents("adult.test.txt"));
+		trainingSet = (Iterable)Lists.newArrayList(loadEvents("adult.data.txt"));
+		testSet = (Iterable)Lists.newArrayList(loadEvents("adult.test.txt"));
 	}
 	
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public DiscreteEarningsPerformanceTest() throws IOException{
 		super();
 		
-		trainingSet = Lists.newArrayList(loadEvents("adult.data.txt"));
-		testSet = Lists.newArrayList(loadEvents("adult.test.txt"));
+		trainingSet = (Iterable)Lists.newArrayList(loadEvents("adult.data.txt"));
+		testSet = (Iterable)Lists.newArrayList(loadEvents("adult.test.txt"));
 	}
 
 	@Test
@@ -50,16 +52,14 @@ public class DiscreteEarningsPerformanceTest extends AbstractPerformanceTest {
 		return "discrete";
 	}
 
-	@SuppressWarnings("unchecked")
 	@Override
-	protected <E extends Message<E>> Iterable<E> loadTrainingEvents() throws IOException {
-		return (Iterable<E>)trainingSet;
+	protected Iterable<ClassifiedEvent> loadTrainingEvents() throws IOException {
+		return trainingSet;
 	}
 	
-	@SuppressWarnings("unchecked")
 	@Override
-	protected <E extends Message<E> & ClassifiedEvent> Iterable<E> loadTestEvents() throws IOException {
-		return (Iterable<E>)testSet;
+	protected Iterable<ClassifiedEvent> loadTestEvents() throws IOException {
+		return testSet;
 	}
 	
 	private Iterable<Message<?>> loadEvents(String datafileLocation) throws IOException{

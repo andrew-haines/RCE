@@ -8,21 +8,14 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Map;
 
 import javax.xml.bind.JAXBException;
 
 import org.junit.Test;
 
 import com.dyuproject.protostuff.Message;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.math.DoubleMath;
-import com.haines.ml.rce.accumulator.HandlerRepository;
-import com.haines.ml.rce.accumulator.handlers.ClassificationHandler;
-import com.haines.ml.rce.accumulator.handlers.FeatureHandler;
-import com.haines.ml.rce.accumulator.handlers.SequentialDistributionFeatureHandler;
 import com.haines.ml.rce.main.RCEApplicationException;
-import com.haines.ml.rce.main.factory.FeatureHandlerRepositoryFactory;
 import com.haines.ml.rce.model.ClassifiedEvent;
 import com.haines.ml.rce.test.ReportGenerator.Report;
 import com.haines.ml.rce.test.model.CsvDataSet;
@@ -146,16 +139,16 @@ public class ContinuousEarningsPerformanceTest extends AbstractPerformanceTest {
 		return testName;
 	}
 
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@Override
-	protected <E extends Message<E>> Iterable<E> loadTrainingEvents() throws IOException {
-		return (Iterable<E>)loadEvents("adult.data.txt");
+	protected Iterable<ClassifiedEvent> loadTrainingEvents() throws IOException {
+		return (Iterable)loadEvents("adult.data.txt");
 	}
 	
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@Override
-	protected <E extends Message<E> & ClassifiedEvent> Iterable<E> loadTestEvents() throws IOException {
-		return (Iterable<E>)loadEvents("adult.test.txt");
+	protected Iterable<ClassifiedEvent> loadTestEvents() throws IOException {
+		return (Iterable)loadEvents("adult.test.txt");
 	}
 
 	@Override

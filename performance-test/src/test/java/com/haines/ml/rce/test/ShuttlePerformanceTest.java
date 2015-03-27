@@ -59,16 +59,16 @@ public class ShuttlePerformanceTest extends AbstractPerformanceTest {
 		}
 	}
 	
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@Override
-	protected <E extends Message<E>> Iterable<E> loadTrainingEvents() throws IOException {
-		return (Iterable<E>)loadEvents("shuttle-train");
+	protected Iterable<ClassifiedEvent> loadTrainingEvents() throws IOException {
+		return (Iterable)loadEvents("shuttle-train");
 	}
 	
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@Override
-	protected <E extends Message<E> & ClassifiedEvent> Iterable<E> loadTestEvents() throws IOException {
-		return (Iterable<E>)loadEvents("shuttle-test");
+	protected Iterable<ClassifiedEvent> loadTestEvents() throws IOException {
+		return (Iterable)loadEvents("shuttle-test");
 	}
 	
 	private Iterable<Message<?>> loadEvents(String datafileLocation) throws IOException{

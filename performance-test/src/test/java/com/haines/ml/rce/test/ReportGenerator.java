@@ -45,6 +45,8 @@ public class ReportGenerator {
 		
 		long startTime = System.currentTimeMillis();
 		for (ClassifiedEvent event: trainingSet){
+			
+//			System.out.println(event.toString());
 			test.sendEvent(event);
 		}
 		

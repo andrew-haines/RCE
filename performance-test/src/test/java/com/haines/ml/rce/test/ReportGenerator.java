@@ -1,14 +1,23 @@
 package com.haines.ml.rce.test;
 
+import java.util.ArrayDeque;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Deque;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 
-import org.apache.commons.math3.stat.StatUtils;
+import org.apache.commons.math3.analysis.UnivariateFunction;
+import org.apache.commons.math3.analysis.interpolation.SplineInterpolator;
+import org.apache.commons.math3.analysis.interpolation.UnivariateInterpolator;
 import org.apache.commons.math3.util.FastMath;
 
+import com.google.common.base.Function;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
-import com.google.common.math.DoubleMath;
 import com.haines.ml.rce.model.Classification;
 import com.haines.ml.rce.model.ClassifiedEvent;
 import com.haines.ml.rce.service.ClassifierService;
@@ -20,6 +29,8 @@ public class ReportGenerator {
 	private final int numRocSteps;
 	private final PerformanceTest test;
 	private final String reportName;
+	private static final UnivariateInterpolator INTERPOLATOR = new SplineInterpolator();
+	private static final int NUM_ROC_STEPS = 1000;
 	
 	public ReportGenerator(String reportName, int numTests, int numRocSteps, PerformanceTest test){
 		this.reportName = reportName;
@@ -28,7 +39,7 @@ public class ReportGenerator {
 		this.test = test;
 	}
 	
-	private Report runReport(Collection<? extends ClassifiedEvent> trainingSet, Collection<? extends ClassifiedEvent> testSet, List<? extends Classification> classes){
+	private Report runReport(Collection<? extends ClassifiedEvent> trainingSet, Collection<? extends ClassifiedEvent> testSet, final List<? extends Classification> classes){
 		
 		long heapSize = getMemoryAfterGC();
 		
@@ -43,118 +54,169 @@ public class ReportGenerator {
 		
 		long heapAfterTrainingSize = getMemoryAfterGC();
 		
-		ClassifierService classifierService = test.getClassifierService();
-		
-		int numEventsSeen = 0;
-		int numEventsCorrectlyPredicted = 0;
-		
-		// set up 1 vs all
-		
-		int[] tp = new int[classes.size()];
-		int[] fp = new int[classes.size()];
-		int[] tn = new int[classes.size()];
-		int[] fn = new int[classes.size()];
-		int[] rocTp = new int[numRocSteps+1];
-		int[] rocFp = new int[numRocSteps+1];
-		int[] rocTn = new int[numRocSteps+1];
-		int[] rocFn = new int[numRocSteps+1];
+		final ClassifierService classifierService = test.getClassifierService();
 		
 		startTime = System.currentTimeMillis();
 		
-		for (ClassifiedEvent event: testSet){
-			PredictedClassification predictedClassification = classifierService.getClassification(event.getFeaturesList());
-			
-			if (event.getClassificationsList().contains(predictedClassification.getClassification())){
-				numEventsCorrectlyPredicted++;
-			}
-			
-			numEventsSeen++;
-			
-			double[] scores = getScores(classes, event, classifierService);
-			
-			double maxScore = StatUtils.max(scores);
-			
-			for (int i = 0; i < classes.size(); i++){
-				
-				Classification classification = classes.get(i);
-				
-				double scoreForClass = classifierService.getScore(event.getFeaturesList(), classification);
-				double normalisedScore = scoreForClass / maxScore;
-				
-				for (int step = 0; step <= numRocSteps; step++){
-					double threshold = step / (double)numRocSteps;
-					
-					if (normalisedScore > threshold){
-						if (event.getClassificationsList().contains(predictedClassification.getClassification())){
-							rocTp[step]++;
-						} else{
-							rocFp[step]++;
-						}
-					} else{
-						
-						if (event.getClassificationsList().contains(predictedClassification.getClassification())){
-							rocTn[step]++;
-						} else{
-							rocFn[step]++;
-						}
-					}
-				}
+		final Map<Classification, Integer> numPositives = new HashMap<Classification, Integer>();
+		
+		List<Scores> scores = Lists.newArrayList(Iterables.transform(testSet, new Function<ClassifiedEvent, Scores>(){
 
-				if (event.getClassificationsList().contains(predictedClassification.getClassification())){
-					if (predictedClassification.getClassification().getValue().equals(classification.getValue())){
-						tp[i]++;
-					} else{
-						tn[i]++;
-					}
-				} else{
-					if (predictedClassification.getClassification().getValue().equals(classification.getValue())){
-						fp[i]++;
-					} else{
-						fn[i]++;
+			@Override
+			public Scores apply(ClassifiedEvent input) {
+				
+				Scores scores = new Scores(classifierService.getClassification(input.getFeaturesList()), input.getClassificationsList());
+				
+				for (Classification classification: classes){
+					scores.addScore(classification, classifierService.getScore(input.getFeaturesList(), classification));
+					
+					if (input.getClassificationsList().contains(classification)){
+						Integer currentCount = numPositives.get(classification);
+						
+						if (currentCount == null){
+							currentCount = 0;
+						}
+						
+						numPositives.put(classification, ++currentCount);
 					}
 				}
+				
+				return scores;
 			}
-		}
-		
-		double[][] rocData = getRocData(rocTp, rocFp, rocTn, rocFn);
-		
-		double auc = getAuc(rocData);
-		
-		// now average our 1 vs all results
-		
-		double avTp = getAverage(tp);
-		double avFp = getAverage(fp);
-		double avTn = getAverage(tn);
-		double avFn = getAverage(fn);
-		
-		double accuracy1 = (double)numEventsCorrectlyPredicted / (double)numEventsSeen;
-		double accuracy2 = (avTp + avTn) / testSet.size();
-		
-		double precision = getPrecision(avTp, avFp);
-		double recall = getRecall(avTp, avFp);
-		
-		double fmeasure = 2 * ((precision * recall) / precision + recall);
-		
-		assert(DoubleMath.fuzzyEquals(accuracy1, accuracy2, 0.0001)) : "accuracies do not equate: "+accuracy1+", "+accuracy2;
+		}));
 		
 		long timeToTest = System.currentTimeMillis() - startTime;
 		
-		return new Report((double)numEventsCorrectlyPredicted / (double)numEventsSeen, fmeasure, auc, FastMath.max(0, heapAfterTrainingSize - heapSize), 1, rocData, reportName, timeToTrain, timeToTest);
+
+		Map<Classification, Report> reports = new HashMap<Classification, Report>();
+		
+		// now perform 1 vs all
+		for (Classification positiveClassification: classes){
+			
+			reports.put(positiveClassification, getReport(scores, positiveClassification, numPositives.get(positiveClassification)));
+		}
+		
+		Report avReport = null;
+		
+		double aucTotal = 0;
+		
+		for (Entry<Classification, Report> report: reports.entrySet()){
+			if (avReport == null){
+				avReport = report.getValue();
+			} else{
+				avReport = avReport.avg(report.getValue());
+			}
+			
+			/*
+			 * From: http://home.comcast.net/~tom.fawcett/public_html/papers/ROC101.pdf
+			 * The disadvantage is that the class reference ROC is sensitive to class distributions and error costs, 
+			 * so this formulation of AUCtotal is as well.
+			 */
+			
+			aucTotal += report.getValue().getAuc() * (numPositives.get(report.getKey()) / (double)scores.size()); 
+		}
+		
+		return new Report(avReport.getAccuracy(), avReport.getFmeasure(), aucTotal, FastMath.max(0, heapAfterTrainingSize - heapSize), 1, avReport.getRocData(), reportName, timeToTrain, timeToTest);
+	}
+
+	private Report getReport(List<Scores> scores, Classification positiveClassification, int totalP) {
+		Collections.sort(scores, new Scores.ScoreComparator(positiveClassification));
+
+		int total = scores.size();
+		
+		int totalN = total - totalP;
+		
+		int fp = 0;
+		int tp = 0;
+		int tn = totalN;
+		int fn = totalP;
+		
+		int correctlyPredicted = 0;
+		
+		double prevScore = Double.NEGATIVE_INFINITY;
+		Deque<Double[]> stack = new ArrayDeque<Double[]>();
+		
+		//stack.add(new Double[]{0.0, 0.0});
+		
+		for (Scores score: scores){
+			double positiveClassificationScore = score.getScore(positiveClassification);
+			
+			if (positiveClassificationScore != prevScore){
+				stack.add(new Double[]{getFallout(fp, tn), getRecall(tp, fn)});
+				prevScore = positiveClassificationScore;
+			}
+			
+			if (score.getExpectedClassifications().contains(positiveClassification)){
+				tp++;
+				fn--;;
+			} else{
+				fp++;
+				tn--;
+			}
+			
+			if (score.getExpectedClassifications().contains(score.getPredictedClassification().getClassification())){
+				correctlyPredicted++;
+			}
+		}
+		stack.add(new Double[]{getFallout(fp, tn), getRecall(tp, fn)});
+		
+		double[][] rocData = new double[2][stack.size()];
+		
+		int i = 0;
+		
+		double yAxisSum = 0;
+		double yAxisNumSameVals = 0;
+		
+		for (Double[] points: stack){
+			
+			// average points that have the same x axis values. This is required for the interpolation step when averaging ROC curves
+			
+			if (i == 0 || rocData[0][i-1] != points[0]){ // we now have a different x axis value so replace the previous y axis value 
+				
+				if (yAxisNumSameVals > 0){
+					rocData[1][i-1] = (rocData[1][i-1] + yAxisSum) / (1+yAxisNumSameVals);
+				}
+				
+				rocData[0][i] = points[0];
+				rocData[1][i] = points[1];
+				yAxisSum = 0;
+				yAxisNumSameVals = 0;
+				
+				i++; // advance to next point
+			} else{
+				yAxisNumSameVals++;
+				yAxisSum += points[1];
+			}
+		}
+		
+		double[][] rocDataTrimed = new double[2][i];
+		
+		System.arraycopy(rocData[0], 0, rocDataTrimed[0], 0, i);
+		System.arraycopy(rocData[1], 0, rocDataTrimed[1], 0, i);
+		
+		double auc = getAuc(rocDataTrimed);
+		
+		double precision = getPrecision(tp, fp);
+		double recall = getRecall(tp, fn);
+		
+		double fmeasure = 2 / ((1 / precision) + (1 / recall));
+		
+		return new Report(correctlyPredicted / (double)total, fmeasure, auc, -1, 1, rocDataTrimed, reportName+"_"+positiveClassification.toString(), -1, -1);
 	}
 
 	private double getAuc(double[][] rocData) {
 		
 		double sum = 0;
 		
-		double prevFpr = 0;
-		double prevTpr = 0;
+		double prevFpr = 1;
+		double prevTpr = 1;
 		
 		double[] fpr = rocData[0];
 		double[] tpr = rocData[1];
 		
 		for (int i = fpr.length - 1; i >= 0; i--){
-			assert(prevFpr <= fpr[i]); // check these are in the order we expect
-			assert(prevTpr <= tpr[i]);
+			assert(prevFpr >= fpr[i]); // check these are in the order we expect
+			assert(prevTpr >= tpr[i]);
 			
 			sum += getAreaOfTrapezoid(prevFpr, fpr[i], prevTpr, tpr[i]);
 			
@@ -211,18 +273,31 @@ public class ReportGenerator {
 	}
 	
 	private static double[][] getAverage(double[][] values1, double[][] values2){
-		double[][] averagedValues = new double[values1.length][values1[0].length];
 		
-		for (int i = 0;i < values1.length; i++){
+		/*
+		 *  To average these 2 arrays we need to interpolate their points to a set number of steps so that
+		 *  are uniformly averaged.
+		 */
+		
+		UnivariateFunction interpolatedPoints1 = INTERPOLATOR.interpolate(values1[0], values1[1]);
+		UnivariateFunction interpolatedPoints2 = INTERPOLATOR.interpolate(values2[0], values2[1]);
+		
+		double[][] averagedPoints = new double[2][NUM_ROC_STEPS];
+		
+		double numSteps = (double)NUM_ROC_STEPS;
+		
+		for (int i = 0; i < NUM_ROC_STEPS; i++){
 			
-			assert(values1[i].length == values2[i].length): "value1.length != value2.length:: value1.length="+values1.length+", values2.length="+values2.length;
+			double yValue = (double)i / numSteps;
 			
-			for (int j = 0; j < values1[i].length; j++){
-				averagedValues[i][j] = (values1[i][j] + values2[i][j]) / 2;
-			}
+			double value1 = interpolatedPoints1.value(yValue);
+			double value2 = interpolatedPoints2.value(yValue);
+			
+			averagedPoints[0][i] = yValue;
+			averagedPoints[1][i] = (value1 + value2) / 2;
 		}
 		
-		return averagedValues;
+		return averagedPoints;
 	}
 
 	public Report getReport(Iterable<? extends ClassifiedEvent> trainingSet, Iterable<? extends ClassifiedEvent> testSet, List<? extends Classification> classes){
@@ -302,17 +377,17 @@ public class ReportGenerator {
 		
 		private final double accuracy;
 		private final double fmeasure;
-		private final double roc;
+		private final double auc;
 		private final long numBytesUsedForModel;
 		private final int numTestsRun;
 		private final double[][] rocData;
 		private final String reportName;
 		private final long timeToTrain, timeToTest;
 		
-		private Report(double accuracy, double fmeasure, double roc, long numBytesUsedForModel, int numTestsRun, double[][] rocData, String reportName, long timeToTrain, long timeToTest){
+		private Report(double accuracy, double fmeasure, double auc, long numBytesUsedForModel, int numTestsRun, double[][] rocData, String reportName, long timeToTrain, long timeToTest){
 			this.accuracy = accuracy;
 			this.fmeasure = fmeasure;
-			this.roc = roc;
+			this.auc = auc;
 			this.numBytesUsedForModel = numBytesUsedForModel;
 			this.numTestsRun = numTestsRun;
 			this.rocData = rocData;
@@ -324,7 +399,7 @@ public class ReportGenerator {
 		private Report avg(Report otherReport){
 			return new Report((getAccuracy() + otherReport.getAccuracy()) / 2, 
 					(getFmeasure() + otherReport.getFmeasure()) / 2, 
-					(getRoc() + otherReport.getRoc()) / 2, 
+					(getAuc() + otherReport.getAuc()) / 2, 
 					(long)FastMath.floor((getNumBytesUsedForModel() + otherReport.getNumBytesUsedForModel()) / 2), 
 					getNumTestsRun() + otherReport.getNumTestsRun(),
 					getAverage(this.rocData, otherReport.rocData), reportName,
@@ -340,8 +415,8 @@ public class ReportGenerator {
 			return fmeasure;
 		}
 
-		public double getRoc() {
-			return roc;
+		public double getAuc() {
+			return auc;
 		}
 
 		public long getNumBytesUsedForModel() {
@@ -375,5 +450,54 @@ public class ReportGenerator {
 		double avHeight = (y1 + y2) / 2;
 		
 		return area * avHeight;
+	}
+	
+	private static class Scores {
+		
+		private static final class ScoreComparator implements Comparator<Scores>{
+
+			private final Classification classToSortScoresBy;
+			
+			private ScoreComparator(Classification classToSortScoresBy){
+				this.classToSortScoresBy = classToSortScoresBy;
+			}
+			
+			@Override
+			public int compare(Scores o1, Scores o2) {
+				return o2.getScore(classToSortScoresBy).compareTo(o1.getScore(classToSortScoresBy)); // decreasing order of scores
+			}
+			
+		}
+		
+		private final Map<Classification, Double> classificationScores = new HashMap<Classification, Double>();
+		private final PredictedClassification predictedClassification;
+		private final Collection<? extends Classification> expectedClassifications;
+		private double maxScore = 0;
+		
+		private Scores(PredictedClassification classification, Collection<? extends Classification> expectedClassifications){
+			this.predictedClassification = classification;
+			this.expectedClassifications = expectedClassifications;
+		}
+		
+		@SuppressWarnings("unchecked")
+		public Collection<Classification> getExpectedClassifications() {
+			return (Collection<Classification>)expectedClassifications;
+		}
+		
+		public PredictedClassification getPredictedClassification(){
+			return predictedClassification;
+		}
+
+		private void addScore(Classification classification, double score){
+			classificationScores.put(classification, score);
+			
+			if (score > maxScore){
+				maxScore = score;
+			}
+		}
+		
+		private Double getScore(Classification classification){
+			return classificationScores.get(classification) / maxScore; // normalise
+		}
 	}
 }

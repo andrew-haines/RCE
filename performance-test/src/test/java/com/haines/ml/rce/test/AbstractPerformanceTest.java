@@ -110,7 +110,7 @@ public abstract class AbstractPerformanceTest extends RCEApplicationStartupTest 
 		// pause the test to ensure that the training events will propagate through to the model
 		
 		try {
-			Thread.sleep(2000);
+			Thread.sleep(6000);
 			
 			waitingForNextWindow.set(true);
 			super.nextWindowUpdated.await(5, TimeUnit.SECONDS);
@@ -123,8 +123,8 @@ public abstract class AbstractPerformanceTest extends RCEApplicationStartupTest 
 	@Override
 	public void reset() {
 		try {
-			super.after();
-			super.before();
+			this.after();
+			this.before();
 		} catch (RCEApplicationException | InterruptedException | JAXBException | IOException e) {
 			throw new RuntimeException("Unable to stop existing service", e);
 		}

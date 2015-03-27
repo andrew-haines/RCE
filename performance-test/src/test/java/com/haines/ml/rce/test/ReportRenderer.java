@@ -36,7 +36,7 @@ public interface ReportRenderer {
 				LOG.info("\n\n\t\t\t----------------------------Report "+report.getReportName()+" completed-----------------------------\n"+
 					     "\t\t\t| classifier accuracy: "+report.getAccuracy()+"\t\t\t\t|\n" +
 					     "\t\t\t| classifier fmeasure: "+report.getFmeasure()+"\t\t\t\t\t\t|\n" +
-					     "\t\t\t| classifier roc: "+report.getRoc()+"\t\t\t\t\t\t\t|\n" +
+					     "\t\t\t| classifier auc: "+report.getAuc()+"\t\t\t\t\t\t\t|\n" +
 					     "\t\t\t| classifier model Size: "+report.getNumBytesUsedForModel()+"\t\t\t\t\t|\n" +
 					     "\t\t\t| Time in Millis to train: "+report.getTimeToTrain()+"\t\t\t\t\t|\n" +
 					     "\t\t\t| Time in Millis to test: "+report.getTimeToTest()+"\t\t\t\t\t|\n" +
@@ -110,10 +110,8 @@ public interface ReportRenderer {
 			DefaultXYDataset dataset = new DefaultXYDataset();
 			
 			for (Report report: reports){
-				double[][] rocData = zeroBased(report.getRocData());
-				for (int i = 0; i < rocData.length; i++){
-					dataset.addSeries(report.getReportName(), rocData);
-				}
+				double[][] rocData = report.getRocData();
+				dataset.addSeries(report.getReportName(), rocData);
 			}
 			
 			return ChartFactory.createXYLineChart("ROC", "FPR", "TPR", dataset, PlotOrientation.VERTICAL, !Iterables.isEmpty((Iterables.skip(reports, 1))), false, false);

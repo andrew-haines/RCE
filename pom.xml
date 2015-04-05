@@ -18,5 +18,6 @@
 		<module>eventstream</module>
 		<module>main</module>
 		<module>performance-test</module>
+		<module>load-test</module>
 	</modules>
 </project>

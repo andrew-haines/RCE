@@ -130,7 +130,7 @@ public class SyntheticTestDataset implements DataSet{
 		
 		for (int i = 0; i< numFeatures; i++){
 			if (((i == numFeatures-1) && features.isEmpty()) || Math.random() <= probabilityOfFeatureBeingPresent){
-				features.add(new TestFeature(featureValuesFromDistribution[i], i));
+				features.add(new TestFeature((int)Math.round(featureValuesFromDistribution[i]), i)); // round to integer
 			}
 		}
 		

@@ -19,11 +19,12 @@
 		<jaxb.version>2.2.2</jaxb.version>
 		<guice.version>4.0-beta4</guice.version>
 	</properties>
-
-	<scm>
-		<developerConnection>scm:svn:svn+ssh://username@svn.corp.yahoo.com/yahoo/personalised-ads/native-ads/</developerConnection>
-	</scm>
-
+<contributors>	
+	<contributor>
+      <name>Andrew Haines</name>
+      <email>haines@yahoo-inc.com</email>
+    </contributor>
+</contributors>
 	<!-- Common dependencies -->
 	<dependencies>
 		<dependency>

@@ -46,7 +46,7 @@ public class ReportGenerator {
 		long startTime = System.currentTimeMillis();
 		for (ClassifiedEvent event: trainingSet){
 			
-			System.out.println(event.toString());
+			//System.out.println(event.toString());
 			test.sendEvent(event);
 		}
 		
@@ -150,7 +150,7 @@ public class ReportGenerator {
 			
 			if (score.getExpectedClassifications().contains(positiveClassification)){
 				tp++;
-				fn--;;
+				fn--;
 			} else{
 				fp++;
 				tn--;
@@ -281,22 +281,44 @@ public class ReportGenerator {
 		 *  are uniformly averaged.
 		 */
 		
-		UnivariateFunction interpolatedPoints1 = INTERPOLATOR.interpolate(values1[0], values1[1]);
-		UnivariateFunction interpolatedPoints2 = INTERPOLATOR.interpolate(values2[0], values2[1]);
+		boolean directlyComparable = true;
+		double[][] averagedPoints = new double[2][values1[1].length];
 		
-		double[][] averagedPoints = new double[2][NUM_ROC_STEPS];
+		if ((directlyComparable = values1[1].length == values2[1].length)){
+			
+			for (int i = 0; i < values1[1].length; i++){
+				if (values1[1][i] == values2[1][i]){
+					averagedPoints[0][i] = (values1[0][i] + values2[0][i]) / 2;
+				} else{
+					directlyComparable = false;
+					break;
+				}
+			}
+			
+			if (directlyComparable){
+				averagedPoints[1] = values1[1]; // y values are all the same so set directly
+			}
+		}
 		
-		double numSteps = (double)NUM_ROC_STEPS;
+		if (!directlyComparable) {
 		
-		for (int i = 0; i < NUM_ROC_STEPS; i++){
+			UnivariateFunction interpolatedPoints1 = INTERPOLATOR.interpolate(values1[0], values1[1]);
+			UnivariateFunction interpolatedPoints2 = INTERPOLATOR.interpolate(values2[0], values2[1]);
 			
-			double yValue = (double)i / numSteps;
+			averagedPoints = new double[2][NUM_ROC_STEPS];
 			
-			double value1 = interpolatedPoints1.value(yValue);
-			double value2 = interpolatedPoints2.value(yValue);
+			double numSteps = (double)NUM_ROC_STEPS;
 			
-			averagedPoints[0][i] = yValue;
-			averagedPoints[1][i] = (value1 + value2) / 2;
+			for (int i = 0; i < NUM_ROC_STEPS; i++){
+				
+				double yValue = (double)i / numSteps;
+				
+				double value1 = interpolatedPoints1.value(yValue);
+				double value2 = interpolatedPoints2.value(yValue);
+				
+				averagedPoints[0][i] = yValue;
+				averagedPoints[1][i] = (value1 + value2) / 2;
+			}
 		}
 		
 		return averagedPoints;

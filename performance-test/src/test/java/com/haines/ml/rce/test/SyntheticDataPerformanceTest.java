@@ -63,12 +63,12 @@ public class SyntheticDataPerformanceTest extends AbstractPerformanceTest{
 
 	@Override
 	protected Iterable<ClassifiedEvent> loadTrainingEvents() throws IOException {
-		return dataset.getEventsFromDistribution(200);
+		return dataset.getEventsFromDistribution(20000);
 	}
 
 	@Override
 	protected Iterable<ClassifiedEvent> loadTestEvents() throws IOException {
-		return dataset.getEventsFromDistribution(100);
+		return dataset.getEventsFromDistribution(1000);
 	}
 
 	@Override

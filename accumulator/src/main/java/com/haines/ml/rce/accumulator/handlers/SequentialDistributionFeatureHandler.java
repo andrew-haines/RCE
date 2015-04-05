@@ -90,9 +90,12 @@ public class SequentialDistributionFeatureHandler<T extends ClassifiedEvent> imp
 		double mean = getMean(accumulator, slots);
 		double variance = getVariance(accumulator, slots, numSamples);
 		
-		if (numSamples > 0 ){
+		if (numSamples > 1 ){
 			return new DistributionParameters(numSamples, mean, variance);
-		} else{
+		} else if (numSamples == 1){
+			return new DistributionParameters(numSamples, mean, Double.NaN);
+		}
+		else{
 			return DistributionParameters.EMPTY_DISTRIBUTION_PARAMETERS;
 		}
 	}

@@ -75,6 +75,15 @@ public class DistributionParametersUnitTest {
 	}
 	
 	@Test
+	public void given1SampleDistribution_whenCallingAdd1SampleDistributionParameter_thenResultDoesNotHaveNaNVariance(){
+		DistributionParameters summedParams = DistributionParameters.MATHS.add(new DistributionParameters(1, 57.6, Double.NaN), new DistributionParameters(1, 57.3, Double.NaN));
+		
+		assertThat(summedParams.getMean(), is(equalTo(57.45)));
+		assertThat(summedParams.getVariance(), is(equalTo(0.045000000000001275)));
+		assertThat(summedParams.getNumSamples(), is(equalTo(2)));
+	}
+	
+	@Test
 	public void givenSingleEventVarianceOf6EventParameters_whenCallingSubWithVarianceEventParameter_thenResultDoesNotHaveNaNVariance(){
 		DistributionParameters summedParams = DistributionParameters.MATHS.sub(new DistributionParameters(6, 25.5, 433.1), new DistributionParameters(2, 48.5, 544.5));
 		

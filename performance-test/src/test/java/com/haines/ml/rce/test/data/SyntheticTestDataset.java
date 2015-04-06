@@ -1,5 +1,7 @@
 package com.haines.ml.rce.test.data;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -52,11 +54,11 @@ public class SyntheticTestDataset implements DataSet{
 	
 	public SyntheticTestDataset(int numPossibleClasses, int numFeatures, double probabilityOfFeatureBeingPresent){
 		// provides a randomised construtor of mean values
-		this(numPossibleClasses, probabilityOfFeatureBeingPresent, getRandomMeans(numFeatures, numPossibleClasses, 100), getRandomCovariances(numFeatures, numPossibleClasses));
+		this(numPossibleClasses, probabilityOfFeatureBeingPresent, getRandomMeans(numFeatures, numPossibleClasses, 1000), getRandomCovariances(numFeatures, numPossibleClasses));
 	}
 	
 	private static double[][][] getRandomCovariances(int numFeatures, int numClasses) {
-		double[][] randomVariances = getRandomMeans(numFeatures, numClasses, 10); // reuse this method to get random variances
+		double[][] randomVariances = getRandomMeans(numFeatures, numClasses, 10000); // reuse this method to get random variances
 		double[][][] randomCovarianceMatrix = new double[numClasses][][];
 		for (int i = 0; i < randomVariances.length; i++){
 			randomCovarianceMatrix[i] = MatrixUtils.createRealDiagonalMatrix(randomVariances[i]).getData();
@@ -130,13 +132,21 @@ public class SyntheticTestDataset implements DataSet{
 		
 		for (int i = 0; i< numFeatures; i++){
 			if (((i == numFeatures-1) && features.isEmpty()) || Math.random() <= probabilityOfFeatureBeingPresent){
-				features.add(new TestFeature((int)Math.round(featureValuesFromDistribution[i]), i)); // round to integer
+				features.add(new TestFeature(round(featureValuesFromDistribution[i], 2), i)); // round to integer
 			}
 		}
 		
 		TestEvent event = new TestEvent(features, Arrays.asList(expectedClass));
 		
 		return event;
+	}
+
+	public static double round(double value, int places) {
+	    if (places < 0) throw new IllegalArgumentException();
+
+	    BigDecimal bd = new BigDecimal(value);
+	    bd = bd.setScale(places, RoundingMode.HALF_UP);
+	    return bd.doubleValue();
 	}
 
 	private double[] getFeatureValuesFromDistribution(Classification expectedClass) {

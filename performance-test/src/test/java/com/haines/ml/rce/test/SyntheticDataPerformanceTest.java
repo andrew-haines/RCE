@@ -27,7 +27,7 @@ public class SyntheticDataPerformanceTest extends AbstractPerformanceTest{
 	private Collection<Integer> continuousFeatureTypes = Collections.emptyList();
 	
 	public SyntheticDataPerformanceTest(){
-		this.dataset = new SyntheticTestDataset(2, 5, 1.0);
+		this.dataset = new SyntheticTestDataset(3, 10, 0.6);
 	}
 	
 	@Override
@@ -63,7 +63,7 @@ public class SyntheticDataPerformanceTest extends AbstractPerformanceTest{
 
 	@Override
 	protected Iterable<ClassifiedEvent> loadTrainingEvents() throws IOException {
-		return dataset.getEventsFromDistribution(20000);
+		return dataset.getEventsFromDistribution(1000);
 	}
 
 	@Override

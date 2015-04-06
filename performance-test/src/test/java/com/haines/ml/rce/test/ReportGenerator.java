@@ -179,6 +179,9 @@ public class ReportGenerator {
 					rocData[1][i-1] = (rocData[1][i-1] + yAxisSum) / (1+yAxisNumSameVals);
 				}
 				
+				assert(points[0] >= 0 && points[0] <= 1);
+				assert(points[1] >= 0 && points[1] <= 1);
+				
 				rocData[0][i] = points[0];
 				rocData[1][i] = points[1];
 				yAxisSum = 0;
@@ -317,7 +320,9 @@ public class ReportGenerator {
 				double value2 = interpolatedPoints2.value(yValue);
 				
 				averagedPoints[0][i] = yValue;
-				averagedPoints[1][i] = (value1 + value2) / 2;
+				averagedPoints[1][i] = Math.max(Math.min((value1 + value2) / 2, 1), 0); // the spline interpolator can sometimes curve over 1 so cap here appropriately
+				
+				assert(averagedPoints[1][i] >= 0 && averagedPoints[1][i] <= 1): "averaged point "+averagedPoints[1][i]+" is not between 0-1";
 			}
 		}
 		
@@ -521,7 +526,7 @@ public class ReportGenerator {
 		}
 		
 		private Double getScore(Classification classification){
-			return classificationScores.get(classification) / maxScore; // normalise
+			return new Double(classificationScores.get(classification).doubleValue() / maxScore); // normalise
 		}
 	}
 }

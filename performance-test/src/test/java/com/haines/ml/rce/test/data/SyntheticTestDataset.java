@@ -10,11 +10,16 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.math3.distribution.AbstractMultivariateRealDistribution;
+import org.apache.commons.math3.distribution.MixtureMultivariateRealDistribution;
 import org.apache.commons.math3.distribution.MultivariateNormalDistribution;
 import org.apache.commons.math3.distribution.MultivariateRealDistribution;
 import org.apache.commons.math3.distribution.RealDistribution;
+import org.apache.commons.math3.distribution.UniformRealDistribution;
 import org.apache.commons.math3.distribution.WeibullDistribution;
 import org.apache.commons.math3.linear.MatrixUtils;
+import org.apache.commons.math3.random.JDKRandomGenerator;
+import org.apache.commons.math3.util.Pair;
 
 import com.haines.ml.rce.model.Classification;
 import com.haines.ml.rce.model.ClassifiedEvent;
@@ -45,20 +50,32 @@ public class SyntheticTestDataset implements DataSet{
 			TestClassification testClass = new TestClassification("class_"+i);
 			possibleClasses.add(testClass);
 			
-			underlyingFeatureClassDistributions.put(testClass, new MultivariateNormalDistribution(means[i], covariance[i]));
-			
+			underlyingFeatureClassDistributions.put(testClass, addNoise(new MultivariateNormalDistribution(means[i], covariance[i])));
 		}
+		
 		this.numFeatures = means[0].length;
 		this.probabilityOfFeatureBeingPresent = probabilityOfFeatureBeingPresent;
 	}
 	
+	private MultivariateRealDistribution addNoise(MultivariateNormalDistribution normalDistribution) {
+		
+		return new MixtureMultivariateRealDistribution<AbstractMultivariateRealDistribution>(Arrays.asList(new Pair<Double, AbstractMultivariateRealDistribution>(0.5, normalDistribution),
+																										   new Pair<Double, AbstractMultivariateRealDistribution>(0.5, new UniformDistribution(normalDistribution.getDimension(), normalDistribution.getMeans(), normalDistribution.getStandardDeviations()))));
+	}
+
 	public SyntheticTestDataset(int numPossibleClasses, int numFeatures, double probabilityOfFeatureBeingPresent){
-		// provides a randomised construtor of mean values
-		this(numPossibleClasses, probabilityOfFeatureBeingPresent, getRandomMeans(numFeatures, numPossibleClasses, 1000), getRandomCovariances(numFeatures, numPossibleClasses));
+		// provides a randomised constructor of mean values
+		this(numPossibleClasses, probabilityOfFeatureBeingPresent, getRandomMeans(numFeatures, numPossibleClasses, 100000, true), getRandomCovariances(numFeatures, numPossibleClasses));
 	}
 	
 	private static double[][][] getRandomCovariances(int numFeatures, int numClasses) {
-		double[][] randomVariances = getRandomMeans(numFeatures, numClasses, 10000); // reuse this method to get random variances
+		
+		/* 
+		 * reuse this method to get random variances. Note that such a high variance upper limit makes the discrete classifier perform poorly 
+		 * as there are an awful lot of possible 'bins' (integer numbers) that can be used.
+		 */
+		
+		double[][] randomVariances = getRandomMeans(numFeatures, numClasses, 1000000, false);  
 		double[][][] randomCovarianceMatrix = new double[numClasses][][];
 		for (int i = 0; i < randomVariances.length; i++){
 			randomCovarianceMatrix[i] = MatrixUtils.createRealDiagonalMatrix(randomVariances[i]).getData();
@@ -66,12 +83,19 @@ public class SyntheticTestDataset implements DataSet{
 		return randomCovarianceMatrix;
 	}
 
-	private static double[][] getRandomMeans(int numFeatures, int numClasses, int maxValue) {
+	private static double[][] getRandomMeans(int numFeatures, int numClasses, int maxValue, boolean allowNegative) {
 		double[][] means = new double[numClasses][numFeatures];
 		
 		for (int i = 0; i < numClasses; i++){
 			for (int j = 0; j < numFeatures; j++){
-				means[i][j] = Math.random() * maxValue;
+				
+				double offset = 0;
+				
+				if (allowNegative){
+					offset = maxValue /2;
+				}
+				
+				means[i][j] = (Math.random() * maxValue) - offset;
 			}
 		}
 		
@@ -132,7 +156,7 @@ public class SyntheticTestDataset implements DataSet{
 		
 		for (int i = 0; i< numFeatures; i++){
 			if (((i == numFeatures-1) && features.isEmpty()) || Math.random() <= probabilityOfFeatureBeingPresent){
-				features.add(new TestFeature(round(featureValuesFromDistribution[i], 2), i)); // round to integer
+				features.add(new TestFeature(round(featureValuesFromDistribution[i], 0), i)); // round to integer
 			}
 		}
 		
@@ -165,7 +189,46 @@ public class SyntheticTestDataset implements DataSet{
 		int classIdx = (int)(normalisedSample * possibleClasses.size());
 		
 		return possibleClasses.get(classIdx);
+	}
+	
+	private static class UniformDistribution extends AbstractMultivariateRealDistribution {
+
+		private final RealDistribution[] distribution;
 		
+		protected UniformDistribution(int dimensionality, double[] means, double[] sd) {
+			super(new JDKRandomGenerator(), dimensionality);
+			this.distribution = new RealDistribution[dimensionality];
+			
+			for (int i = 0; i < dimensionality; i++){ // create uniform distributions from 95% confidence intervals using the mean and variance of each dimension
+				
+				double lower = means[i] - sd[i];
+				double higher = means[i] + sd[i];
+				
+				distribution[i] = new UniformRealDistribution(lower, higher);
+			}
+		}
+
+		@Override
+		public double density(double[] x) {
+			double density = 0;
+			
+			for (int i = 0; i < x.length; i++){
+				density += distribution[i].density(x[i]);
+			}
+			
+			return density / x.length; // TODO not sure if this is correct!
+		}
+
+		@Override
+		public double[] sample() {
+			double[] samples = new double[getDimension()];
+			
+			for (int i = 0;i < samples.length; i++){
+				samples[i] = distribution[i].sample();
+			}
+			
+			return samples;
+		}
 		
 	}
 

@@ -24,6 +24,27 @@
     			<artifactId>grinder</artifactId>
     			<version>3.11</version>
 		</dependency>
+		<dependency>
+    		<groupId>${project.groupId}</groupId>
+    		<artifactId>rce-performance-test</artifactId>
+    		<version>${project.version}</version>
+    		<classifier>tests</classifier>
+    		<scope>test</scope>
+    	</dependency>
+    	<dependency>
+		    <groupId>${project.groupId}</groupId>
+		    <artifactId>rce-main</artifactId>
+		    <version>${project.version}</version>
+		    <type>test-jar</type>
+		    <scope>test</scope>
+		</dependency>
+		<dependency>
+    		<groupId>${project.groupId}</groupId>
+    		<artifactId>rce-model</artifactId>
+    		<version>${project.version}</version>
+    		<classifier>tests</classifier>
+    		<scope>test</scope>
+    	</dependency>
     </dependencies>
     <build>
     	<plugins>

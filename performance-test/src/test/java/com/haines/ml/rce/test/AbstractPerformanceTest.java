@@ -147,7 +147,7 @@ public abstract class AbstractPerformanceTest extends RCEApplicationStartupTest 
 		LOG.info("Finished loading required data. Starting tests");
 		
 		try{
-			Report report = new ReportGenerator(getTestName(), 2, 200, this).getReport(trainingEvents, testingEvents, getDataSet().getExpectedClasses());
+			Report report = new ReportGenerator(getTestName(), 3, 200, this).getReport(trainingEvents, testingEvents, getDataSet().getExpectedClasses());
 			
 			GENERATED_REPORTS.add(report);
 			

@@ -30,7 +30,13 @@ public class SequentialDistributionFeatureHandler<T extends ClassifiedEvent> imp
 	@Override
 	public void increment(Feature feature, T event, Accumulator<?> accumulator, AccumulatorLookupStrategy<? super T> lookup) {
 		
-		double x = ((Number)feature.getValue()).doubleValue();
+		Object value = feature.getValue();
+		
+		if (!(value instanceof Number)){ // TODO performance issue?
+			value = Double.parseDouble(value.toString());
+		}
+		
+		double x = ((Number)value).doubleValue();
 		
 		for (Classification classification : event.getClassificationsList()){
 			

@@ -273,7 +273,7 @@ public class RCEApplicationStartupTest {
 		assertThat(eventNum, is(equalTo(eventsSeen.get())));
 	}
 	
-	protected <T extends Message<T>> void sendViaSelector(T testEvent) throws IOException, InterruptedException {
+	public static <T extends Message<T>> void sendViaSelector(T testEvent, SocketAddress serverAddress) throws IOException, InterruptedException {
 		DatagramChannel channel = getClientChannel(serverAddress);
 		//LOG.debug("Sending event: "+event.testString1+"("+Integer.toBinaryString(event.testInt1)+"##"+event.testInt1+")");
 		// dont need to worry about efficiency in test case...
@@ -289,8 +289,12 @@ public class RCEApplicationStartupTest {
 		
 		channel.close();
 	}
+	
+	protected <T extends Message<T>> void sendViaSelector(T testEvent) throws IOException, InterruptedException {
+		sendViaSelector(testEvent, serverAddress);
+	}
 
-	protected DatagramChannel getClientChannel(SocketAddress address) throws IOException, InterruptedException {
+	protected static DatagramChannel getClientChannel(SocketAddress address) throws IOException, InterruptedException {
 		DatagramChannel channel = SelectorProvider.provider().openDatagramChannel(StandardProtocolFamily.INET);
 		
 		channel.connect(address);

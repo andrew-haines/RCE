@@ -21,33 +21,35 @@ import org.apache.commons.math3.linear.MatrixUtils;
 import org.apache.commons.math3.random.JDKRandomGenerator;
 import org.apache.commons.math3.util.Pair;
 
-import com.haines.ml.rce.model.Classification;
 import com.haines.ml.rce.model.ClassifiedEvent;
-import com.haines.ml.rce.model.Feature;
-import com.haines.ml.rce.test.TestClassification;
-import com.haines.ml.rce.test.TestEvent;
-import com.haines.ml.rce.test.TestFeature;
 import com.haines.ml.rce.test.model.DataSet;
+import com.haines.ml.rce.transport.Event;
+import com.haines.ml.rce.transport.Event.Classification;
+import com.haines.ml.rce.transport.Event.Feature;
 
 public class SyntheticTestDataset implements DataSet{
 
-	private final List<TestClassification> possibleClasses;
+	private final List<Classification> possibleClasses;
 	private final RealDistribution classDistribution;
 	private final int numFeatures;
 	private final double probabilityOfFeatureBeingPresent;
-	private final Map<TestClassification, MultivariateRealDistribution> underlyingFeatureClassDistributions;
+	private final Map<Classification, MultivariateRealDistribution> underlyingFeatureClassDistributions;
 	
 	public SyntheticTestDataset(int numPossibleClasses, double probabilityOfFeatureBeingPresent, double[][] means, double[][][] covariance){
 		
 		assert(means.length == covariance.length);
 		
-		this.possibleClasses = new ArrayList<TestClassification>(numPossibleClasses);
-		this.underlyingFeatureClassDistributions = new HashMap<TestClassification, MultivariateRealDistribution>();
+		this.possibleClasses = new ArrayList<Classification>(numPossibleClasses);
+		this.underlyingFeatureClassDistributions = new HashMap<Classification, MultivariateRealDistribution>();
 		this.classDistribution = new WeibullDistribution(1, 1.5);
 		
 		for (int i = 0; i < numPossibleClasses; i++){
 			
-			TestClassification testClass = new TestClassification("class_"+i);
+			Classification testClass = new Classification();
+			
+			testClass = new Classification();
+			testClass.setValue("class_"+i);
+			
 			possibleClasses.add(testClass);
 			
 			underlyingFeatureClassDistributions.put(testClass, addNoise(new MultivariateNormalDistribution(means[i], covariance[i])));
@@ -128,7 +130,7 @@ public class SyntheticTestDataset implements DataSet{
 					}
 
 					@Override
-					public TestEvent next() {
+					public Event next() {
 						try{
 							return generateNewTestEvent();
 						} finally{
@@ -147,20 +149,29 @@ public class SyntheticTestDataset implements DataSet{
 		};
 	}
 	
-	private TestEvent generateNewTestEvent(){
+	private Event generateNewTestEvent(){
 		Classification expectedClass = getExpectedClass();
 		
-		Collection<Feature> features = new ArrayList<Feature>();
+		List<Feature> features = new ArrayList<Feature>();
 		
 		double[] featureValuesFromDistribution = getFeatureValuesFromDistribution(expectedClass);
 		
 		for (int i = 0; i< numFeatures; i++){
 			if (((i == numFeatures-1) && features.isEmpty()) || Math.random() <= probabilityOfFeatureBeingPresent){
-				features.add(new TestFeature(round(featureValuesFromDistribution[i], 0), i)); // round to integer
+				
+				Feature feature = new Feature();
+				
+				feature.setValue(round(featureValuesFromDistribution[i], 0)+"");
+				feature.setType(i);
+				
+				features.add(feature); // round to integer
 			}
 		}
 		
-		TestEvent event = new TestEvent(features, Arrays.asList(expectedClass));
+		Event event = new Event();
+		
+		event.setClassificationsList(Arrays.asList(expectedClass));
+		event.setFeaturesList(features);
 		
 		return event;
 	}

@@ -18,5 +18,6 @@ class TestRunner:
 	def __call__(self):
 	
 		for event in dataset.getEventsFromDistribution(1):
+			grinder.sleep(100) 
 			RCEApplicationStartupTest.sendViaSelector(event, serverAddress)
 		

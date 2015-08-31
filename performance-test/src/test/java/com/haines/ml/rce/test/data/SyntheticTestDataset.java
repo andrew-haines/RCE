@@ -182,6 +182,14 @@ public class SyntheticTestDataset implements DataSet{
 	public static double round(double value, int places) {
 	    if (places < 0) throw new IllegalArgumentException();
 
+	    if (Double.isNaN(value)){
+	    	value = 0.0;
+	    };
+	    
+	    if (Double.isInfinite(value)){
+	    	value = Double.MAX_VALUE;
+	    }
+	    
 	    BigDecimal bd = new BigDecimal(value);
 	    bd = bd.setScale(places, RoundingMode.HALF_UP);
 	    return bd.doubleValue();

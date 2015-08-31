@@ -45,6 +45,17 @@
     		<classifier>tests</classifier>
     		<scope>test</scope>
     	</dependency>
+    	<dependency>
+		    <groupId>org.python</groupId>
+		    <artifactId>jython-standalone</artifactId>
+		    <version>2.7.0</version>
+		</dependency>
+		<dependency> <!-- annoyingly this doesnt appear to be in maven central... https://github.com/DealerDotCom/grinder-analyzer -->
+		    <groupId>net.sf.grinder</groupId>
+		    <artifactId>grinder-analyzer</artifactId>
+		    <version>2.0.0.b19.1</version>
+		    <scope>test</scope>
+		</dependency>
     </dependencies>
     
     <build>

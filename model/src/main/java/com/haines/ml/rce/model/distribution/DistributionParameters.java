@@ -54,6 +54,11 @@ public class DistributionParameters {
 		return oneOverSqrt2PiVariance;
 	}
 	
+	@Override
+	public String toString(){
+		return "{mean: "+mean+",numSamples:"+numSamples+",variance:"+variance+"}";
+	}
+	
 	public final static class Math {
 		
 		/**

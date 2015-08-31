@@ -14,10 +14,12 @@ import com.google.common.base.Function;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
+import com.haines.ml.rce.main.RCEApplicationStartupTest;
 import com.haines.ml.rce.model.Feature;
 import com.haines.ml.rce.test.model.ContinuousTestEvent.DynamicFeature;
 import com.haines.ml.rce.test.model.ContinuousTestEvent.IntegerFeature;
 import com.haines.ml.rce.test.model.ContinuousTestEvent.StringFeature;
+import com.haines.ml.rce.transport.ValueType;
 import com.haines.ml.rce.transport.Event.Classification;
 
 public interface CsvDataSet extends DataSet{
@@ -52,7 +54,7 @@ public interface CsvDataSet extends DataSet{
 		
 		protected Classification getClassification(String value) {
 			
-			return new Classification(value);
+			return RCEApplicationStartupTest.createClassification(value);
 		}
 	}
 	
@@ -81,7 +83,8 @@ public interface CsvDataSet extends DataSet{
 				com.haines.ml.rce.transport.Event.Feature feature = new com.haines.ml.rce.transport.Event.Feature();
 				
 				feature.setType(type);
-				feature.setValue(value);
+				feature.setStringValue(value);
+				feature.setValueType(ValueType.STRING);
 				
 				return feature;
 			}
@@ -213,7 +216,7 @@ public interface CsvDataSet extends DataSet{
 
 		@Override
 		public List<? extends Classification> getExpectedClasses() {
-			return Arrays.asList(new Classification(POSITIVE_CLASS), new Classification(NEGATIVE_CLASS));
+			return Arrays.asList(RCEApplicationStartupTest.createClassification(POSITIVE_CLASS), RCEApplicationStartupTest.createClassification(NEGATIVE_CLASS));
 		}
 	}
 	
@@ -264,13 +267,13 @@ public interface CsvDataSet extends DataSet{
 		
 		@Override
 		public List<? extends com.haines.ml.rce.model.Classification> getExpectedClasses() {
-			return Arrays.asList(new Classification("1"), 
-					new Classification("2"),
-					new Classification("3"),
-					new Classification("4"),
-					new Classification("5"),
-					new Classification("6"),
-					new Classification("7"));
+			return Arrays.asList(RCEApplicationStartupTest.createClassification("1"), 
+					RCEApplicationStartupTest.createClassification("2"),
+					RCEApplicationStartupTest.createClassification("3"),
+					RCEApplicationStartupTest.createClassification("4"),
+					RCEApplicationStartupTest.createClassification("5"),
+					RCEApplicationStartupTest.createClassification("6"),
+					RCEApplicationStartupTest.createClassification("7"));
 		}
 
 		@Override

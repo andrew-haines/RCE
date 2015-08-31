@@ -140,7 +140,12 @@ public interface NaiveBayesCounts<T extends NaiveBayesCounts.MutableNaiveBayesCo
 		
 		public MutableNaiveBayesDistributionCounts toMutable(){
 			return new MutableNaiveBayesDistributionCounts(getProperty(), getDistribution());
-		}	
+		}
+		
+		@Override
+		public String toString(){
+			return "{"+property.toString()+"->"+distribution+"}";
+		}
 	}
 	
 	public static class MutableNaiveBayesDistributionCounts extends NaiveBayesDistributionCounts implements MutableNaiveBayesCounts<MutableNaiveBayesDistributionCounts>{

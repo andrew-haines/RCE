@@ -4,7 +4,6 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -26,6 +25,7 @@ import com.haines.ml.rce.test.model.DataSet;
 import com.haines.ml.rce.transport.Event;
 import com.haines.ml.rce.transport.Event.Classification;
 import com.haines.ml.rce.transport.Event.Feature;
+import com.haines.ml.rce.transport.ValueType;
 
 public class SyntheticTestDataset implements DataSet{
 
@@ -48,7 +48,9 @@ public class SyntheticTestDataset implements DataSet{
 			Classification testClass = new Classification();
 			
 			testClass = new Classification();
-			testClass.setValue("class_"+i);
+			
+			testClass.setValueType(ValueType.STRING);
+			testClass.setStringValue("class_"+i);
 			
 			possibleClasses.add(testClass);
 			
@@ -161,7 +163,8 @@ public class SyntheticTestDataset implements DataSet{
 				
 				Feature feature = new Feature();
 				
-				feature.setValue(round(featureValuesFromDistribution[i], 0)+"");
+				feature.setValueType(ValueType.DOUBLE);
+				feature.setDoubleValue(round(featureValuesFromDistribution[i], 0));
 				feature.setType(i);
 				
 				features.add(feature); // round to integer

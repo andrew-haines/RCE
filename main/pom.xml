@@ -24,7 +24,7 @@
 		            <protoModule>
 		              <source>${project.build.resources[0].directory}/protobuf/event.proto</source>
 		              <outputDir>${protostuff-output-directory}</outputDir>
-		              <output>${project.build.resources[0].directory}/protobuf/java_bean_with_equals_hashcode.java.stg</output>
+		              <output>java_bean</output>
 		              <encoding>UTF-8</encoding>
 		              <options>
 		                <property>
@@ -34,13 +34,25 @@
 		                    <name>Feature.implements_declaration</name>
 		                    <value>implements com.haines.ml.rce.model.Feature</value>
 		                </property>
+		                <property>
+		                    <name>Feature.extends_declaration</name>
+		                    <value>extends com.haines.ml.rce.main.protostuff.ProtostuffValueAdaptor</value>
+		                </property>
 		                 <property>
 		                    <name>Classification.implements_declaration</name>
 		                    <value>implements com.haines.ml.rce.model.Classification</value>
 		                </property>
+		                <property>
+		                    <name>Classification.extends_declaration</name>
+		                    <value>extends com.haines.ml.rce.main.protostuff.ProtostuffValueAdaptor</value>
+		                </property>
 		                 <property>
 		                    <name>Event.implements_declaration</name>
 		                    <value>implements com.haines.ml.rce.model.ClassifiedEvent</value>
+		                </property>
+		                <property>
+		                    <name>Event.extends_declaration</name>
+		                    <value>extends com.haines.ml.rce.main.protostuff.ProtostuffEventAdaptor</value>
 		                </property>
 		                <property>
 		                  <name>generate_field_map</name>

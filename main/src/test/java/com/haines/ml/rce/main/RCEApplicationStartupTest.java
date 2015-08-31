@@ -32,6 +32,7 @@ import com.haines.ml.rce.model.Event;
 import com.haines.ml.rce.naivebayes.NaiveBayesProbabilitiesProvider;
 import com.haines.ml.rce.naivebayes.NaiveBayesRCEApplication;
 import com.haines.ml.rce.service.ClassifierService.PredictedClassification;
+import com.haines.ml.rce.transport.ValueType;
 import com.haines.ml.rce.transport.Event.Classification;
 import com.haines.ml.rce.transport.Event.Feature;
 import com.haines.ml.rce.window.WindowUpdatedListener;
@@ -46,8 +47,8 @@ public class RCEApplicationStartupTest {
 	protected static final long DEFAULT_WINDOW_PERIOD = 1000;
 	protected static final long DEFAULT_PUSH_DOWNSTREAM_MS = 200; // micro batch size
 	
-	private static final Classification TEST_CLASS_1 = new Classification("true");
-	private static final Classification TEST_CLASS_2 = new Classification("false");
+	private static final Classification TEST_CLASS_1 = createClassification("true");
+	private static final Classification TEST_CLASS_2 = createClassification("false");
 	
 	protected NaiveBayesRCEApplication<Event> candidate;
 	protected CountDownLatch started;
@@ -63,6 +64,14 @@ public class RCEApplicationStartupTest {
 		this.classLoader = classLoader;
 	}
 	
+	public static Classification createClassification(String value) {
+		Classification classification = new Classification();
+		classification.setValueType(ValueType.STRING);
+		classification.setStringValue(value);
+		
+		return classification;
+	}
+
 	public RCEApplicationStartupTest(){
 		this(null);
 	}
@@ -130,7 +139,7 @@ public class RCEApplicationStartupTest {
 	}
 	
 	protected boolean isUsingSlf4jEventListener() {
-		return true;
+		return false;
 	}
 
 	protected FeatureHandlerRepositoryFactory getFeatureHandlerRepositoryFactory() {
@@ -316,8 +325,8 @@ public class RCEApplicationStartupTest {
 		features.add(feature2);
 		features.add(feature3);
 		
-		Classification class1 = new Classification(value+"");
-		Classification class2 = new Classification((value+10)+"");
+		Classification class1 = createClassification(value+"");
+		Classification class2 = createClassification((value+10)+"");
 		
 		classifications.add(class1);
 		classifications.add(class2);
@@ -333,7 +342,8 @@ public class RCEApplicationStartupTest {
 		Feature feature = new Feature();
 		
 		feature.setType(type);
-		feature.setValue(value);
+		feature.setValueType(ValueType.STRING);
+		feature.setStringValue(value);
 		return feature;
 	}
 }

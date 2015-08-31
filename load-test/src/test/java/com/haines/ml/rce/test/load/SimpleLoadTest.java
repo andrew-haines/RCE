@@ -16,7 +16,6 @@ import net.grinder.console.common.ResourcesImplementation;
 import net.grinder.engine.agent.Agent;
 import net.grinder.engine.agent.AgentDaemon;
 import net.grinder.engine.agent.AgentImplementation;
-import net.grinder.util.Directory;
 
 import org.junit.After;
 import org.junit.Before;
@@ -42,13 +41,12 @@ public class SimpleLoadTest extends RCEApplicationStartupTest {
 	
 	private Agent agent;
 	private final ConsoleFoundation consoleFoundation;
-	private final SyntheticTestDataset dataset;
+	public final static SyntheticTestDataset DATASET = new SyntheticTestDataset(3, NUM_FEATURES, 0.6);;
 	private ExecutorService executor;
 	private GrinderMessagingInspector inspector;
 	private final Path grinderPropertyFile;
 	
 	public SimpleLoadTest() throws GrinderException, URISyntaxException {
-		this.dataset = new SyntheticTestDataset(3, NUM_FEATURES, 0.6);
 		this.consoleFoundation = new ConsoleFoundation(new ResourcesImplementation("net.grinder.console.common.resources.Console"), LOG, true);
 		
 		this.grinderPropertyFile = Paths.get(SimpleLoadTest.class.getResource("/"+GrinderProperties.DEFAULT_PROPERTIES).toURI());
@@ -83,7 +81,12 @@ public class SimpleLoadTest extends RCEApplicationStartupTest {
 		Thread.sleep(1000);
 		inspector = GrinderMessagingInspector.getInstance();
 	}
-	
+
+	@Override
+	protected boolean isUsingSlf4jEventListener() {
+		return false;
+	}
+
 	@Override
 	public void givenCandidate_whenCallingStartAndSendingEventsViaSelector_thenApplicationStartsUpCorrectly(){}
 	

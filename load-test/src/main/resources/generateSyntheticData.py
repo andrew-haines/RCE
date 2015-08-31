@@ -1,16 +1,22 @@
 from net.grinder.script.Grinder import grinder
+from net.grinder.script import Test
 from com.haines.ml.rce.main import RCEApplicationStartupTest
+from com.haines.ml.rce.test.load import SimpleLoadTest
 from com.haines.ml.rce.test.data import SyntheticTestDataset
 from com.haines.ml.rce.main.config import RCEConfig
 
+test1 = Test(1, "Send Events")
+dataset = SimpleLoadTest.DATASET;
+
+defaultConfig = RCEConfig.UTIL.loadConfig(None)
+serverAddress = defaultConfig.getEventStreamSocketAddress()
+
+test1.record(RCEApplicationStartupTest.sendViaSelector)
+
 class TestRunner:
 	
-	dataset = SyntheticTestDataset(3, 10, 0.6)
+	def __call__(self):
 	
-	defaultConfig = RCEConfig.UTIL.loadConfig(None)
-	serverAddress = defaultConfig.getEventStreamSocketAddress()
-	
-	
-	for event in dataset.getEventsFromDistribution(1000):
-		RCEApplicationStartupTest.sendViaSelector(event, serverAddress)
+		for event in dataset.getEventsFromDistribution(1):
+			RCEApplicationStartupTest.sendViaSelector(event, serverAddress)
 		

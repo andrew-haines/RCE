@@ -1,0 +1,184 @@
+% $ biblatex auxiliary file $
+% $ biblatex bbl format version 2.5 $
+% Do not modify the above lines!
+%
+% This is an auxiliary file used by the 'biblatex' package.
+% This file may safely be deleted. It will be recreated by
+% biber as required.
+%
+\begingroup
+\makeatletter
+\@ifundefined{ver@biblatex.sty}
+  {\@latex@error
+     {Missing 'biblatex' package}
+     {The bibliography requires the 'biblatex' package.}
+      \aftergroup\endinput}
+  {}
+\endgroup
+
+
+\refsection{0}
+  \sortlist{nty}{nty}
+    \entry{hadoopMR}{webpage}{}
+      \field{sortinit}{0}
+      \field{sortinithash}{990108227b3316c02842d895999a0165}
+      \verb{url}
+      \verb http://hadoop.apache.org/docs/current/
+      \endverb
+    \endentry
+    \entry{tez-site}{webpage}{}
+      \field{sortinit}{0}
+      \field{sortinithash}{990108227b3316c02842d895999a0165}
+      \verb{url}
+      \verb https://tez.apache.org/
+      \endverb
+    \endentry
+    \entry{spark-site}{webpage}{}
+      \field{sortinit}{0}
+      \field{sortinithash}{990108227b3316c02842d895999a0165}
+      \verb{url}
+      \verb http://spark.apache.org/
+      \endverb
+    \endentry
+    \entry{storm-site}{webpage}{}
+      \field{sortinit}{0}
+      \field{sortinithash}{990108227b3316c02842d895999a0165}
+      \verb{url}
+      \verb http://storm.apache.org/documentation/Rationale.html
+      \endverb
+    \endentry
+    \entry{mahout-site}{webpage}{}
+      \field{sortinit}{0}
+      \field{sortinithash}{990108227b3316c02842d895999a0165}
+      \verb{url}
+      \verb http://mahout.apache.org/
+      \endverb
+    \endentry
+    \entry{storm-twitter}{inproceedings}{}
+      \name{author}{1}{}{%
+        {{hash=33b04474e7bf12ec6ee7926819ece52f}{A.\bibnamedelimi Toshniwal}{A\bibinitperiod\bibinitdelim T\bibinitperiod}{et\bibnamedelima al}{e\bibinitperiod\bibinitdelim a\bibinitperiod}{}{}{S.\bibnamedelimi Taneja}{S\bibinitperiod\bibinitdelim T\bibinitperiod}}%
+      }
+      \list{organization}{1}{%
+        {Twiiter}%
+      }
+      \strng{namehash}{33b04474e7bf12ec6ee7926819ece52f}
+      \strng{fullhash}{33b04474e7bf12ec6ee7926819ece52f}
+      \field{sortinit}{A}
+      \field{sortinithash}{b685c7856330eaee22789815b49de9bb}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{booktitle}{SIGMOD}
+      \field{title}{Storm @Twitter}
+      \field{year}{2014}
+    \endentry
+    \entry{mapreduce}{inproceedings}{}
+      \name{author}{2}{}{%
+        {{hash=4aecfb0cc2e1e3b7899129fa2a94e2b8}{Dean}{D\bibinitperiod}{Jeffrey}{J\bibinitperiod}{}{}{}{}}%
+        {{hash=193bcec5240237591ad8fb697869f013}{Ghemawat}{G\bibinitperiod}{Sanjay}{S\bibinitperiod}{}{}{}{}}%
+      }
+      \list{organization}{1}{%
+        {Google}%
+      }
+      \strng{namehash}{59b423e9fed33260f87a089f738c1beb}
+      \strng{fullhash}{59b423e9fed33260f87a089f738c1beb}
+      \field{sortinit}{D}
+      \field{sortinithash}{78f7c4753a2004675f316a80bdb31742}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{booktitle}{OSDI}
+      \field{title}{MapReduce: Simplified Data Processing on Large Clusters}
+      \field{year}{2004}
+    \endentry
+    \entry{dryad}{article}{}
+      \name{author}{1}{}{%
+        {{hash=dbdfbbfa324b9f59350d8de14875d9ed}{M.\bibnamedelimi Isard}{M\bibinitperiod\bibinitdelim I\bibinitperiod}{et\bibnamedelima al.}{e\bibinitperiod\bibinitdelim a\bibinitperiod}{}{}{}{}}%
+      }
+      \strng{namehash}{dbdfbbfa324b9f59350d8de14875d9ed}
+      \strng{fullhash}{dbdfbbfa324b9f59350d8de14875d9ed}
+      \field{sortinit}{M}
+      \field{sortinithash}{2684bec41e9697b92699b46491061da2}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{annotation}{http://cs.brown.edu/~debrabant/cis570-website/papers/dryad.pdf}
+      \field{journaltitle}{EuroSys}
+      \field{title}{Dryad: Distributed Data-Parallel Programs from Sequential Building Blocks}
+      \field{year}{2007}
+      \keyw{tez}
+    \endentry
+    \entry{disruptor-paper}{report}{}
+      \name{author}{1}{}{%
+        {{hash=f093a01b405f654429b3a67a214952e6}{M.\bibnamedelimi Thompson}{M\bibinitperiod\bibinitdelim T\bibinitperiod}{Et\bibnamedelima Al}{E\bibinitperiod\bibinitdelim A\bibinitperiod}{}{}{D.\bibnamedelimi Farley}{D\bibinitperiod\bibinitdelim F\bibinitperiod}}%
+      }
+      \list{institution}{1}{%
+        {LMAX}%
+      }
+      \strng{namehash}{f093a01b405f654429b3a67a214952e6}
+      \strng{fullhash}{f093a01b405f654429b3a67a214952e6}
+      \field{sortinit}{M}
+      \field{sortinithash}{2684bec41e9697b92699b46491061da2}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{title}{Disruptor: High performance alternative to bounded queues for exchanging data between concurrent threads}
+      \field{type}{techreport}
+      \field{year}{2011}
+    \endentry
+    \entry{spark-paper}{unpublished}{}
+      \name{author}{1}{}{%
+        {{hash=e18dc4bd3e21c87b1df65a7c2ed73382}{M.\bibnamedelimi Zaharia}{M\bibinitperiod\bibinitdelim Z\bibinitperiod}{et\bibnamedelima al}{e\bibinitperiod\bibinitdelim a\bibinitperiod}{}{}{M.\bibnamedelimi Chowdhury}{M\bibinitperiod\bibinitdelim C\bibinitperiod}}%
+      }
+      \strng{namehash}{e18dc4bd3e21c87b1df65a7c2ed73382}
+      \strng{fullhash}{e18dc4bd3e21c87b1df65a7c2ed73382}
+      \field{sortinit}{M}
+      \field{sortinithash}{2684bec41e9697b92699b46491061da2}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{annotation}{http://www.cs.berkeley.edu/~matei/papers/2010/hotcloud_spark.pdf}
+      \field{title}{Spark: Cluster Computing with Working Sets}
+      \field{year}{2010}
+    \endentry
+    \entry{spark-streaming-paper}{unpublished}{}
+      \name{author}{1}{}{%
+        {{hash=fa916a9c6d73a068e2febc856108a78e}{M.\bibnamedelimi Zaharia}{M\bibinitperiod\bibinitdelim Z\bibinitperiod}{et\bibnamedelima al}{e\bibinitperiod\bibinitdelim a\bibinitperiod}{}{}{T.\bibnamedelimi Das}{T\bibinitperiod\bibinitdelim D\bibinitperiod}}%
+      }
+      \strng{namehash}{fa916a9c6d73a068e2febc856108a78e}
+      \strng{fullhash}{fa916a9c6d73a068e2febc856108a78e}
+      \field{sortinit}{M}
+      \field{sortinithash}{2684bec41e9697b92699b46491061da2}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{annotation}{http://www.eecs.berkeley.edu/Pubs/TechRpts/2012/EECS-2012-259.pdf}
+      \field{title}{Discretized Streams: A Fault-Tolerant Model for Scalable Stream Processing}
+    \endentry
+    \entry{tdigest}{unpublished}{}
+      \name{author}{1}{}{%
+        {{hash=057b25b20c944ea902ffed7b813deab9}{Ted\bibnamedelima Dunning}{T\bibinitperiod\bibinitdelim D\bibinitperiod}{Otmar\bibnamedelima Ertl}{O\bibinitperiod\bibinitdelim E\bibinitperiod}{}{}{}{}}%
+      }
+      \strng{namehash}{057b25b20c944ea902ffed7b813deab9}
+      \strng{fullhash}{057b25b20c944ea902ffed7b813deab9}
+      \field{sortinit}{T}
+      \field{sortinithash}{423d138a005a533b47e6475e39378bf2}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{note}{https://github.com/tdunning/t-digest/blob/master/docs/t-digest-paper/histo.pdf}
+      \field{title}{Computing Extremely Accurate Quantiles Using t-Digests}
+    \endentry
+    \entry{bigdata}{book}{}
+      \name{author}{1}{}{%
+        {{hash=b9d1a910f7c4c0f6276a32b60c0b2e36}{Viktor\bibnamedelima Mayer-Sch\"{o}nberger}{V\bibinitperiod\bibinitdelim M\bibinithyphendelim S\bibinitperiod}{Kenneth\bibnamedelima Cukier}{K\bibinitperiod\bibinitdelim C\bibinitperiod}{}{}{}{}}%
+      }
+      \list{publisher}{1}{%
+        {John Murray}%
+      }
+      \strng{namehash}{b9d1a910f7c4c0f6276a32b60c0b2e36}
+      \strng{fullhash}{b9d1a910f7c4c0f6276a32b60c0b2e36}
+      \field{sortinit}{V}
+      \field{sortinithash}{d18f5ce25ce0b5ca7f924e3f6c04870e}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{title}{Big Data: A Revolution That Will Transform How We Live, Work and Think}
+      \field{year}{2013}
+    \endentry
+  \endsortlist
+\endrefsection
+\endinput
+

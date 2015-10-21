@@ -5,7 +5,10 @@ import java.io.IOException;
 import java.net.SocketAddress;
 import java.net.StandardProtocolFamily;
 import java.nio.ByteBuffer;
+import java.nio.channels.Channel;
 import java.nio.channels.DatagramChannel;
+import java.nio.channels.SelectableChannel;
+import java.nio.channels.WritableByteChannel;
 import java.nio.channels.spi.SelectorProvider;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -27,6 +30,7 @@ import com.dyuproject.protostuff.ProtostuffIOUtil;
 import com.google.common.collect.Lists;
 import com.haines.ml.rce.eventstream.EventStreamListener;
 import com.haines.ml.rce.main.config.RCEConfig;
+import com.haines.ml.rce.main.config.RCEConfig.StreamType;
 import com.haines.ml.rce.main.factory.FeatureHandlerRepositoryFactory;
 import com.haines.ml.rce.model.Event;
 import com.haines.ml.rce.naivebayes.NaiveBayesProbabilitiesProvider;
@@ -59,6 +63,7 @@ public class RCEApplicationStartupTest {
 	protected AtomicInteger eventsSeen;
 	protected SocketAddress serverAddress;
 	private ClassLoader classLoader;
+	private RCEConfig rceConfig;
 	
 	protected RCEApplicationStartupTest(ClassLoader classLoader){
 		this.classLoader = classLoader;
@@ -84,9 +89,9 @@ public class RCEApplicationStartupTest {
 		waitingForNextWindow = new AtomicBoolean(false);
 		nextWindowUpdated = new CountDownLatch(1);
 		
-		RCEConfig defaultConfig = RCEConfig.UTIL.loadConfig(null);
+		rceConfig = RCEConfig.UTIL.loadConfig(null);
 		
-		serverAddress = defaultConfig.getEventStreamSocketAddress();
+		serverAddress = rceConfig.getEventStreamSocketAddress();
 		
 		RCEApplication.RCEApplicationBuilder<Event> builder = new RCEApplication.RCEApplicationBuilder<Event>(null).addSystemStartedListener(new EventStreamListener() {
 
@@ -116,7 +121,7 @@ public class RCEApplicationStartupTest {
 				}
 			}
 		})
-		.setConfig(new RCEConfig.DefaultRCEConfig(defaultConfig))
+		.setConfig(new RCEConfig.DefaultRCEConfig(rceConfig))
 		.setHandlerRepositoryFactory(repositoryFactory);
 		
 		if (classLoader != null){
@@ -282,8 +287,8 @@ public class RCEApplicationStartupTest {
 		assertThat(eventNum, is(equalTo(eventsSeen.get())));
 	}
 	
-	public static <T extends Message<T>> void sendViaSelector(T testEvent, SocketAddress serverAddress) throws IOException, InterruptedException {
-		DatagramChannel channel = getClientChannel(serverAddress);
+	public static <T extends Message<T>> void sendViaSelector(T testEvent, RCEConfig rceConfig) throws IOException, InterruptedException {
+		WritableByteChannel channel = getClientChannel(rceConfig.getEventStreamSocketAddress());
 		//LOG.debug("Sending event: "+event.testString1+"("+Integer.toBinaryString(event.testInt1)+"##"+event.testInt1+")");
 		// dont need to worry about efficiency in test case...
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
@@ -293,14 +298,17 @@ public class RCEApplicationStartupTest {
 		out.flush();
 		out.close();
 		
-		
-		channel.send(ByteBuffer.wrap(out.toByteArray()), serverAddress);
+		//if (rceConfig.getEventTransportProtocal() == StreamType.UDP){
+		//	((DatagramChannel)channel).send(ByteBuffer.wrap(out.toByteArray()), rceConfig.getEventStreamSocketAddress());
+		//} else{
+			channel.write(ByteBuffer.wrap(out.toByteArray()));
+		//}
 		
 		channel.close();
 	}
 	
 	protected <T extends Message<T>> void sendViaSelector(T testEvent) throws IOException, InterruptedException {
-		sendViaSelector(testEvent, serverAddress);
+		sendViaSelector(testEvent, rceConfig);
 	}
 
 	protected static DatagramChannel getClientChannel(SocketAddress address) throws IOException, InterruptedException {

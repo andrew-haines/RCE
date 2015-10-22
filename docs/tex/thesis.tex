@@ -17,7 +17,7 @@
 \usepackage{babel}
 \usepackage{csquotes}
 \usepackage{caption}
-\usepackage{subcaption}
+\usepackage[labelformat=simple]{subcaption}
 \usepackage[T1]{fontenc}
 \usepackage{float}
 \usepackage[backend=biber]{biblatex}
@@ -123,20 +123,20 @@ Disruptors obtain their ultra fast design by utilising cache line structures and
 \floatsetup[figure]{capposition=beside,capbesideposition={top,right}}
 \begin{figure}[h]
 \centering
-\caption{The ring buffer at the heart of the disruptor design. For clarity the writer and reader positions are illustrated as if they are concerns of the Producer and EventProcessor respectively - however this is not the case in implementation as the ring buffer owns the pointers in order to ensure writerPos < readerPos}
-\includegraphics[scale=0.65] {ringbuffer.pdf}
+\caption{The ring buffer at the heart of the disruptor design. For clarity the writer and reader positions are illustrated as if they are concerns of the Producer and EventProcessor respectively - however this is not the case in implementation as the ring buffer owns the pointers in order to ensure \(writerPos < readerPos\)}
+\includegraphics[scale=0.65, trim=0 10 0 0, clip=true] {ringbuffer.pdf}
 \label{fig:ringbuffer}
 \end{figure}
 
-In the one scenario where the reader and writer are pointing to the same index, CAS operations are used to \textit{busy wait} on mutual exclusivity on this pointer. Furthermore, unlike other cyclic buffers, no end pointer is needed as data can be overwritten when the buffer wraps around. 
+In the one scenario where the reader and writer are pointing to the same index, CAS operations are used to \textit{busy wait} on mutual exclusivity on this pointer but without coordination amoungst many threads. Under low contention, CAS operations are extremely efficient. Furthermore, as long as the invariant of \(writerPos > readPos\) is held, unlike other cyclic buffers, no end pointer is needed as data can be overwritten when the buffer wraps around.
 
 \section{Machine Learning Applications at scale}
 One of the major fields to utilise such large quantities of data is Machine Learning. Tasked with finding systematic patterns in the data and providing classifications and recommendations, ML techniques are used throughout large tech companies to enrich the user experience and provide business analytics. So much so that further abstractions have been provided on top of the data processing paradigms already discussed to enable quick implementations of standardised algorithms and techniques. Libraries such as Mahout\cite{mahout-site} run on top of the hadoop platform and provide scalable interfaces to Logistic Regressors, Random Forests, Collaborative Filtering, etc that engineers can use out of the box at scale. All they need do is chose an algorithm, direct it to the data they wish to be analysed with appropriate hyper parameters and the framework does the rest. Spark in fact is so popular with machine learners that it has bundled its MLlib library as part of the core kernel of the framework, focusing on ML at it's heart. When we move into the streaming implementations as provided by Spark's MLlib library for example, the same considerations mentioned earlier need to be applied in the development of how data is structured and processed at each stage of the computation.\\
 
-Similarly, the popular scientific computing package MatLab offers parallel computing support via its Distributed Computing Toolbox that can utilise 64 CPU cores and beyond exposing ML libraries to vertically scaled options.
+Similarly, the popular scientific computing package MatLab offers parallel computing support via its Distributed Computing Toolbox that can utilise 64 CPU cores and beyond, exposing ML libraries to vertically scaled options.
 
-\chapter{Motivation}
-As seen, there exists a plethora of frameworks and libraries that enable large machine learning applications to be developed at unprecedented scale. But these approaches all have there draw backs. With typical server instances costing upward of \$5K, even a modest Hadoop setup can cost in the order of \$50K. Any serious implementation also needs to consider fault tolerant deployments typically with hot-hot mirrored replications in geographically disparate locations. Assuming that data center and rack space need to be acquired, once on going maintenance costs are also factored in, costs to build such an infrastructure can easily approach the \$500K mark. This investment is likely to be way out of reach for startups and other small institutions without serious seeding.
+\chapter{Motivation \& Scope}
+As seen, there exists a plethora of frameworks and libraries that enable large machine learning applications to be developed at unprecedented scale. But these approaches all have their draw backs. With typical server instances costing upward of \$5K, even a modest Hadoop setup can cost in the order of \$50K. Any serious implementation also needs to consider fault tolerant deployments typically with hot-hot mirrored replications in geographically disparate locations. Assuming that data center and rack space need to be acquired, once on going maintenance costs are also factored in, costs to build such an infrastructure can easily approach the \$500K mark. This investment is likely to be way out of reach for startups and other small institutions without serious seeding.
 
 To combat these extreme up front infrastructure costs, services such as Amazon's EC2 and Google's ComputeEngine enable clients to 'rent' capacity from their own internal cloud infrastructures. Instances can be acquired on an 'as-needed' basis where entire Hadoop or Storm topologies can be spun up in minutes. This proves extremely cost effective for the periodic applications\footnote{say a TV broadcast or sporting event requiring data capture} but for more long term applications, although the up front costs are lowers, long term costs can easily dwarf investing in dedicated hardware\footnote{Whilst working on EA's SimsSocial online game supported by a 200 node cluster, its yearly EC2 bill came to \$1.1M}. It could be said however that if such vast resources are required then presumably there is a business model in place to support it. The downside is that moving off such a platform is extremely difficult as migrating data and code from a cloud system without down time is a monumental effort.\
 
@@ -146,10 +146,75 @@ When considering bespoke, vertically scaled instances, cost is also the main inh
 
 Dealing with such data is clearly a monumental effort and, as such, a reflective degree of supporting assets is clearly going to be required. As we have seen, one of the big advantages of distributed operating systems such as Hadoop and Spark is that they act in a very open domain - that is to say that they can solve a theoretically unbounded scope of problems. The ML libraries we discussed operate on these open domains and provide abstractions for a specific type of application - essentially restricting the domain. These layers of abstractions, although convenient from a development and resource sharing perspective, coming at the cost of performance. As the applications that sit on top of the open domained platform are unknown, mechanical symphony is not possible even though the type of applications that use the machine learning libraries are constrained. Consequently, efficiencies are rife in the world of the distributed platforms where the tradeoff between simplicity, performance and cost has been focused on the former at the expense of the others\footnote{There is an argument that, in large institutions, the cost of engineers and bug maintenance where the focus is on simplistic systems actually out ways the infrastructure costs.}\\
 
-Today's modern off the self servers now come equipped with multiple cores. A 24 core Dell PowerEdge R730xd retails at around \$20k which should be considered a sensible, reasonable and comparably modest investment by most standards meaning that such high CPU specs are possible on a budget. By both constraining the problem domain and employing code that encourages a symbiotic harmony between components whilst capitalising on all available CPU cores of the underlying infrastructure of modern commodity hardware, the scope of this project is to build an intelligent real time system that runs at big data scale without the enormous investment costs required by the existing solutions available.
+Today's modern off the self servers now come equipped with multiple cores. A 24 core Dell PowerEdge R730xd retails at around \$20k which should be considered a sensible, reasonable and comparably modest investment by most standards meaning that such high CPU specs are possible on a budget. By both constraining the problem domain and employing code that encourages a symbiotic harmony between components whilst capitalising on all available CPU cores of the underlying infrastructure of modern commodity hardware, the scope of this project is to build an intelligent real time system that runs at big data scale without the enormous investment costs required by the existing solutions available. 
 
-\chapter{Approach}
+To frame the task appropriately, the system is a real time classifier that, given a stream of labelled event data, builds a temporal model that reflects this input based on positioning in the events feature space. When an unseen and unlabelled event comes into the system, the event is provided with an intelligent label based on its internal model and the to-be-classified event's description in feature space. As the structure of the data changes, the model also reflects this change so that the classifications returned are representative of the current state of the environment. To provide an appropriate real world application for such a system, consider an adapted trending now feature like the one already discussed. This trending now provides a view into popularity of a site except with the additional ability to provide 'personalised' trends. To give an example, consider a user that has a previous history of interactions with say technology. When a new iPhone is released, such an entity might triumph over the new One Direction album that maybe popular for other types of users at that moment in time. In this setting, the events that enter the system are user interactions with content. These events are reflected as a tuple of data that can define them in a feature space such as age, location, previous category of interests, time of day, gender etc. The label is then the named entities extracted from the content that they clicked on. When classification occurs for a given user on what their top trends are, the system then returns the top n labels that they are most likely to be assigned to. Figure \ref{fig:featurespace} represents the setting in a spatial context.
+\floatsetup[figure]{capposition=beside,capbesideposition={top,right}}
+\begin{figure}[h]
+\centering
+\caption{Given a trival example of 2 predictors of age and geolocation, users can be positioned in a feature space to predict the entities they are interested in. In the case of the red user, a prediction can be made that it is similar to the named entities clicked on by the users around it.}
+\includegraphics[scale=0.65, trim=0 10 0 0, clip=true] {featurespace.pdf}
+\label{fig:featurespace}
+\end{figure}
 
+\chapter{Design}
+\section{Overview}
+A rough overarching view of the system. Event driven philosophy. Completely lockless. Architecture diagram and rough description of the different components.
+\subsection{Execution Modes}
+Discussion on the Asnyc and Sync modes of execution
+\subsection{NaiveBayes}
+Discussion on the applicability of naive bayes for the task to achieve the classification given the above design.
+\section{IO}
+Some bit about how IO is the bottle neck in most systems
+\subsection{Selectors}
+Description on how selectors work and how they are a better fit model to threading as they mimic interrupts on the OS level.
+\subsection{Protostuff}
+Description of why protostuff was chosen (easy to define. quick etc). The off heap byte buffer implementation added as part of this project.
+\section{WindowManager}
+How the window manager maintains a rolling window view of accumulated representations of the event stream. Takes input from all the different accumulators based on the execution mode.
+\section{Accumulators}
+A description of how the accumulators can sit on the cache lines reducing copying into main memory. Talk about the ordering of the accumulators so that most frequently seen slots (prior and posterior combinations) so they fit in cache lines and dont need to be flushed to main memory
+\subsection{Instances}
+How the different instances interact with each other
+\subsubsection{Local Instance}
+local mode accumulators. 1 per cpu, supports writes and inherits from global
+\subsubsection{Global Instance}
+Provides a read only view of the window manager's view of all accumulated captured events. 
+\subsection{Types}
+How we assign meaning to each of the accumulator slots
+\subsubsection{Discrete}
+Simple a count of 
+\subsubsection{Continuous}
+\chapter{Implementation}
+Discussion on how the design is implemented. Only areas of implementation note are provided as this section could get out of hand! Core interfaces such as EventConsumer, Accumulator, FeatureHandler, ClassificationHandler etc.
+\section{Maven Modules}
+How the application is structured and the reasons why for extension and customisation
+\section{Distributions}
+How the distribution framework for continuous features is defined 
+\section{Configuration}
+overriding classpath configuration of jaxb objects.
+\section{Testing}
+How the DataSet classes abstract the test and training sets and produce their results.
+\chapter{Performance}
+\section{Classification Performance}
+PerformanceTest results. AUC curves on the different data sets tested
+\subsection{Synthetic Test}
+Synthetic test to see if it can learn multivariate distributions in the presence of noise. Also mention how it is used in the load test to generate BigData equivalent volumes.
+\subsection{Adult Wages}
+A classification Task
+\subsection{Space Shuttle}
+A regression Task
+\section{Throughput Performance}
+LoadTest results. TCP vs UDP
+\chapter{Conclusions}
+\section{Results}
+Discussion on how the results presented in the performance section compare with other systems.
+\section{Limitations}
+No FeatureExtraction.
+\section{Future Work}
+Plugging in more classifiers. Spatial models such as RBF's etc
+Static analysis should be conducted,
+Bucketed Continuous accumulator types
 
 \printbibliography
 

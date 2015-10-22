@@ -9,6 +9,7 @@ test1 = Test(1, "Send Events")
 dataset = SimpleLoadTest.DATASET;
 
 defaultConfig = RCEConfig.UTIL.loadConfig(None)
+channel = RCEApplicationStartupTest.getClientChannelProvider(defaultConfig)
 
 test1.record(RCEApplicationStartupTest.sendViaSelector)
 
@@ -18,5 +19,5 @@ class TestRunner:
 	
 		for event in dataset.getEventsFromDistribution(1):
 			grinder.sleep(100) 
-			RCEApplicationStartupTest.sendViaSelector(event, defaultConfig)
+			RCEApplicationStartupTest.sendViaSelector(event, defaultConfig, channel)
 		

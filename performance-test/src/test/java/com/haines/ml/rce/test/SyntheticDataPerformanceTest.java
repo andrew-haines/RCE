@@ -29,8 +29,7 @@ public class SyntheticDataPerformanceTest extends AbstractPerformanceTest{
 	public SyntheticDataPerformanceTest(){
 		this.dataset = new SyntheticTestDataset(3, 6, 0.6);
 	}
-	
-	@Override
+
 	public void before() throws InterruptedException, RCEApplicationException, JAXBException, IOException{
 		
 		super.startUpRCE(getFeatureHandlerRepositoryFactory(continuousFeatureTypes));

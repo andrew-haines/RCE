@@ -44,8 +44,8 @@ public class ShuttlePerformanceTest extends AbstractPerformanceTest {
 		super(new DynamicClassLoader());
 	}
 	
-	@Override
 	public void before() throws InterruptedException, RCEApplicationException, JAXBException, IOException{
+		this.startUpRCE(getFeatureHandlerRepositoryFactory());
 		// override. Let tests start up the candidate directly to control how it initiates
 		
 		if (featureTypes.isEmpty()){

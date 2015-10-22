@@ -6,7 +6,7 @@
     <eventByteOrder>big</eventByteOrder>
     <globalIndexLimit>1000000</globalIndexLimit>
     <transport>
-        <protocol>TCP</protocol>
+        <protocol>UDP</protocol>
         <host>localhost</host>
         <port>8080</port>
     </transport>
@@ -16,7 +16,7 @@
         <finalLineBitDepth>16</finalLineBitDepth>
     </accumulator>
     <window> <!-- 8.3 minutes in total -->
-        <windowSizeMs>1000</windowSizeMs>
+        <windowSizeMs>5000</windowSizeMs>
         <numWindows>100</numWindows>
     </window>
 </config>

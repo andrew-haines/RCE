@@ -1,5 +1,6 @@
 package com.haines.ml.rce.eventstream;
 
+import java.io.Closeable;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.NetworkChannel;
@@ -62,31 +63,28 @@ public class SelectorEventStream<T extends SelectableChannel & NetworkChannel, E
 		
 		executingThread = Thread.currentThread();
 		executingThread.setName("Selector Thread - started");
-		ChannelDetails<T> channelDetails = initiateSelectorAndChannel();
+		try(ChannelDetails<T> channelDetails = initiateSelectorAndChannel()){
 		
-		ByteBuffer buffer = createBuffer();
-		isAlive = true;
-		
-		LOG.info("Server selector ("+channelDetails.getSelector().getClass().getName()+") started on address: "+config.getAddress().toString()); 		
-		listener.streamStarted();
-		
-		try(Selector selector = channelDetails.getSelector()){
-			while(isAlive){
+			ByteBuffer buffer = createBuffer();
+			isAlive = true;
 			
-				select(selector, buffer);
+			LOG.info("Server selector ("+channelDetails.getSelector().getClass().getName()+") started on address: "+config.getAddress().toString()); 		
+			listener.streamStarted();
+			
+			try(Selector selector = channelDetails.getSelector()){
+				while(isAlive){
 				
-				if (executingThread.isInterrupted()){ // we have been interrupted so stop the stream
-					isAlive = false;
-					executingThread = null;
+					select(selector, buffer);
+					
+					if (executingThread.isInterrupted()){ // we have been interrupted so stop the stream
+						isAlive = false;
+						executingThread = null;
+					}
+				
 				}
-			
+			} catch (IOException e){
+				LOG.error("Error selecting event from stream", e);
 			}
-		} catch (IOException e){
-			LOG.error("Error selecting event from stream", e);
-		}
-		
-		try {
-			channelDetails.close();
 		} catch (IOException e) {
 			throw new EventStreamException("Unable to close selector", e);
 		}
@@ -139,7 +137,7 @@ public class SelectorEventStream<T extends SelectableChannel & NetworkChannel, E
 			SelectionKey key = selectedKeys.next();
 			selectedKeys.remove();
 			if (key.isValid()){
-				
+
 				@SuppressWarnings("unchecked")
 				T channel = (T)key.channel();
 				
@@ -219,7 +217,7 @@ public class SelectorEventStream<T extends SelectableChannel & NetworkChannel, E
 		return isAlive;
 	}
 	
-	private static final class ChannelDetails<T extends SelectableChannel & NetworkChannel>{
+	private static final class ChannelDetails<T extends SelectableChannel & NetworkChannel> implements Closeable{
 		
 		private final Selector socketSelector;
 		private final T channel;

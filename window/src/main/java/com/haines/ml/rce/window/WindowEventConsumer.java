@@ -6,9 +6,6 @@ import java.util.Map;
 
 import javax.inject.Inject;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.google.common.collect.Iterables;
 import com.haines.ml.rce.accumulator.AccumulatorProvider;
 import com.haines.ml.rce.accumulator.HandlerRepository;

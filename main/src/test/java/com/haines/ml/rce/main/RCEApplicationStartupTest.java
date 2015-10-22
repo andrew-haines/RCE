@@ -5,10 +5,10 @@ import java.io.IOException;
 import java.net.SocketAddress;
 import java.net.StandardProtocolFamily;
 import java.nio.ByteBuffer;
-import java.nio.channels.Channel;
 import java.nio.channels.DatagramChannel;
-import java.nio.channels.SelectableChannel;
+import java.nio.channels.SocketChannel;
 import java.nio.channels.WritableByteChannel;
+import java.nio.channels.spi.AbstractSelector;
 import java.nio.channels.spi.SelectorProvider;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -18,11 +18,13 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import javax.inject.Provider;
 import javax.xml.bind.JAXBException;
 
 import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.dyuproject.protostuff.LinkedBuffer;
 import com.dyuproject.protostuff.Message;
@@ -48,6 +50,8 @@ import static org.hamcrest.Matchers.closeTo;
 
 public class RCEApplicationStartupTest {
 
+	private static final Logger LOG = LoggerFactory.getLogger(RCEApplicationStartupTest.class);
+	
 	protected static final long DEFAULT_WINDOW_PERIOD = 1000;
 	protected static final long DEFAULT_PUSH_DOWNSTREAM_MS = 200; // micro batch size
 	
@@ -81,7 +85,7 @@ public class RCEApplicationStartupTest {
 		this(null);
 	}
 	
-	protected void startUpRCE(FeatureHandlerRepositoryFactory repositoryFactory) throws InterruptedException, RCEApplicationException, JAXBException, IOException{
+	protected void startUpRCE(FeatureHandlerRepositoryFactory repositoryFactory, RCEConfig config) throws InterruptedException, RCEApplicationException, JAXBException, IOException{
 		started = new CountDownLatch(1);
 		finished = new CountDownLatch(1);
 		windowUpdated = new CountDownLatch(3);
@@ -89,7 +93,7 @@ public class RCEApplicationStartupTest {
 		waitingForNextWindow = new AtomicBoolean(false);
 		nextWindowUpdated = new CountDownLatch(1);
 		
-		rceConfig = RCEConfig.UTIL.loadConfig(null);
+		this.rceConfig = config;
 		
 		serverAddress = rceConfig.getEventStreamSocketAddress();
 		
@@ -137,10 +141,8 @@ public class RCEApplicationStartupTest {
 		startServerAndWait();
 	}
 	
-	@Before
-	public void before() throws RCEApplicationException, JAXBException, IOException, InterruptedException{
-		
-		startUpRCE(getFeatureHandlerRepositoryFactory());
+	protected void startUpRCE(FeatureHandlerRepositoryFactory repositoryFactory) throws InterruptedException, RCEApplicationException, JAXBException, IOException{
+		startUpRCE(repositoryFactory, RCEConfig.UTIL.loadConfig(null));
 	}
 	
 	protected boolean isUsingSlf4jEventListener() {
@@ -167,15 +169,19 @@ public class RCEApplicationStartupTest {
 	}
 	
 	@Test
-	public void givenRCEApplication_whenTrainedWithSimpleSyntheticData_thenClassifierWorksAsExpected() throws IOException, InterruptedException{
-		sendViaSelector(getTestEvent(TEST_CLASS_2, getFeature("true", 1), getFeature("false", 2), getFeature("mild", 3), getFeature("true", 4)));
-		sendViaSelector(getTestEvent(TEST_CLASS_1, getFeature("true", 1), getFeature("true", 2), getFeature("no", 3), getFeature("false", 4)));
-		sendViaSelector(getTestEvent(TEST_CLASS_1, getFeature("true", 1), getFeature("false", 2), getFeature("strong", 3), getFeature("true", 4)));
-		sendViaSelector(getTestEvent(TEST_CLASS_1, getFeature("false", 1), getFeature("true", 2), getFeature("mild", 3), getFeature("true", 4)));
-		sendViaSelector(getTestEvent(TEST_CLASS_2, getFeature("false", 1), getFeature("false", 2), getFeature("no", 3), getFeature("false", 4)));
-		sendViaSelector(getTestEvent(TEST_CLASS_1, getFeature("false", 1), getFeature("true", 2), getFeature("strong", 3), getFeature("true", 4)));
-		sendViaSelector(getTestEvent(TEST_CLASS_2, getFeature("false", 1), getFeature("true", 2), getFeature("strong", 3), getFeature("false", 4)));
-		sendViaSelector(getTestEvent(TEST_CLASS_1, getFeature("true", 1), getFeature("true", 2), getFeature("mild", 3), getFeature("true", 4)));
+	public void givenRCEApplication_whenTrainedWithSimpleSyntheticData_thenClassifierWorksAsExpected() throws IOException, InterruptedException, RCEApplicationException, JAXBException{
+		startUpRCE(getFeatureHandlerRepositoryFactory());
+		
+		Provider<? extends WritableByteChannel> channel = getClientChannelProvider(rceConfig);
+		
+		sendViaSelector(getTestEvent(TEST_CLASS_2, getFeature("true", 1), getFeature("false", 2), getFeature("mild", 3), getFeature("true", 4)), channel);
+		sendViaSelector(getTestEvent(TEST_CLASS_1, getFeature("true", 1), getFeature("true", 2), getFeature("no", 3), getFeature("false", 4)), channel);
+		sendViaSelector(getTestEvent(TEST_CLASS_1, getFeature("true", 1), getFeature("false", 2), getFeature("strong", 3), getFeature("true", 4)), channel);
+		sendViaSelector(getTestEvent(TEST_CLASS_1, getFeature("false", 1), getFeature("true", 2), getFeature("mild", 3), getFeature("true", 4)), channel);
+		sendViaSelector(getTestEvent(TEST_CLASS_2, getFeature("false", 1), getFeature("false", 2), getFeature("no", 3), getFeature("false", 4)), channel);
+		sendViaSelector(getTestEvent(TEST_CLASS_1, getFeature("false", 1), getFeature("true", 2), getFeature("strong", 3), getFeature("true", 4)), channel);
+		sendViaSelector(getTestEvent(TEST_CLASS_2, getFeature("false", 1), getFeature("true", 2), getFeature("strong", 3), getFeature("false", 4)), channel);
+		sendViaSelector(getTestEvent(TEST_CLASS_1, getFeature("true", 1), getFeature("true", 2), getFeature("mild", 3), getFeature("true", 4)), channel);
 		
 		waitingForNextWindow.set(true);
 		nextWindowUpdated.await();
@@ -194,18 +200,22 @@ public class RCEApplicationStartupTest {
 	}
 	
 	//@Test
-	public void givenRCEApplication_whenTrainedWithSimpleSyntheticDataOverMultipleWindows_thenClassifierWorksAsExpected() throws IOException, InterruptedException{
-		sendViaSelector(getTestEvent(TEST_CLASS_2, getFeature("true", 1), getFeature("false", 2), getFeature("mild", 3), getFeature("true", 4)));
-		sendViaSelector(getTestEvent(TEST_CLASS_1, getFeature("true", 1), getFeature("true", 2), getFeature("no", 3), getFeature("false", 4)));
-		sendViaSelector(getTestEvent(TEST_CLASS_1, getFeature("true", 1), getFeature("false", 2), getFeature("strong", 3), getFeature("true", 4)));
-		sendViaSelector(getTestEvent(TEST_CLASS_1, getFeature("false", 1), getFeature("true", 2), getFeature("mild", 3), getFeature("true", 4)));
+	public void givenRCEApplication_whenTrainedWithSimpleSyntheticDataOverMultipleWindows_thenClassifierWorksAsExpected() throws IOException, InterruptedException, RCEApplicationException, JAXBException{
+		startUpRCE(getFeatureHandlerRepositoryFactory());
+		
+		Provider<? extends WritableByteChannel> channel = getClientChannelProvider(rceConfig);
+		
+		sendViaSelector(getTestEvent(TEST_CLASS_2, getFeature("true", 1), getFeature("false", 2), getFeature("mild", 3), getFeature("true", 4)), channel);
+		sendViaSelector(getTestEvent(TEST_CLASS_1, getFeature("true", 1), getFeature("true", 2), getFeature("no", 3), getFeature("false", 4)), channel);
+		sendViaSelector(getTestEvent(TEST_CLASS_1, getFeature("true", 1), getFeature("false", 2), getFeature("strong", 3), getFeature("true", 4)), channel);
+		sendViaSelector(getTestEvent(TEST_CLASS_1, getFeature("false", 1), getFeature("true", 2), getFeature("mild", 3), getFeature("true", 4)), channel);
 		
 		Thread.sleep(50000);
 		
-		sendViaSelector(getTestEvent(TEST_CLASS_2, getFeature("false", 1), getFeature("false", 2), getFeature("no", 3), getFeature("false", 4)));
-		sendViaSelector(getTestEvent(TEST_CLASS_1, getFeature("false", 1), getFeature("true", 2), getFeature("strong", 3), getFeature("true", 4)));
-		sendViaSelector(getTestEvent(TEST_CLASS_2, getFeature("false", 1), getFeature("true", 2), getFeature("strong", 3), getFeature("false", 4)));
-		sendViaSelector(getTestEvent(TEST_CLASS_1, getFeature("true", 1), getFeature("true", 2), getFeature("mild", 3), getFeature("true", 4)));
+		sendViaSelector(getTestEvent(TEST_CLASS_2, getFeature("false", 1), getFeature("false", 2), getFeature("no", 3), getFeature("false", 4)), channel);
+		sendViaSelector(getTestEvent(TEST_CLASS_1, getFeature("false", 1), getFeature("true", 2), getFeature("strong", 3), getFeature("true", 4)), channel);
+		sendViaSelector(getTestEvent(TEST_CLASS_2, getFeature("false", 1), getFeature("true", 2), getFeature("strong", 3), getFeature("false", 4)), channel);
+		sendViaSelector(getTestEvent(TEST_CLASS_1, getFeature("true", 1), getFeature("true", 2), getFeature("mild", 3), getFeature("true", 4)), channel);
 		
 		waitingForNextWindow.set(true);
 		nextWindowUpdated.await();
@@ -227,8 +237,8 @@ public class RCEApplicationStartupTest {
 	}
 	
 	@Test
-	public void givenCandidate_whenCallingStart_thenApplicationStartsUpCorrectly() throws RCEApplicationException, InterruptedException {
-		
+	public void givenCandidate_whenCallingStart_thenApplicationStartsUpCorrectly() throws RCEApplicationException, InterruptedException, JAXBException, IOException {
+		startUpRCE(getFeatureHandlerRepositoryFactory());
 		// add some test events through the system
 		
 		int eventNum;
@@ -272,23 +282,57 @@ public class RCEApplicationStartupTest {
 	}
 	
 	@Test
-	public void givenCandidate_whenCallingStartAndSendingEventsViaSelector_thenApplicationStartsUpCorrectly() throws RCEApplicationException, InterruptedException, IOException{
+	public void givenCandidateAndTCPClient_whenCallingStartAndSendingEventsViaSelector_thenApplicationStartsUpCorrectly() throws RCEApplicationException, InterruptedException, IOException, JAXBException{
 		
+		startUpRCE(getFeatureHandlerRepositoryFactory(), getEventTransportDefinedConfig(StreamType.TCP));
 		// add some test events through the system
 		
 		int eventNum;
 		
+		Provider<? extends WritableByteChannel> channel = getClientChannelProvider(rceConfig);
+		
+		for (eventNum = 0; !windowUpdated.await(10, TimeUnit.MILLISECONDS); eventNum++){
+			sendViaSelector(getTestEvent(eventNum), channel);
+		}
+		
+		LOG.info("events recieved: {}",eventNum);
+		assertThat(eventNum, is(equalTo(eventsSeen.get())));
+	}
+	
+	@Test
+	public void givenCandidateAndUDPClient_whenCallingStartAndSendingEventsViaSelector_thenApplicationStartsUpCorrectly() throws RCEApplicationException, InterruptedException, IOException, JAXBException{
+		startUpRCE(getFeatureHandlerRepositoryFactory(), getEventTransportDefinedConfig(StreamType.UDP));
+		// add some test events through the system
+		
+		int eventNum;
+		
+		Provider<? extends WritableByteChannel> channel = getClientChannelProvider(rceConfig);
+		
 		for (eventNum = 0; !windowUpdated.await(10, TimeUnit.MILLISECONDS); eventNum++){
 			
-			sendViaSelector(getTestEvent(eventNum));
+			sendViaSelector(getTestEvent(eventNum), channel);
 		}
 		
 		System.out.println("events recieved: "+eventNum);
 		assertThat(eventNum, is(equalTo(eventsSeen.get())));
 	}
 	
-	public static <T extends Message<T>> void sendViaSelector(T testEvent, RCEConfig rceConfig) throws IOException, InterruptedException {
-		WritableByteChannel channel = getClientChannel(rceConfig.getEventStreamSocketAddress());
+	protected static RCEConfig getEventTransportDefinedConfig(final StreamType streamType) throws JAXBException, IOException {
+		RCEConfig config = RCEConfig.UTIL.loadConfig(null);
+		
+		config = new RCEConfig.DefaultRCEConfig(config){
+
+			@Override
+			public StreamType getEventTransportProtocal() {
+				return streamType;
+			}
+			
+		};
+		
+		return config;
+	}
+
+	public static <T extends Message<T>> void sendViaSelector(T testEvent, RCEConfig rceConfig, Provider<? extends WritableByteChannel> channelProvider) throws IOException, InterruptedException {
 		//LOG.debug("Sending event: "+event.testString1+"("+Integer.toBinaryString(event.testInt1)+"##"+event.testInt1+")");
 		// dont need to worry about efficiency in test case...
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
@@ -298,25 +342,82 @@ public class RCEApplicationStartupTest {
 		out.flush();
 		out.close();
 		
-		//if (rceConfig.getEventTransportProtocal() == StreamType.UDP){
-		//	((DatagramChannel)channel).send(ByteBuffer.wrap(out.toByteArray()), rceConfig.getEventStreamSocketAddress());
-		//} else{
-			channel.write(ByteBuffer.wrap(out.toByteArray()));
-		//}
+		WritableByteChannel channel = channelProvider.get();
 		
-		channel.close();
+		if (rceConfig.getEventTransportProtocal() == StreamType.UDP){
+			((DatagramChannel)channel).send(ByteBuffer.wrap(out.toByteArray()), rceConfig.getEventStreamSocketAddress());
+		} else{
+			
+			try{
+				channel.write(ByteBuffer.wrap(out.toByteArray()));
+			} finally{
+				channel.close();
+			}
+		}
 	}
 	
-	protected <T extends Message<T>> void sendViaSelector(T testEvent) throws IOException, InterruptedException {
-		sendViaSelector(testEvent, rceConfig);
+	protected <T extends Message<T>> void sendViaSelector(T testEvent, Provider<? extends WritableByteChannel> channel) throws IOException, InterruptedException {
+		sendViaSelector(testEvent, rceConfig, channel);
+	}
+	
+	public static Provider<? extends WritableByteChannel> getClientChannelProvider(RCEConfig config) throws IOException, InterruptedException{
+		switch (config.getEventTransportProtocal()){
+			case UDP:
+				return getUdpClientChannelProvider(config.getEventStreamSocketAddress());
+		    case TCP:
+				return getTcpClientChannelProvider(config.getEventStreamSocketAddress());
+			
+			default: throw new IllegalArgumentException("Unknown stream type: "+config.getEventTransportProtocal());
+		}
+			
 	}
 
-	protected static DatagramChannel getClientChannel(SocketAddress address) throws IOException, InterruptedException {
-		DatagramChannel channel = SelectorProvider.provider().openDatagramChannel(StandardProtocolFamily.INET);
+	private static Provider<SocketChannel> getTcpClientChannelProvider(final SocketAddress eventStreamSocketAddress) throws IOException {
+		
+		LOG.info("creating TCP client channel provider for {}", eventStreamSocketAddress);
+		
+		return new Provider<SocketChannel>(){
+
+			@Override
+			public SocketChannel get() {
+				try{
+					AbstractSelector selector = SelectorProvider.provider().openSelector();
+					
+					SocketChannel socketChannel = SelectorProvider.provider().openSocketChannel();
+				    socketChannel.configureBlocking(true);
+				  
+				    // Kick off connection establishment
+				    socketChannel.connect(eventStreamSocketAddress);//16354
+				    
+				    while(!socketChannel.finishConnect());
+				    
+				    selector.close();
+				    
+				    return socketChannel;
+				} catch (IOException e){
+					
+					throw new RuntimeException("error creating connection to: "+eventStreamSocketAddress, e);
+				}
+			}
+			
+		};
+	}
+
+	protected static Provider<DatagramChannel> getUdpClientChannelProvider(SocketAddress address) throws IOException, InterruptedException {
+		final DatagramChannel channel = SelectorProvider.provider().openDatagramChannel(StandardProtocolFamily.INET);
 		
 		channel.connect(address);
 		
-		return channel;
+		LOG.info("created UDP client channel at {}", address);
+		
+		return new Provider<DatagramChannel>(){
+
+			@Override
+			public DatagramChannel get() {
+				return channel;
+			}
+			
+		};
 	}
 
 	private com.haines.ml.rce.transport.Event getTestEvent(int value) {

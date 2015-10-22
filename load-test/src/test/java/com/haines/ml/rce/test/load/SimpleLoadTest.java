@@ -18,6 +18,8 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 import java.util.regex.Pattern;
 
+import javax.xml.bind.JAXBException;
+
 import net.grinder.common.GrinderException;
 import net.grinder.common.GrinderProperties;
 import net.grinder.console.ConsoleFoundation;
@@ -49,6 +51,7 @@ import com.haines.ml.rce.accumulator.HandlerRepository;
 import com.haines.ml.rce.accumulator.handlers.ClassificationHandler;
 import com.haines.ml.rce.accumulator.handlers.FeatureHandler;
 import com.haines.ml.rce.accumulator.handlers.SequentialDistributionFeatureHandler;
+import com.haines.ml.rce.main.RCEApplicationException;
 import com.haines.ml.rce.main.RCEApplicationStartupTest;
 import com.haines.ml.rce.main.factory.FeatureHandlerRepositoryFactory;
 import com.haines.ml.rce.model.ClassifiedEvent;
@@ -78,7 +81,9 @@ public class SimpleLoadTest extends RCEApplicationStartupTest {
 	}
 	
 	@Before
-	public void setUpGrinderAgent() throws GrinderException, InterruptedException{
+	public void setUpGrinderAgent() throws GrinderException, InterruptedException, RCEApplicationException, JAXBException, IOException{
+		
+		this.startUpRCE(getFeatureHandlerRepositoryFactory());
 		agent = new AgentDaemon(
 				  LOG,
 		          100,
@@ -112,8 +117,11 @@ public class SimpleLoadTest extends RCEApplicationStartupTest {
 		return false;
 	}
 
+	// for efficiency, override these test methods to stop them re running. TODO should really to in a separate test
 	@Override
-	public void givenCandidate_whenCallingStartAndSendingEventsViaSelector_thenApplicationStartsUpCorrectly(){}
+	public void givenCandidateAndTCPClient_whenCallingStartAndSendingEventsViaSelector_thenApplicationStartsUpCorrectly(){}
+	@Override
+	public void givenCandidateAndUDPClient_whenCallingStartAndSendingEventsViaSelector_thenApplicationStartsUpCorrectly(){}
 	
 	@Override
 	public void givenCandidate_whenCallingStart_thenApplicationStartsUpCorrectly(){}

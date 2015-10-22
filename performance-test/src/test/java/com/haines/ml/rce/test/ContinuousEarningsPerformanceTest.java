@@ -49,8 +49,8 @@ public class ContinuousEarningsPerformanceTest extends AbstractPerformanceTest {
 		super(new DynamicClassLoader());
 	}
 	
-	@Override
 	public void before() throws InterruptedException, RCEApplicationException, JAXBException, IOException{
+		this.startUpRCE(getFeatureHandlerRepositoryFactory());
 		if (featureTypes.isEmpty()){
 			dataSet = new CsvDataSet.EarningsDataSet(Collections.<Integer>emptyList());
 			

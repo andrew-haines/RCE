@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.net.SocketAddress;
 import java.net.StandardProtocolFamily;
 import java.nio.ByteBuffer;
+import java.nio.channels.Channel;
 import java.nio.channels.DatagramChannel;
 import java.nio.channels.NetworkChannel;
 import java.nio.channels.ScatteringByteChannel;
@@ -47,7 +48,7 @@ public interface NetworkChannelProcessor<T extends SelectableChannel & NetworkCh
 	
 	void close(T channel) throws IOException;
 
-	void closeAccept(ScatteringByteChannel readerChannel) throws IOException;
+	void closeAccept(Channel readerChannel) throws IOException;
 	
 	public static final class Util{
 		
@@ -92,7 +93,7 @@ public interface NetworkChannelProcessor<T extends SelectableChannel & NetworkCh
 			}
 
 			@Override
-			public void closeAccept(ScatteringByteChannel readerChannel) throws IOException {
+			public void closeAccept(Channel readerChannel) throws IOException {
 				readerChannel.close();
 			}
 			
@@ -139,7 +140,7 @@ public interface NetworkChannelProcessor<T extends SelectableChannel & NetworkCh
 			}
 
 			@Override
-			public void closeAccept(ScatteringByteChannel readerChannel)throws IOException {
+			public void closeAccept(Channel readerChannel)throws IOException {
 				// socket does not need closing for datagrams
 			}
 			

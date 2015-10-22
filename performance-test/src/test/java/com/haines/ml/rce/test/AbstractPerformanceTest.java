@@ -84,7 +84,12 @@ public abstract class AbstractPerformanceTest extends RCEApplicationStartupTest 
 	}
 	
 	@Override
-	public void givenCandidate_whenCallingStartAndSendingEventsViaSelector_thenApplicationStartsUpCorrectly(){
+	public void givenCandidateAndTCPClient_whenCallingStartAndSendingEventsViaSelector_thenApplicationStartsUpCorrectly(){
+		// overload to disable inheriting test
+	}
+	
+	@Override
+	public void givenCandidateAndUDPClient_whenCallingStartAndSendingEventsViaSelector_thenApplicationStartsUpCorrectly(){
 		// overload to disable inheriting test
 	}
 	
@@ -123,7 +128,7 @@ public abstract class AbstractPerformanceTest extends RCEApplicationStartupTest 
 	public void reset() {
 		try {
 			this.after();
-			this.before();
+			this.startUpRCE(getFeatureHandlerRepositoryFactory());
 		} catch (RCEApplicationException | InterruptedException | JAXBException | IOException e) {
 			throw new RuntimeException("Unable to stop existing service", e);
 		}

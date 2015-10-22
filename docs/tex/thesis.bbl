@@ -149,6 +149,23 @@
       \field{annotation}{http://www.eecs.berkeley.edu/Pubs/TechRpts/2012/EECS-2012-259.pdf}
       \field{title}{Discretized Streams: A Fault-Tolerant Model for Scalable Stream Processing}
     \endentry
+    \entry{processor-affinity}{report}{}
+      \name{author}{1}{}{%
+        {{hash=c63591ec5605878abedfca721915e1d6}{Technologies}{T\bibinitperiod}{TMurgent}{T\bibinitperiod}{}{}{}{}}%
+      }
+      \list{institution}{1}{%
+        {TMurgent Technologies}%
+      }
+      \strng{namehash}{c63591ec5605878abedfca721915e1d6}
+      \strng{fullhash}{c63591ec5605878abedfca721915e1d6}
+      \field{sortinit}{T}
+      \field{sortinithash}{423d138a005a533b47e6475e39378bf2}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{title}{Processor Affinity - Multiple CPU Scheduling (White Paper)}
+      \field{type}{techreport}
+      \field{year}{2003}
+    \endentry
     \entry{tdigest}{unpublished}{}
       \name{author}{1}{}{%
         {{hash=057b25b20c944ea902ffed7b813deab9}{Ted\bibnamedelima Dunning}{T\bibinitperiod\bibinitdelim D\bibinitperiod}{Otmar\bibnamedelima Ertl}{O\bibinitperiod\bibinitdelim E\bibinitperiod}{}{}{}{}}%

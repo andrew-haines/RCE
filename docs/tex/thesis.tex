@@ -55,23 +55,26 @@
 \maketitle
 
 \begin{abstract}
-With the invent of processing platforms that allow for cheap, commodity hardware to run horizontally distributed applications at unprecedented scale, never before have we seen such an explosion of data collection and processing. Because of this abundance of processing power and ever cheaper storage costs, there is a growing trend to capture and collect events, limited only by what can be instrumented and regardless of an immediate requirement. These persisted events sit dormant in data centers waiting for their vast coffers to be harvested for valuable insights and application. Many of the algorithms and developments that have arisen out of this have relied on the fact that even though such sporadically collected data is noisy, with enough of it, the law of large numbers suggests that signals can still emerge and be fed into a new breed of intelligent systems\cite{bigdata}. The problem with this approach is that, although tractable to large institutions and organizations, smaller, more modest individuals will not have the infrastructure or financing to support such data collection even though their reach is enough to warrant its need. Tech startups in particular face this problem all the time balancing the business insights and intelligent feature sets they provide to their customers at the trade off of vast equity deals in seeding rounds.\\
+With the invent of processing platforms that allow for cheap, commodity hardware to run horizontally distributed applications at unprecedented scale, never before have we seen such an explosion of data collection and processing. Because of this abundance of processing power and ever cheaper storage costs, there is a growing trend to capture and collect events, limited only by what can be instrumented and regardless of an immediate requirement. These persisted events sit dormant in data centers waiting for their vast coffers to be harvested for valuable insights and application. Many of the algorithms and developments that have arisen out of this have relied on the fact that even though such sporadically collected data is noisy, with enough of it, the law of large numbers suggests that signals can still emerge and be fed into a new breed of intelligent systems\cite{bigdata}. The problem with this approach is that, although tractable to large institutions and organizations, smaller, more modest individuals will not have the infrastructure or financing to support such data collection even though their reach is enough to warrant its need. Tech startups in particular face this problem with a careful balancing of the business insights and user requirements they can provide at a trade off of vast equity deals in seeding rounds.\\
 
-In this project we attempt to design and build a closed domain application that runs at 'big data' scale but on a single machine instance. The closed domain of the application is one of a classifier that, given an entity or event expressed in a feature space, it will recommend suggested classes based on a continuous stream of online data input. The ideas and concepts that semantically define this recommender are nothing new but its implementation and structure is novel and works by making extensive use of modern computer architecture to process events far quicker than traditional techniques.
+In this project we attempt to design and build a closed domain application that runs at 'big data' scale but on a single machine instance. The closed domain of the application is one of a classifier that, given an entity or event expressed in a feature space, it recommends suggested classes based on a continuous stream of online data input. The ideas and concepts that semantically define this recommender are nothing new but its implementation and structure is novel, excelling previous standards by making extensive use of modern computer architecture to process events far quicker than traditional techniques.
 
 \end{abstract}
 
 \tableofcontents
 
+\chapter{Introduction}
+More and more large institutions these days rely on the analysis of vast quantities of data to inform business decisions and provide performance feedback. From tracking the performance of advertising campaigns, constructing weather models, and powering recommendation engines, Big Data processing is rapidly becoming the cornerstone of the online technology industry. Large companies such as Google and IBM spend hundreds of millions of pounds in capex to construct and maintain the processing platforms required to mine this data. These systems are typically generic constructions developed across many thousands of machines and delivered company-wide to cater for all business units in the organization. Resources such as storage and compute time are then shared across all applications of the company. To accommodate this, either fully distributed but virtualised operating systems that coordinate a 'grid' of machines and networking topologies or complex multi processing core workhouse instances are used to execute such data hungry applications. There are many different paradigms and approaches for powering these systems but they all share one common drawback - these infrastructures come at the cost of an astronomical financial footprint, costing several hundreds of thousands of dollars for comparatively modest setups to multi million dollar investment for corporate scale facilities.
+
+The focus of this project is whether the existing designs and ideologies of these approaches can be borrowed, blended and re-devised to create a system with a real life intelligent application that runs at big data scale but with a fraction of the monetary expenditure. If such a system is possible, the value to individuals where existing big data solutions are out of reach could be unprescended.
+
 \chapter{Background}
-More and more large institutions these days rely on the analysis of vast quantities of data to inform business decisions and provide performance feedback. From tracking the performance of advertising campaigns, constructing weather models, and powering recommendation engines, Big Data processing is rapidly becoming the cornerstone of the online technology industry. Large companies such as Google and IBM spend hundreds of millions of pounds in capex to construct and maintain the processing systems required to mine this data. These systems are typically generic platforms developed across many thousands of machines and delivered company-wide to cater for all business units in the organization. Resources such as storage and compute time are then shared across all applications of the organisation. To accommodate this, fully distributed but virtualised operating systems have been developed that allows applications, built upon generic frameworks, to be deployed and scheduled on these 'grid' infrastructures of machines and networking topologies.\\
-
 \section{Big Data Processing Paradigms}
-The current state of the art in these distributed frameworks fall primarily into two distinct camps.
+The current state of the art in these approaches fall primarily into three distinct camps.
 \subsection{Batch Processing}
-The first type of framework is one that follows a batch processing methodology. The concept is that data is persisted onto a distributed file system in near raw form. Processing then operates on the data either as a one off task for insight analysis or bootstrapping purposes or, at periodic intervals that produce transformed data that can be used in downstream processes. To illustrate this, consider a possible implementation of a 'trending now' feature on a large web property's home page, used to inform users of what is currently popular on the domain at that time. \\
+The first archetypical model for such computation is one that follows a batch processing methodology. The concept is that data is persisted onto a distributed file system in near raw form. Processing then operates on the data either as a one off task for insight analysis or bootstrapping purposes or, at periodic intervals that produce transformed data that can be used in downstream processes. To illustrate this, consider a possible implementation of a 'trending now' feature on a large web property's home page - used to inform users of what is currently popular on the domain at that time. \\
 
-To determine this, the web property instruments all interactions with various content on its systems. This could be tweets sent from a mobile device app or news articles clicked on via a user's web browser - all events are logged to a central analytics system with a pre defined payload. This payload could contain information about the user\footnote{gender, age, personal preferences, etc}, the local time the event occurred at, information about the device, the content UUID interacted with... the tuple of data that could be chosen is endless. The analytics servers then typically place the event, via a messaging system onto the distributed file system \footnote{This file system is distributed in the sense that the data actually sits on multiple machines possibly  in geo graphically diverse data centers but appear as if it is one contiguous structure of files.} in a '\texttt{rawevents-YYYYMMDDHH-xxxx}' series of files. A scheduled task then runs every hour that consumes these latest files, extracts named entities from them and creates a histogram of their occurrences. The named entities are then ranked according to the histogram's frequency and the top x results are persisted into a '\texttt{trending-now-YYYYMMDDHH}' timestamped file. This comparatively tiny file is then sent to all the client facing webservers and powers the last hour's 'trending now' list.\\
+To determine this, the web property instruments all interactions with various content on its systems. This could be tweets sent from a mobile device app or news articles clicked on via a user's web browser - all events are logged to a central analytics system with a pre defined payload. This payload could contain information about the user\footnote{gender, age, personal preferences, etc}, the local time the event occurred at, information about the device, the content UUID interacted with... the tuple of data that could be chosen is endless. The analytics servers then typically place the event, via a messaging system onto the distributed file system\footnote{This file system is distributed in the sense that the data actually sits on multiple machines possibly in geo graphically diverse data centers but appear as if it is one contiguous structure of files.} in a '\texttt{rawevents-YYYYMMDDHH-xxxx}' series of files. A scheduled task then runs at say every hour and consumes these latest files, extracts named entities from them and contructs a histogram of their occurrences. The named entities are then ranked according to the histogram's frequency and the top x results are persisted into a '\texttt{trending-now-YYYYMMDDHH}' timestamped file. This comparatively tiny file is then sent to all the client facing webservers and powers the last hour's 'trending now' list.\\
 
 Using the batch approach enables the data to be processed 'offline' in the sense that data is processed some time after the events have occurred.  This has a number of advantages over the cost of not being real time. Firstly, the programming concepts can be far easy to implement. Consider the calculation of a median value of a vast list of numerical objects. Using batch you would simply sort the list and pick the middle one as you have all the data for that given hour available. Indeed, if you choose to not remove the intermediate '\texttt{'rawevents'} files then larger periods can be scaled up by simply increased the file ranges. Handling in the event of error is also far easier as processing can easily be rerun. The other downside is that the demand on storage capacity is huge but, given the growing trend to capture all data and archive it for later insights, this tends to already be available.\\
 
@@ -159,11 +162,62 @@ To frame the task appropriately, the system is a real time classifier that, give
 
 \chapter{Design}
 \section{Overview}
+The system proposed is one that places a synergy between the hardware and software at its heart, maximising not just all components of the underlying architecture but also ensuring that each component is utilised as efficiently as possible. The major components considered in this design:
+\begin{itemize}
+\item I/O bus
+\item Main Memory
+\item CPU cores
+\item L3, L2, \& L1 cache lines
+\end{itemize}
+To understand how these components can be specialised, it is important to discuss how they work and what their role is in the overarching design of the system 
+\subsection{Hardware components}
+\subsubsection{I/O bus}
+Like all internal system buses, the I/O bus is responsible for moving data from an auxiliary part of the computer to the CPU. I/O buses normally exclude main memory access and focus on components such as keyboard input, audio or, in the case interested in this project, network communication. Any data bound server instance like the one in question in this project requires extensive use of the networking interface, so much so that network is the primary bottleneck in such systems as IP packets are marshaled,copied and de-marshalled around the system using the I/O bus as its main \textit{highway} to all components. To ensure that this part of the system is as uncontended as possible, focus needs to be applied to reduce the overhead. In particular, the system keeps all marshalling and demarshalling as conservative as possible and uses the I/O bus to keep, as much as possible, this data away from main memory detours and interfaced directly with the CPU cores.
+\subsubsection{CPU Cores}
+In recent times we have seen Moores Law\footnote{A law describing the linear trend of core clock cycles/die-size over time} being upheld by the fact that, although clock speeds on single dies are plateauing due to physical constraints of heating and fixed atomic size, the number of clock cycles in a given CPU is still increasing due the addition of multiple cores on the same physical die. The Intel i7 CPU for example is fitted with up to 8 cores on a single die. Moreover, modern servers can be found with multiple CPU's means that upward of 24 cores can be found in modern systems.
+
+Traditional procedural programming is still possible on such architecture but will be limited to a single core. Within a multitasking environment such a design is ok but when considering a single server instance responsible for a single task, threading or multi process design needs to be considered. A common technique is to use the threading model that conceptually isolates a unit of atomic work to occur concurrently with other threads. In a typical web server for example, the threading policy needs to be carefully tuned to obtain the maximum performance. Too few and the system is under utilised whilst too many results in contentious context switching. The problem with the threading model is it does not really reflect with is happening in the underlying hardware. Under the hood, processing is signaled using interrupts\footnote{In fact threading is achieved by \textit{multiplexing} these interrupts so that the illusion of atomic and concurrent units of work can be achieved} which tell the cpu which execution address to jump to next when IO events are received. The only real concurrent unit of work in a computer is what is actually executing on a CPU core at any one time. As such, the threading policy of this system should be such to mimic this behavior - 1 thread for each CPU\footnote{Ideally using thread affinity where the OS is instructed to only execute a given thread on a given core} with an event driven methodology to reflect the interrupt nature of the supporting buses.
+
+\subsubsection{Main Memory and Caching}
+\floatsetup[figure]{capposition=bottom}
+\begin{figure}[h]
+\centering
+\caption{Illustration of the different cache visibilities based on a 2 CPU, 4 core setup}
+\includegraphics[scale=0.65] {cachelevels.pdf}
+\label{fig:corecachedesign}
+\end{figure}
+Modern CPU's gain extensive performance improvements by using dedicated caching that sits on top of the processing units. These small but extremely fast memory elements sit directly within the CPU die allowing for frequently required data to be accessed at a fraction of the cost of accessing main memory. Caches map main memory in the form of cache lines that are contiguous areas that exploit both temporal (items used at time \(t\) are likely to be used at time \(t+1\)) and spatial locality (items located near each other are likely to be used at a similar time). Data of a cache line is moved from slow main memory into fast cache memory as it is being accessed. To optimise it's use of memory, the system needs to exploit the locality principles of the cache lines, avoiding cache misses and keeping data as close to the CPU for as long as possible. 
+
+The downside with such design is that when data is sitting in cache lines, it is not guaranteed to be visible in other parts of the system. Data stored in the L2 cache of Core 1 of Figure \ref{fig:corecachedesign} cannot be seen in Core 2. Furthermore, data in the L3 cache of Core 3 cannot be seen by Core 2. Consequently, care has to be taken to set up correct memory barriers\footnote{In java for example, memory barriers are created using the \texttt{volatile} \& \texttt{sychronized} keywords and the \texttt{Sync} primatives from the concurrency package} when data is needed to be flushed back into main memory for other cores to see it.
+
+\floatsetup[figure]{capposition=bottom,capbesideposition={top,right}}
+\begin{figure}[h!]
+\centering
+\caption{Although there are multiple cache lines present in modern designs, as observed here the real speed benefit is avoiding main memory and as such this is the focus in this project.}
+\includegraphics[scale=0.5] {cachelinespeed.png}
+\label{fig:cachelinespeeds}
+\end{figure}
+
+\subsection{Software Architecture}
+As previously mentioned, in order to optimize all the hardware components mentioned above an event driven design needs to be adopted, filing off to threading only to distribute the computational load across processing cores. Once events have been handed over to a specific core, the thread that owns the event also \textit{owns} its visibility completely. That is to say that no other thread is expected to have read or write access to it whilst in this core's care. This allows the application to enforce locality benefits in the data without worrying about visibility to other threads and thus providing a setting that minimises the copying of cache lines to and from main memory and satisfies the desire to keep data as close to the Core as possible. When the core is finished with the event, a model of releasing ownership of a collection of events at once is adopted by \textit{pushing} these events downstream to another component where visibility is required. 
+
+To facilitate the movement of these events from the input stream into the care of dedicated cores and finally, back into main memory, the use of the disruptor queues already mentioned is selected. Note only are these queues lightening fast but they also put in place the required memory barriers mentioned to, like a runner in a relay, pass off ownership of the event once finished. A rough architecture plan of the system is presented in Figure \ref{fig:architectureoverview}
+
+\floatsetup[figure]{capposition=bottom,capbesideposition={top,right}}
+\begin{figure}[h!]
+\centering
+\caption{The main components and data flows of the system}
+\includegraphics[scale=0.72, trim=35 50 0 13, clip=true] {architectureoverview.pdf}
+\label{fig:architectureoverview}
+\end{figure}
+
 A rough overarching view of the system. Event driven philosophy. Completely lockless. Architecture diagram and rough description of the different components.
 \subsection{Execution Modes}
+\subsubsection{Async}
+\subsubsection{Sync}
 Discussion on the Asnyc and Sync modes of execution
-\subsection{NaiveBayes}
-Discussion on the applicability of naive bayes for the task to achieve the classification given the above design.
+\section{Naive Bayes}
+Discussion on how naive bayes works and it's applicability for the task to achieve the classification given the above design.
 \section{IO}
 Some bit about how IO is the bottle neck in most systems
 \subsection{Selectors}
@@ -183,8 +237,9 @@ Provides a read only view of the window manager's view of all accumulated captur
 \subsection{Types}
 How we assign meaning to each of the accumulator slots
 \subsubsection{Discrete}
-Simple a count of 
+Simple a count of prior/posterior pairs for naive bayes - one for each slot. How they are accumulated together both on a per event level and on a per accumulator level
 \subsubsection{Continuous}
+multi slot length to capture parameters of distribution models. How they are accumulated together both on a per event level and on a per accumulator level
 \chapter{Implementation}
 Discussion on how the design is implemented. Only areas of implementation note are provided as this section could get out of hand! Core interfaces such as EventConsumer, Accumulator, FeatureHandler, ClassificationHandler etc.
 \section{Maven Modules}

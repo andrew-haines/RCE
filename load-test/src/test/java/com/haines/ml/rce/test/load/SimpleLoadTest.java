@@ -180,7 +180,7 @@ public class SimpleLoadTest extends RCEApplicationStartupTest {
 		
 		inspector.getProcessControl().startWorkerProcesses(new GrinderProperties());
 		
-		Thread.sleep(100000);
+		Thread.sleep(200000);
 		
 		inspector.getProcessControl().stopAgentAndWorkerProcesses();
 		

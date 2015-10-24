@@ -36,62 +36,62 @@
 \defcounter {refsection}{0}\relax 
 \contentsline {subsection}{\numberline {4.1.2}Software Architecture}{19}{subsection.4.1.2}
 \defcounter {refsection}{0}\relax 
-\contentsline {subsection}{\numberline {4.1.3}Execution Modes}{20}{subsection.4.1.3}
+\contentsline {subsection}{\numberline {4.1.3}Execution Modes}{21}{subsection.4.1.3}
 \defcounter {refsection}{0}\relax 
-\contentsline {subsubsection}{\nonumberline Async}{20}{section*.15}
+\contentsline {subsubsection}{\nonumberline Async}{21}{section*.15}
 \defcounter {refsection}{0}\relax 
-\contentsline {subsubsection}{\nonumberline Sync}{20}{section*.16}
+\contentsline {subsubsection}{\nonumberline Sync}{22}{section*.16}
 \defcounter {refsection}{0}\relax 
-\contentsline {section}{\numberline {4.2}Naive Bayes}{20}{section.4.2}
+\contentsline {section}{\numberline {4.2}Naive Bayes}{22}{section.4.2}
 \defcounter {refsection}{0}\relax 
-\contentsline {section}{\numberline {4.3}IO}{20}{section.4.3}
+\contentsline {section}{\numberline {4.3}IO}{22}{section.4.3}
 \defcounter {refsection}{0}\relax 
-\contentsline {subsection}{\numberline {4.3.1}Selectors}{21}{subsection.4.3.1}
+\contentsline {subsection}{\numberline {4.3.1}Selectors}{22}{subsection.4.3.1}
 \defcounter {refsection}{0}\relax 
-\contentsline {subsection}{\numberline {4.3.2}Protostuff}{21}{subsection.4.3.2}
+\contentsline {subsection}{\numberline {4.3.2}Protostuff}{22}{subsection.4.3.2}
 \defcounter {refsection}{0}\relax 
-\contentsline {section}{\numberline {4.4}WindowManager}{21}{section.4.4}
+\contentsline {section}{\numberline {4.4}WindowManager}{22}{section.4.4}
 \defcounter {refsection}{0}\relax 
-\contentsline {section}{\numberline {4.5}Accumulators}{21}{section.4.5}
+\contentsline {section}{\numberline {4.5}Accumulators}{22}{section.4.5}
 \defcounter {refsection}{0}\relax 
-\contentsline {subsection}{\numberline {4.5.1}Instances}{21}{subsection.4.5.1}
+\contentsline {subsection}{\numberline {4.5.1}Instances}{22}{subsection.4.5.1}
 \defcounter {refsection}{0}\relax 
-\contentsline {subsubsection}{\nonumberline Local Instance}{21}{section*.17}
+\contentsline {subsubsection}{\nonumberline Local Instance}{22}{section*.17}
 \defcounter {refsection}{0}\relax 
-\contentsline {subsubsection}{\nonumberline Global Instance}{21}{section*.18}
+\contentsline {subsubsection}{\nonumberline Global Instance}{23}{section*.18}
 \defcounter {refsection}{0}\relax 
-\contentsline {subsection}{\numberline {4.5.2}Types}{21}{subsection.4.5.2}
+\contentsline {subsection}{\numberline {4.5.2}Types}{23}{subsection.4.5.2}
 \defcounter {refsection}{0}\relax 
-\contentsline {subsubsection}{\nonumberline Discrete}{21}{section*.19}
+\contentsline {subsubsection}{\nonumberline Discrete}{23}{section*.19}
 \defcounter {refsection}{0}\relax 
-\contentsline {subsubsection}{\nonumberline Continuous}{21}{section*.20}
+\contentsline {subsubsection}{\nonumberline Continuous}{23}{section*.20}
 \defcounter {refsection}{0}\relax 
-\contentsline {chapter}{\numberline {5}Implementation}{22}{chapter.5}
+\contentsline {chapter}{\numberline {5}Implementation}{24}{chapter.5}
 \defcounter {refsection}{0}\relax 
-\contentsline {section}{\numberline {5.1}Maven Modules}{22}{section.5.1}
+\contentsline {section}{\numberline {5.1}Maven Modules}{24}{section.5.1}
 \defcounter {refsection}{0}\relax 
-\contentsline {section}{\numberline {5.2}Distributions}{22}{section.5.2}
+\contentsline {section}{\numberline {5.2}Distributions}{24}{section.5.2}
 \defcounter {refsection}{0}\relax 
-\contentsline {section}{\numberline {5.3}Configuration}{22}{section.5.3}
+\contentsline {section}{\numberline {5.3}Configuration}{24}{section.5.3}
 \defcounter {refsection}{0}\relax 
-\contentsline {section}{\numberline {5.4}Testing}{22}{section.5.4}
+\contentsline {section}{\numberline {5.4}Testing}{24}{section.5.4}
 \defcounter {refsection}{0}\relax 
-\contentsline {chapter}{\numberline {6}Performance}{23}{chapter.6}
+\contentsline {chapter}{\numberline {6}Performance}{25}{chapter.6}
 \defcounter {refsection}{0}\relax 
-\contentsline {section}{\numberline {6.1}Classification Performance}{23}{section.6.1}
+\contentsline {section}{\numberline {6.1}Classification Performance}{25}{section.6.1}
 \defcounter {refsection}{0}\relax 
-\contentsline {subsection}{\numberline {6.1.1}Synthetic Test}{23}{subsection.6.1.1}
+\contentsline {subsection}{\numberline {6.1.1}Synthetic Test}{25}{subsection.6.1.1}
 \defcounter {refsection}{0}\relax 
-\contentsline {subsection}{\numberline {6.1.2}Adult Wages}{23}{subsection.6.1.2}
+\contentsline {subsection}{\numberline {6.1.2}Adult Wages}{25}{subsection.6.1.2}
 \defcounter {refsection}{0}\relax 
-\contentsline {subsection}{\numberline {6.1.3}Space Shuttle}{23}{subsection.6.1.3}
+\contentsline {subsection}{\numberline {6.1.3}Space Shuttle}{25}{subsection.6.1.3}
 \defcounter {refsection}{0}\relax 
-\contentsline {section}{\numberline {6.2}Throughput Performance}{23}{section.6.2}
+\contentsline {section}{\numberline {6.2}Throughput Performance}{25}{section.6.2}
 \defcounter {refsection}{0}\relax 
-\contentsline {chapter}{\numberline {7}Conclusions}{24}{chapter.7}
+\contentsline {chapter}{\numberline {7}Conclusions}{26}{chapter.7}
 \defcounter {refsection}{0}\relax 
-\contentsline {section}{\numberline {7.1}Results}{24}{section.7.1}
+\contentsline {section}{\numberline {7.1}Results}{26}{section.7.1}
 \defcounter {refsection}{0}\relax 
-\contentsline {section}{\numberline {7.2}Limitations}{24}{section.7.2}
+\contentsline {section}{\numberline {7.2}Limitations}{26}{section.7.2}
 \defcounter {refsection}{0}\relax 
-\contentsline {section}{\numberline {7.3}Future Work}{24}{section.7.3}
+\contentsline {section}{\numberline {7.3}Future Work}{26}{section.7.3}

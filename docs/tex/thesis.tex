@@ -17,6 +17,7 @@
 \usepackage{babel}
 \usepackage{csquotes}
 \usepackage{caption}
+\usepackage{subcaption}
 \usepackage[labelformat=simple]{subcaption}
 \usepackage[T1]{fontenc}
 \usepackage{float}
@@ -32,13 +33,15 @@
 \definecolor{mauve}{rgb}{0.58,0,0.82}
 \usepackage{amssymb,amsmath}
 \usepackage{abstract}
+\DeclareMathOperator*{\argmax}{\arg\!\max}
 
 \addtokomafont{chapterprefix}{\raggedleft}
 \renewcommand*{\chapterformat}{%
 \mbox{\chapappifchapterprefix{\nobreakspace}%
 \scalebox{5}{\color{gray}\thechapter\autodot}\enskip}%
 }
-
+\captionsetup[figure]{labelfont=it,textfont={it}}
+\captionsetup[subfigure]{labelfont=bf,textfont=normalfont,singlelinecheck=off,justification=raggedright,labelformat=simple, labelsep=colon}
 
 %----------------------------------------------------------------------------------------
 %	BEGIN & TABLE OF CONTENTS
@@ -197,7 +200,7 @@ The downside with such design is that when data is sitting in cache lines, it is
 \includegraphics[scale=0.5] {cachelinespeed.png}
 \label{fig:cachelinespeeds}
 \end{figure}
-
+Another consideration that's worth highlighting is that within managed virtual environments such as java, although all these components can be exploited using care consideration of the JVM contracts, nothing is guaranteed. The garbage collector in particular can become a catastrophic obstacle to such optimizations. Consequently, as much as possible, object pooling is used\footnote{Actually implemented transparently within the disruptor} and a precedence placed to avoid unnecessarily object creation.
 \subsection{Software Architecture}
 As previously mentioned, in order to optimize all the hardware components mentioned above an event driven design needs to be adopted, filing off to threading only to distribute the computational load across processing cores. To avoid the OS from scheduling another thread to a core whilst being worked on and thereby invalidating the caches, the number of threads is equal to \(-1\) the number of cores in the system\footnote{-1 is used to dedicate a core to the main scheduling thread of the system that deal with the IO coordination}.Once events have been handed over to a specific core, the thread that owns the event also \textit{owns} its visibility completely. That is to say that no other thread is expected to have read or write access to it whilst in this core's care. This allows the application to enforce locality benefits in the data without worrying about visibility to other threads and thus providing a setting that minimises the copying of cache lines to and from main memory and satisfies the desire to keep data as close to the Core as possible. When the core is finished with the event, a model of releasing ownership of a collection of events at once is adopted by \textit{pushing} these events downstream to another component where visibility is required. 
 
@@ -217,13 +220,29 @@ Once a window of events has been processed, the accumulated view is then pushed 
 \subsection{Execution Modes}
 To coordinate the determination of when a window of events has been processed the system uses a time expiration rather than a number of samples policy. The reason is that it parallels better the temporal nature of the window and makes the aggregation stage in the window manager easier to implement. Consequently, There needs to be a protocol for determining when the window has expired. There are 2 modes of execution. 
 \subsubsection{Async}
+\begin{figure}[h!]
+\centering
+	\begin{subfigure}[t]{2 in}
+		\centering
+		\includegraphics[scale=0.7]{async-mode1.pdf}
+		\caption{\(t\)}\label{fig:asyncmode.t}		
+	\end{subfigure}
+	\begin{subfigure}[t]{2 in}
+		\centering
+		\includegraphics[scale=0.7]{async-mode2.pdf}
+		\caption{\(t+1\)}\label{fig:asyncmode.tplus1}		
+	\end{subfigure}
+	\caption{How ownership of the accumulators change during the end of an interval}
+\end{figure}
 This is the most simplest mechanism to implement and revolves around a coordinator thread that, for the most part just sleeps. Every \(t\) seconds it wakes up and proceeds to read the contents of each accumulator, copying it into main memory before sending it into the window manager. The difficulty in this approach is that case needs to be taken when reading from the accumulator as this process not only needs to be visible (This is data owned by another thread and therefore offers no guarantees that the data will be in main memory and not on a cache line somewhere) but also atomic. Whilst we are reading from the accumulator we cant have that worker also updating it at the same time else data corruption becomes a risk. Consequently, if we use synchronization to coordinate the access any advantages of cache optimization are negated as the implicit memory barrier that comes with such locking will cause all writes to be written back into main memory, essentially throttling the event processing of the system. 
 
 To avoid this, a setup up borrowed from \textit{hot-cold} DR topologies of server cluster is adopted where 2 copies exist of each local accumulator - one live and one staging. The purpose is that only one of these accumulators is owned by the worker thread. When the coordinator thread wakes up, it switches the live to staging and vice versa meaning that the worker thread relinquishes sole ownership of the live accumulator and takes on the staging one. Once the live accumulator is now staging, the coordinator thread can safely and atomically access the data in the accumulator. This can be implemented using just a single volatile bit mask that determines which accumulator is live. 
 \subsubsection{Sync}
-Discussion on the Asnyc and Sync modes of execution
+The other execution mode is one where there is no coordinator thread. Each worker is responsible for determining when a window is ready and the accumulated event should be pushed downstream as part of its actual processing task. This means there is no ownership transfer or extra memory impacting accumulator copies. One potential drawback of this approach is that, if there are no events in the system, the thread cannot check to see whether it current accumulator has expired and window intervals can become stale. To combat this, \textit{heart beat} events are added by the dispatcher at the boundary of each interval to ensure timely expiration of windows occurs. Because the main copying of the accumulators into main memory is performed on the work thread itself, this approach leads to short pauses in the event stream at window  
 \section{Naive Bayes}
-Discussion on how naive bayes works and it's applicability for the task to achieve the classification given the above design.
+Potentially any classifier could be used but, as there is a focus to optimize the model to exploit the cache lines, one that can form a model representation using simple counts is extremely useful. Addition of simple variables in a continuous array is something that is extremely cache friendly and, as such the Naive Bayes technique is adopted in this system. Naive bayes works by building a probabilistic model using prior and posterior combinations of feature value/label pairs under strict naive assumptions of independence. The idea is that, by such a building probability distribution from observed events, unseen classifications can be predicted by maximising the likelihood estimates from the built distribution of all classifications based on the unseen event's feature values. 
+
+\[\hat{y}=\argmax_{k \in \{1,...,k\}} p(C_k)\prod_{i=1}^n p(x_i | C_k)\]
 \section{IO}
 Some bit about how IO is the bottle neck in most systems
 \subsection{Selectors}

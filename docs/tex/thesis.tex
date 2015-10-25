@@ -18,6 +18,7 @@
 \usepackage{csquotes}
 \usepackage{caption}
 \usepackage{subcaption}
+\usepackage{multicol}
 \usepackage[labelformat=simple]{subcaption}
 \usepackage[T1]{fontenc}
 \usepackage{float}
@@ -125,7 +126,7 @@ On the other side of the technology spectrum, high throughput processing used in
 
 Further to this, the LMAX exchange in 2011 released a high throughput processing toolkit that borrowed from similar principles of software and hardware cooperation. Using techniques borrowed from synergising hardware and software, this toolkit is capable of supporting 25M events a second on a single commodity instance\cite{disruptor-paper}. This is not actual computational work mind, just moving events from one conceptual area of a program to another under concurrently safe conditions. None-the-less, achieving such high rates of transfer in in a thread safe manner is still highly impressive. It accomplishes this by using lock-less queues known as \textit{disruptors} that exploit a perfect \textit{mechanical sympathy} between high level programming paradigms and the under lying hardware infrastructure. The basic idea is that disruptors can act as brokers for events, passing them to different areas of code that may or may not be on different threads. This enables event driven design where threads are only used to pin execution to a particular CPU core\cite{processor-affinity}. These long running threads then can operate on the events from the disruptor using the single writer paradigm which ensures that write contention is no longer a concern and only care about visibility to other reader threads need be considered(see \ref{fig:disruptor-ex}). The worker threads can then pass events through the system without costly synchronisation and thread context switching.
 
-Disruptors obtain their ultra fast design by utilising cache line structures and memory barriers present on modern cpus. They are essentially queues implemented in ring buffers where the majority of access is completely unsynchronised - care only be taken to ensure that threads have visibility of events on the buffer. Using a volatile pointer to the index of the buffer, as long as all event processors do not read past the writer position, no locking is required. 
+Disruptors obtain their ultra fast design by utilising cache line structures and memory barriers present on modern cpus. They are essentially queues implemented in ring buffers where the majority of access is completely unsynchronised - care only be taken to ensure that threads have visibility of events on the buffer. Using a \texttt{volatile} pointer to the index of the buffer, as long as all event processors do not read past the writer position, no locking is required. 
 \floatsetup[figure]{capposition=beside,capbesideposition={top,right}}
 \begin{figure}[h]
 \centering
@@ -207,7 +208,7 @@ Another consideration that's worth highlighting is that within managed virtual e
 \subsection{Software Architecture}
 As previously mentioned, in order to optimize all the hardware components mentioned above an event driven design needs to be adopted, filing off to threading only to distribute the computational load across processing cores. To avoid the OS from scheduling another thread to a core whilst being worked on and thereby invalidating the caches, the number of threads is equal to \(-1\) the number of cores in the system\footnote{-1 is used to dedicate a core to the main scheduling thread of the system that deal with the IO coordination}.Once events have been handed over to a specific core, the thread that owns the event also \textit{owns} its visibility completely. That is to say that no other thread is expected to have read or write access to it whilst in this core's care. This allows the application to enforce locality benefits in the data without worrying about visibility to other threads and thus providing a setting that minimises the copying of cache lines to and from main memory and satisfies the desire to keep data as close to the Core as possible. When the core is finished with the event, a model of releasing ownership of a collection of events at once is adopted by \textit{pushing} these events downstream to another component where visibility is required. 
 
-To facilitate the movement of these events from the input stream into the care of dedicated cores and finally, back into main memory, the use of the disruptor queues already mentioned is selected. Note only are these queues lightening fast but they also put in place the required memory barriers mentioned to, like a runner in a relay, pass off ownership of the event once it is finished with and providing the necessary visibility guarantees. Another side effect of this design, as will be seen, is that it is completely lockless, only relying on the CAS operations in the disruptor under busy load. Furthermore, there is only one custom volatile variable when running the system in \textit{Sync} mode. A rough architecture plan of the system is presented in Figure \ref{fig:architectureoverview}
+To facilitate the movement of these events from the input stream into the care of dedicated cores and finally, back into main memory, the use of the disruptor queues already mentioned is selected. Note only are these queues lightening fast but they also put in place the required memory barriers mentioned to, like a runner in a relay, pass off ownership of the event once it is finished with and providing the necessary visibility guarantees. Another side effect of this design, as will be seen, is that it is completely lockless, only relying on the CAS operations in the disruptor under busy load. Furthermore, there is only one custom \texttt{volatile} variable when running the system in \textit{Sync} mode. A rough architecture plan of the system is presented in Figure \ref{fig:architectureoverview}
 
 \floatsetup[figure]{capposition=bottom,capbesideposition={top,right}}
 \begin{figure}[h!]
@@ -216,7 +217,7 @@ To facilitate the movement of these events from the input stream into the care o
 \includegraphics[scale=0.72, trim=35 50 0 13, clip=true] {architectureoverview.pdf}
 \label{fig:architectureoverview}
 \end{figure}
-Events flow into the system and feed into the \textbf{Dispatcher} module by a single main thread. Here the events are randomly pushed into a series of disruptor queues, one for each CPU core using a simple uniform distribution. Each disruptor can be thought of as defining the work queue for each core whilst a dedicated thread associated with each one, consumes events one at a time. These worker threads then construct an accumulated view of a so called window of events. To aid in this, the \textbf{Accumulator} module exposes a highly cache efficient data structure that each thread has a \textit{local} instance of. These local instances are completely owned by each thread permitting both read and write operations and exist to fully exploit the cachelines of the underlying associated core. In order to maximise temporal locality, a shared \textit{global} instance of an accumulator exists that allows more long term insights into the data to be shared across threads. To avoid unnecessarily cache flushes, this shared instance is completely immutable allowing only read access across the workers. Enforced using final declarations, data access from the global accumulator can be essentially copied into the cache lines of each worker thread, maintaining the single ownership properties required of the worker data accesses - In this respect, the global accumulator can be thought of as a read only instance that each thread has a copy of\footnote{When a worker accesses an item in the global accumulator, the OS is free to copy the data into the local cache of whatever core the thread is assigned to}.
+Events flow into the system and feed into the \textbf{Dispatcher} module by a single main thread. Here the events are randomly pushed into a series of disruptor queues, one for each CPU core using a simple uniform distribution. Each disruptor can be thought of as defining the work queue for each core whilst a dedicated thread associated with each one, consumes events one at a time. These worker threads then construct an accumulated view of a so called window of events. To aid in this, the \textbf{Accumulator} module exposes a highly cache efficient data structure that each thread has a \textit{local} instance of. These local instances are completely owned by each thread permitting both read and write operations and exist to fully exploit the cachelines of the underlying associated core. In order to maximise temporal locality, a shared \textit{global} index that can be used within the local accumulator so that more long term insights into the data can be shared across threads. To avoid unnecessarily cache flushes, this shared instance is completely immutable allowing only read access across the workers. Enforced using \texttt{final} declarations, data access from the global indexes can be essentially copied into the cache lines of each worker thread, maintaining the single ownership properties required of the worker data accesses - In this respect, the global index can be thought of as a read only instance that each thread has a copy of\footnote{When a worker accesses an item in the global index, the OS is free to copy the data into the local cache of whatever core the thread is assigned to}.
 
 Once a window of events has been processed, the accumulated view is then pushed back into the main thread via the use of a single shared disruptor queue. The main thread then consumes these accumulated events and aggregates them together using a \textbf{Manager Manager}. This module takes each of the accumulated events and combines them into a single \textit{window} which represents a combined view of the data for a particular interval of time. As the accumulator threads push more and more windows into the manager, so it also keeps track of each interval, accumulating further to produce a single overarching representation of all accumulator windows and intervals. This serves as the main aggregated model of the system. This aggregated model is not only exposed to the \textbf{Classifier} to produce predicted labels to unseen events, but also back into the global accumulator so that the worker threads can profit from this longer sighted view of the data.
 
@@ -239,7 +240,7 @@ To coordinate the determination of when a window of events has been processed th
 \end{figure}
 This is the most simplest mechanism to implement and revolves around a coordinator thread that, for the most part just sleeps. Every \(t\) seconds it wakes up and proceeds to read the contents of each accumulator, copying it into main memory before sending it into the window manager. The difficulty in this approach is that case needs to be taken when reading from the accumulator as this process not only needs to be visible (This is data owned by another thread and therefore offers no guarantees that the data will be in main memory and not on a cache line somewhere) but also atomic. Whilst we are reading from the accumulator we cant have that worker also updating it at the same time else data corruption becomes a risk. Consequently, if we use synchronization to coordinate the access any advantages of cache optimization are negated as the implicit memory barrier that comes with such locking will cause all writes to be written back into main memory, essentially throttling the event processing of the system. 
 
-To avoid this, a setup up borrowed from \textit{hot-cold} DR topologies of server cluster is adopted where 2 copies exist of each local accumulator - one live and one staging. The purpose is that only one of these accumulators is owned by the worker thread. When the coordinator thread wakes up, it switches the live to staging and vice versa meaning that the worker thread relinquishes sole ownership of the live accumulator and takes on the staging one. Once the live accumulator is now staging, the coordinator thread can safely and atomically access the data in the accumulator. This can be implemented using just a single volatile bit mask that determines which accumulator is live. 
+To avoid this, a setup up borrowed from \textit{hot-cold} DR topologies of server cluster is adopted where 2 copies exist of each local accumulator - one live and one staging. The purpose is that only one of these accumulators is owned by the worker thread. When the coordinator thread wakes up, it switches the live to staging and vice versa meaning that the worker thread relinquishes sole ownership of the live accumulator and takes on the staging one. Once the live accumulator is now staging, the coordinator thread can safely and atomically access the data in the accumulator. This can be implemented using just a single \texttt{volatile} bit mask that determines which accumulator is live. 
 \subsubsection{Sync}
 The other execution mode is one where there is no coordinator thread. Each worker is responsible for determining when a window is ready and the accumulated event should be pushed downstream as part of its actual processing task. This means there is no ownership transfer or extra memory impacting accumulator copies. One potential drawback of this approach is that, if there are no events in the system, the thread cannot check to see whether it current accumulator has expired and window intervals can become stale. To combat this, \textit{heart beat} events are added by the dispatcher at the boundary of each interval to ensure timely expiration of windows occurs. Because the main copying of the accumulators into main memory is performed on the work thread itself, this approach leads to short pauses in the event stream at window  
 \section{Naive Bayes}
@@ -251,7 +252,7 @@ Framing the classifier as a personalised trending now predictor, the formula is 
 
 \[\hat{y}=limit(n, \operatorname*{rank}_{k \in \{1,...,k\}} p(C_k)\prod_{i=1}^n p(x_i | C_k))\]
 The prior \(p(c_k)\) term captures the traditional trending now function whereas the posterior \(p(x_i | C_k)\) captures the personalised extension.\\
-To build the probability distribution using an accumulator methodology is simple. When a labelled event is observed, an accumulator slot is referenced based on the classification value (to capture the prior) and one for each feature value / classification (capturing the posterior). The values in each of this slots is then incremented by 1. The probability for each prior term is then the total number of events seen of each classification value over the total number of events and the posterior terms is calculated as the total number of events seen of each feature/classification pairing over the total number of events of that particular class.
+To build the probability distribution using an accumulator methodology is simple. When a labelled event is observed, an accumulator slot is referenced based on the classification value (to capture the prior) and one for each discrete feature value / classification pairing (capturing the posterior). The values in each of this slots is then incremented by 1. The probability for each prior term is then the total number of events seen of each classification value over the total number of events and the posterior terms is calculated as the total number of events seen of each feature/classification pairing over the total number of events of that particular class.
 
 \begin{figure}[h!]
 \begin{subfigure}[t]{2 in}
@@ -263,28 +264,83 @@ To build the probability distribution using an accumulator methodology is simple
 \caption{Posterior term calculation}
 \end{subfigure}
 \end{figure}
+For continuous values, distributions can be assumed to represent probability density functions. In the case of a normal distribution, for a given continuous feature or classification type, the prior and posteriors can be estimated by building online streamed based mean and standard deviations based on the event stream. 
+
+\begin{figure}[h!]
+\begin{subfigure}[t]{2.5 in}
+\[p(C_k) = \frac{1}{\sigma(C)\sqrt{2\pi}}e^{-\frac{(C_k - \mu(C))^2}{2\sigma(C)^2}}\]
+\caption{Prior term calculation}
+\end{subfigure}
+\begin{subfigure}[t]{2.5 in}
+\[p(x_i | C_k) = \frac{1}{\sigma(C_k)\sqrt{2\pi}}e^{-\frac{(x_i - \mu(C_k))^2}{2\sigma(C_k)^2}}\]
+\caption{Posterior term calculation}
+\end{subfigure}
+\end{figure}
+As it is not possible to store all event data in memory, calculation of the \(\mu\) and \(\sigma\) variables needs to be conducted in an online fashion\footnote{This online version proposed by Knuth\cite{knuth-aop} is an adaption of Welford's online variance method and is used due to its better handling of overflow} where just 3 variables can be used to capture the distribution parameters (namely \(n\), \(\mu\) and \(M_2\)). Each variable can occupy a single slot in the accumulator and are stored sequentially to exploit the spatial locality of cache lines.
+
+\captionsetup[subfigure]{labelfont=bf,textfont=normalfont,singlelinecheck=off,justification=centering,labelformat=simple, labelsep=colon}
+\begin{figure}[h!]
+\begin{subfigure}[t]{2.5 in}
+\[\mu_{i+1} = \mu_i + \frac{(x_i - \mu_i)}{(n_i)}\]
+\caption{Mean Calculation}
+\end{subfigure}
+\begin{subfigure}[t]{2.5 in}
+\[M_{2_{i+1}} = M_{2_i} + (x_i - \mu_i)(x - \mu_{i+1})\]
+\caption{Intrim Calculation}
+\end{subfigure}
+\begin{subfigure}[t]{2.5 in}
+\[\sigma_i = \frac{M_{2_i}}{(n_i-1)}\]
+\caption{Variance Calculation}
+\end{subfigure}
+\end{figure}
+
+
 \section{IO}
 In order for events to enter the system, a sensible IO strategy is needed not just to transport the bytes but also to deserialize them into a format that can be made sense of. This deserialising is a major bottleneck in any IO heavy system so care needs to be taken to ensure it is as efficient as possible
 \subsection{Selectors}
-As previously mentioned, the IO bus on modern architectures relies on interrupts that occur when data is available on the IO bus. In order to mimic this as much as possible, the system utilises the selector mechanism of *nix operating systems that approximates a 1-1 mapping between these interrupts and a kernal event from the OS. Java's NIO module provides an interface to this system. Furthermore, normally memory is indexed in java using a specialised heap that the GC can maintain. Traditionally, all data from 
+As previously mentioned, the IO bus on modern architectures relies on interrupts that occur when data is available on the IO bus. In order to mimic this as much as possible, the system utilises the selector mechanism of *nix operating systems that approximates a 1-1 mapping between these interrupts and a kernal event from the OS. Java's NIO module provides an interface to this system. Furthermore, normally memory is indexed in java using a specialised heap that the GC can maintain. Traditionally, all data accessed within the JVM needs to be present in this heap but for networking, this means that data on the IO bus needs to first be copied into main memory prior to being processed. For the stream based methodology that this system utilises, this unnecessary detour not only adds extra transfer time as data is proxied through the heap but also puts extra burden on the garbage collector.
+To limited this, advantage is taken of the off heap byte buffers of the NIO package. These abstractions ensure that data is taken directly from the network interface into the CPU for serialising, and thus avoids commuting to the heap.
 \subsection{Protostuff}
-Description of why protostuff was chosen (easy to define. quick etc). The off heap byte buffer implementation added as part of this project.
+Serialisation that governs data interchange needs to be defined so that a contract of how events can be passed from up stream producers into the system. As deserialising is one of the main overheads of any high throughput system, one that focuses on both flexibility and speed is paramount. Consequently, Google's protobuf\cite{googleprotobuf} format is provided using the protostuff extension as a default implementation\footnote{The application is capable of supporting any demarshalling technology via the generic \texttt{EventMarshalBuffer} interface}. This was chosen because of it's external schema design, variable length encoding and sequential byte stream support that aids in good cache utilisation. Unfortunately, protostuff does not support proper off heap byte buffers so an extension was specifically created to exploit this\footnote{Now contributed back into the protostuff project}.
 \section{WindowManager}
-How the window manager maintains a rolling window view of accumulated representations of the event stream. Takes input from all the different accumulators based on the execution mode.
+\floatsetup[figure]{capposition=bottom,capbesideposition={top,right}}
+\begin{figure}[h!]
+\centering
+\caption{Illustration of how a new window interval arriving into the Window Manager will push out an older interval}
+\includegraphics[scale=0.72, trim=0 0 0 12, clip=true] {window.pdf}
+\label{fig:rollingwindow}
+\end{figure}
+The window manager is responsible for aggregating different event windows and intervals and controlling the expiration of each. It follows a rolling window design (see Figure \ref{fig:rollingwindow}) where by a view of \(k\) intervals of \(i\) time is maintained at any given moment. Each interval, created at time \(t\) is built from multiple windows from the accumulators which are combined together until the interval is no longer current at \(time = t+i\). At this point the interval is made immutable and a new interval created and set as current. 
+
+The total view of the window manager is then maintained by a separate aggregated state that represents all the aggregated intervals together. For discrete features, whenever an interval at time \(t\) is added to the view, the prior and posterior counts of this new interval are summed together whilst, when interval \(t-k\) leaves the view, its counts are subtracted from the aggregated state. When dealing with continuous values, the parameters of the underlying models need to also be summed and subtracted. For the case of the normal distribution, the parameters are summed and subtracted using the formulas in \ref{eq:combiningparams}:
+\begin{subequations}
+{\begin{equation}
+\mu_c = \frac{n_1\mu_1 + n_2\mu_2}{n_1 + n_2}
+\end{equation}
+\begin{equation}
+\sigma_c = \frac{n_1 [\sigma_1 + (\mu_1 - \mu_c)^2]+n_2[\sigma_2 + (\mu_2 + \mu_c)^2]}{n_1 + n_2}
+\end{equation}}
+\label{eq:combiningparams}
+\end{subequations}
+ 
 \section{Accumulators}
-A description of how the accumulators can sit on the cache lines reducing copying into main memory. Talk about the ordering of the accumulators so that most frequently seen slots (prior and posterior combinations) so they fit in cache lines and dont need to be flushed to main memory
-\subsection{Instances}
-How the different instances interact with each other
+As already detailed, the accumulators are the cornerstone of the aggregating of the events into accumulated windows. These are data structures used to optimize the cache layouts of the underlying hardware. Essentially,  it represents an indexable sequence of memory that focuses on structuring the indexes in such a way to exploit both the temporal and spatial qualities of the cache lines. This abstraction of position and value is the heart of the structure. The accumulator is essentially an expanding tree that indexes a leaf based on a given slot number that references the required value. Each leaf is actually a primitive array of integers created with a length equal to that of the cache line of the underlying CPU cores. The values that these slot numbers refer to relate to the variables needed for the naive bayes classifier and are determined by different lookup strategies according to the instance type of the accumulator. \\
+\floatsetup[figure]{capposition=bottom,capbesideposition={top,right}}
+\begin{figure}[h!]
+\centering
+\caption{shows a trival example of indexing slot 10. Note that the left most outer leaf is not assigned demonstrating the expanding and space saving design}
+\includegraphics[scale=0.72, trim=0 0 0 12, clip=true] {accumulator-lookup.pdf}
+\label{fig:accumulator-lookup}
+\end{figure}
+
+The idea being that, most frequently accessed data sits together in the same leaf array and therefor the same cache line, optimising for cache hits and avoiding fetches into main memory. The structure grows as more slots are needed so that large and unnecessary allocation of array space can be avoided. To obtain a slot in the accumulator, its location in the tree is determined using a 3 level accumulator line structure where each line can be considered a depth in the tree. which branch at each level is then determined using the high order bit terms of the slot value. This results in slot numbers where the low order terms are similar to be more likely to reside in the same cache line.
+
+\subsection{Index Instances}
+For each worker thread there exists a dedicated accumulator instance that it has complete ownership of. All reads and writes are solely for the purposes of the owner thread which allows the cache optimistions detailed previously to function. In the naive bayes framing, a particular prior or posterior pairing needs be assigned to a particular slot in order to index into the accumulator in a deterministic manner. This lookup follows a hierarchical model where a given feature or feature/classification pairing is first checked in a global instance. If the global instance returns a slot number then this is used to index the accumulator - if not, a local instance is used.
 \subsubsection{Local Instance}
-local mode accumulators. 1 per cpu, supports writes and inherits from global
+Local mode indexes as ones that are completely unique to a given worker and are mutable in that new indexes cannot be assigned. If a given feature or feature/classification pairing is not present in the index, it is subsequently added against the next available slot in the accumulator. When slots are determined from local indexes, only spatial locality can be exploited as, being on the critical event stream path of the system, they need to function as quickly as possible.
 \subsubsection{Global Instance}
-Provides a read only view of the window manager's view of all accumulated captured events. 
-\subsection{Types}
-How we assign meaning to each of the accumulator slots
-\subsubsection{Discrete}
-Simple a count of prior/posterior pairs for naive bayes - one for each slot. How they are accumulated together both on a per event level and on a per accumulator level
-\subsubsection{Continuous}
-multi slot length to capture parameters of distribution models. How they are accumulated together both on a per event level and on a per accumulator level
+This is a read only shared instance that all worker have access to. After every time the window manager is updated with a new interval, indexes for all seen required variables (both for discrete and continuous feature types) are re computed based on a ranking of how frequently they have been seen. If \(p(x_1 | C_1)\) is the most observed posterior and \(p(x_2 | C_2)\) is the second most observed, then these will be reshuffled in to slots 0 and 1 respectively. By performing this reordering once every interval, temporal locality can be exploited by referencing the updates into the same leaf and therefore same underlying cache line. As this is a shared instance, a single \texttt{volatile} reference is shared amongst all workers and, as it is read only, no explicit locking is required, just the visibility guarantees. On each interval update, the window manager generates a new global index and reassigns the \texttt{volatile} reference to this new one for all the workers to see. To avoid boundary cases during updates, the global reference maintains its own namespace in the accumulators. This means that a given variable may be indexed from both a local and global slot and, as such, when constructing prior and posterior probability distributions, both need to be considered.
 \chapter{Implementation}
 Discussion on how the design is implemented. Only areas of implementation note are provided as this section could get out of hand! Core interfaces such as EventConsumer, Accumulator, FeatureHandler, ClassificationHandler etc.
 \section{Maven Modules}
@@ -315,6 +371,7 @@ No FeatureExtraction.
 Plugging in more classifiers. Spatial models such as RBF's etc
 Static analysis should be conducted,
 Bucketed Continuous accumulator types
+using object pooling from protostuff rather than Schema.newMessage()
 
 \printbibliography
 

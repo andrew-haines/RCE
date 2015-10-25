@@ -54,6 +54,13 @@
       \verb http://mahout.apache.org/
       \endverb
     \endentry
+    \entry{googleprotobuf}{webpage}{}
+      \field{sortinit}{0}
+      \field{sortinithash}{990108227b3316c02842d895999a0165}
+      \verb{url}
+      \verb https://developers.google.com/protocol-buffers/docs/reference/proto3-spec
+      \endverb
+    \endentry
     \entry{storm-twitter}{inproceedings}{}
       \name{author}{1}{}{%
         {{hash=33b04474e7bf12ec6ee7926819ece52f}{A.\bibnamedelimi Toshniwal}{A\bibinitperiod\bibinitdelim T\bibinitperiod}{et\bibnamedelima al}{e\bibinitperiod\bibinitdelim a\bibinitperiod}{}{}{S.\bibnamedelimi Taneja}{S\bibinitperiod\bibinitdelim T\bibinitperiod}}%
@@ -88,6 +95,22 @@
       \field{booktitle}{OSDI}
       \field{title}{MapReduce: Simplified Data Processing on Large Clusters}
       \field{year}{2004}
+    \endentry
+    \entry{knuth-aop}{book}{}
+      \name{author}{1}{}{%
+        {{hash=1dd533466eb3313074d496394d319407}{Knuth}{K\bibinitperiod}{Donald}{D\bibinitperiod}{}{}{}{}}%
+      }
+      \list{publisher}{1}{%
+        {Addison-Wesley}%
+      }
+      \strng{namehash}{1dd533466eb3313074d496394d319407}
+      \strng{fullhash}{1dd533466eb3313074d496394d319407}
+      \field{sortinit}{K}
+      \field{sortinithash}{a7d5b3aec5a0890aae7baf85a209abfc}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{title}{The Art of Computer Programming}
+      \field{year}{1998}
     \endentry
     \entry{dryad}{article}{}
       \name{author}{1}{}{%

@@ -43,7 +43,14 @@
 }
 \captionsetup[figure]{labelfont=it,textfont={it}}
 \captionsetup[subfigure]{labelfont=bf,textfont=normalfont,singlelinecheck=off,justification=raggedright,labelformat=simple, labelsep=colon}
-
+\usepackage{newfloat}
+\DeclareFloatingEnvironment[
+    fileext=los,
+    listname=List of Equations,
+    name=Equations,
+    placement=tbhp,
+    within=section,
+]{myequations}
 %----------------------------------------------------------------------------------------
 %	BEGIN & TABLE OF CONTENTS
 %----------------------------------------------------------------------------------------
@@ -312,19 +319,32 @@ Serialisation that governs data interchange needs to be defined so that a contra
 \end{figure}
 The window manager is responsible for aggregating different event windows and intervals and controlling the expiration of each. It follows a rolling window design (see Figure \ref{fig:rollingwindow}) where by a view of \(k\) intervals of \(i\) time is maintained at any given moment. Each interval, created at time \(t\) is built from multiple windows from the accumulators which are combined together until the interval is no longer current at \(time = t+i\). At this point the interval is made immutable and a new interval created and set as current. 
 
-The total view of the window manager is then maintained by a separate aggregated state that represents all the aggregated intervals together. For discrete features, whenever an interval at time \(t\) is added to the view, the prior and posterior counts of this new interval are summed together whilst, when interval \(t-k\) leaves the view, its counts are subtracted from the aggregated state. When dealing with continuous values, the parameters of the underlying models need to also be summed and subtracted. For the case of the normal distribution, the parameters are summed and subtracted using the formulas in \ref{eq:combiningparams}:
-\begin{subequations}
-{\begin{equation}
+The total view of the window manager is then maintained by a separate aggregated state that represents all the aggregated intervals together. For discrete features, whenever an interval at time \(t\) is added to the view, the prior and posterior counts of this new interval are summed together whilst, when interval \(t-k\) leaves the view, its counts are subtracted from the aggregated state. When dealing with continuous values, the parameters of the underlying models need to also be summed and subtracted. For the case of the normal distribution, the parameters are summed and subtracted using the following bias corrected equations:
+\newpage
+\begin{myequations}
+\begin{equation}
 \mu_c = \frac{n_1\mu_1 + n_2\mu_2}{n_1 + n_2}
 \end{equation}
 \begin{equation}
-\sigma_c = \frac{n_1 [\sigma_1 + (\mu_1 - \mu_c)^2]+n_2[\sigma_2 + (\mu_2 + \mu_c)^2]}{n_1 + n_2}
-\end{equation}}
-\label{eq:combiningparams}
-\end{subequations}
+\sigma_c = \frac{(((n_1 -1) \sigma_1) + ((n_2-1) \sigma_2) + n_1(\mu_1 - \mu_c)^2) + n_2(\mu_2 - \mu_c)^2)}{n_c-1}
+\end{equation}
+\label{eq:combiningparamsadd}
+\captionof{myequations}{Addition of normal distribution parameters for each windows/intervals}
+\end{myequations}
+
+\begin{myequations}
+\begin{equation}
+\mu_s = \frac{n_1\mu_1 - n_2\mu_2}{n_1 - n_2}
+\end{equation}
+\begin{equation}
+\sigma_s = \frac{(((n_1 -1) \sigma_1) - ((n_2-1) \sigma_2) - n_1(\mu_1 - \mu_c)^2) - n_2(\mu_2 - \mu_c)^2)}{n_c-1}
+\end{equation}
+\label{eq:combiningparamssub}
+\captionof{myequations}{Subtraction of normal distribution parameters for each windows/intervals}
+\end{myequations}
  
 \section{Accumulators}
-As already detailed, the accumulators are the cornerstone of the aggregating of the events into accumulated windows. These are data structures used to optimize the cache layouts of the underlying hardware. Essentially,  it represents an indexable sequence of memory that focuses on structuring the indexes in such a way to exploit both the temporal and spatial qualities of the cache lines. This abstraction of position and value is the heart of the structure. The accumulator is essentially an expanding tree that indexes a leaf based on a given slot number that references the required value. Each leaf is actually a primitive array of integers created with a length equal to that of the cache line of the underlying CPU cores. The values that these slot numbers refer to relate to the variables needed for the naive bayes classifier and are determined by different lookup strategies according to the instance type of the accumulator. \\
+The accumulators are specifically tailored data structures used to optimize the cache layouts of the underlying hardware and represents the cornerstone of aggregating events into the accumulated models and make up each window. Essentially, they represents an indexable sequence of memory that focuses on structuring the indexes in such a way to exploit both the temporal and spatial qualities of the cache lines. This abstraction of position and value is the heart of the structure. The accumulator is essentially an expanding tree that indexes a leaf based on a given slot number that references the required value. Each leaf is actually a primitive array of integers created with a length equal to that of the cache line of the underlying CPU cores. The values that these slot numbers refer to relate to the variables needed for the naive bayes classifier and are determined by different lookup strategies according to the instance type of the accumulator. \\
 \floatsetup[figure]{capposition=bottom,capbesideposition={top,right}}
 \begin{figure}[h!]
 \centering
@@ -333,7 +353,7 @@ As already detailed, the accumulators are the cornerstone of the aggregating of 
 \label{fig:accumulator-lookup}
 \end{figure}
 
-The idea being that, most frequently accessed data sits together in the same leaf array and therefor the same cache line, optimising for cache hits and avoiding fetches into main memory. The structure grows as more slots are needed so that large and unnecessary allocation of array space can be avoided. To obtain a slot in the accumulator, its location in the tree is determined using a 3 level accumulator line structure where each line can be considered a depth in the tree. which branch at each level is then determined using the high order bit terms of the slot value. This results in slot numbers where the low order terms are similar to be more likely to reside in the same cache line.
+The idea being that, most frequently accessed data sits together in the same leaf array and therefore the same cache line, optimising for cache hits and avoiding fetches into main memory. The structure grows as more slots are needed so that large and unnecessary allocation of array space can be avoided. To obtain a slot in the accumulator, its location in the tree is determined using a 3 level accumulator line structure where each line can be considered a depth in the tree. which branch at each level is then determined using the high order bit terms of the slot value. This results in slot numbers where the low order terms are similar to be more likely to reside in the same cache line.
 
 \subsection{Index Instances}
 For each worker thread there exists a dedicated accumulator instance that it has complete ownership of. All reads and writes are solely for the purposes of the owner thread which allows the cache optimistions detailed previously to function. In the naive bayes framing, a particular prior or posterior pairing needs be assigned to a particular slot in order to index into the accumulator in a deterministic manner. This lookup follows a hierarchical model where a given feature or feature/classification pairing is first checked in a global instance. If the global instance returns a slot number then this is used to index the accumulator - if not, a local instance is used.

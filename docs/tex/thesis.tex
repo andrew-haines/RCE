@@ -253,21 +253,23 @@ The other execution mode is one where there is no coordinator thread. Each worke
 \section{Naive Bayes}
 Potentially any classifier could be used but, as there is a focus to optimize the model to exploit the cache lines, one that can form a model representation using simple counts is extremely useful. Addition of simple variables in a continuous array is something that is extremely cache friendly and, as such the Naive Bayes technique is a perfect fit. Naive bayes works by building a probabilistic model using prior and posterior combinations of feature value/label pairs under strict naive assumptions of independence. The idea is that, by building probability distributions from observed events, unseen classifications can be predicted by maximising the likelihood estimates from the built distribution of all classifications based on the unseen event's feature values. 
 
-\[\hat{y}=\argmax_{k \in \{1,...,k\}} p(C_k)\prod_{i=1}^n p(x_i | C_k)\]
+\[\hat{y}=\argmax_{k \in \{1,...,K\}} p(C_k)\prod_{i=1}^n p(x_i | C_k)\]
 
-Framing the classifier as a personalised trending now predictor, the formula is changed slightly so that, instead of returning the classification with the maximum probability, we return the n top most probable classes. By setting \(n=1\) this functions the same as the original \(\argmax\) revision. 
+Framing the classifier as a personalised trending now predictor, the formula is changed slightly so that, instead of returning the classification with the maximum probability, the \(m\) top most probable classes. By setting \(m=1\) this functions the same as the original \(\argmax\) revision. 
 
-\[\hat{y}=limit(n, \operatorname*{rank}_{k \in \{1,...,k\}} p(C_k)\prod_{i=1}^n p(x_i | C_k))\]
+\[\hat{y_j}= p(C_j)\prod_{i=1}^n p(x_i | C_j))\]
+\[\text{Without loss of generality and assuming that }  \hat{y_j} \geq \hat{y_{j'}} \text{ if } j < j'.\]
+\[\mathbf{\hat{y}} = (\hat{y}_1, ..., \hat{y}_m) \text{ where } m \leq K\]
 The prior \(p(c_k)\) term captures the traditional trending now function whereas the posterior \(p(x_i | C_k)\) captures the personalised extension.\\
 To build the probability distribution using an accumulator methodology is simple. When a labelled event is observed, an accumulator slot is referenced based on the classification value (to capture the prior) and one for each discrete feature value / classification pairing (capturing the posterior). The values in each of this slots is then incremented by 1. The probability for each prior term is then the total number of events seen of each classification value over the total number of events and the posterior terms is calculated as the total number of events seen of each feature/classification pairing over the total number of events of that particular class.
 
 \begin{figure}[h!]
 \begin{subfigure}[t]{2 in}
-\[p(C_k) = \frac{n(C_k)}{\sum_{i} n(C_i)}\]
+\[p(C_k) = \frac{\nu(C_k)}{\sum_{i} \nu(C_i)}\]
 \caption{Prior term calculation}
 \end{subfigure}
 \begin{subfigure}[t]{2 in}
-\[p(x_i | C_k) = \frac{n(x_i | C_k)}{n(C_k)}\]
+\[p(x_i | C_k) = \frac{\nu(x_i | C_k)}{\nu(C_k)}\]
 \caption{Posterior term calculation}
 \end{subfigure}
 \end{figure}

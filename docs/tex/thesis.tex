@@ -25,6 +25,7 @@
 \usepackage[backend=biber]{biblatex}
 \addbibresource{references.bib}
 \usepackage{epstopdf}
+\usepackage{fancyvrb}
 \usepackage{hyperref}
 \usepackage{listings}
 \usepackage{color}
@@ -260,7 +261,7 @@ Framing the classifier as a personalised trending now predictor, the formula is 
 \[\hat{y_j}= p(C_j)\prod_{i=1}^n p(x_i | C_j))\]
 \[\text{Without loss of generality and assuming that }  \hat{y_j} \geq \hat{y_{j'}} \text{ if } j < j'.\]
 \[\mathbf{\hat{y}} = (\hat{y}_1, ..., \hat{y}_m) \text{ where } m \leq K\]
-The prior \(p(c_k)\) term captures the traditional trending now function whereas the posterior \(p(x_i | C_k)\) captures the personalised extension.\\
+The prior \(p(C_j)\) term captures the traditional trending now function whereas the posterior \(p(x_i | C_j)\) captures the personalised extension.\\
 To build the probability distribution using an accumulator methodology is simple. When a labelled event is observed, an accumulator slot is referenced based on the classification value (to capture the prior) and one for each discrete feature value / classification pairing (capturing the posterior). The values in each of this slots is then incremented by 1. The probability for each prior term is then the total number of events seen of each classification value over the total number of events and the posterior terms is calculated as the total number of events seen of each feature/classification pairing over the total number of events of that particular class.
 
 \begin{figure}[h!]
@@ -358,17 +359,78 @@ The accumulators are specifically tailored data structures used to optimize the 
 The idea being that, most frequently accessed data sits together in the same leaf array and therefore the same cache line, optimising for cache hits and avoiding fetches into main memory. The structure grows as more slots are needed so that large and unnecessary allocation of array space can be avoided. To obtain a slot in the accumulator, its location in the tree is determined using a 3 level accumulator line structure where each line can be considered a depth in the tree. which branch at each level is then determined using the high order bit terms of the slot value. This results in slot numbers where the low order terms are similar to be more likely to reside in the same cache line.
 
 \subsection{Index Instances}
-For each worker thread there exists a dedicated accumulator instance that it has complete ownership of. All reads and writes are solely for the purposes of the owner thread which allows the cache optimistions detailed previously to function. In the naive bayes framing, a particular prior or posterior pairing needs be assigned to a particular slot in order to index into the accumulator in a deterministic manner. This lookup follows a hierarchical model where a given feature or feature/classification pairing is first checked in a global instance. If the global instance returns a slot number then this is used to index the accumulator - if not, a local instance is used.
+For each worker thread there exists a dedicated accumulator instance that it has complete ownership of. All reads and writes are solely for the purposes of the owner thread which allows the cache optimisations detailed previously to function. In the naive bayes framing, a particular prior or posterior pairing needs be assigned to a particular slot in order to index into the accumulator in a deterministic manner. This lookup follows a hierarchical model where a given feature or feature/classification pairing is first checked in a global instance. If the global instance returns a slot number then this is used to index the accumulator - if not, a local instance is used.
 \subsubsection{Local Instance}
 Local mode indexes as ones that are completely unique to a given worker and are mutable in that new indexes cannot be assigned. If a given feature or feature/classification pairing is not present in the index, it is subsequently added against the next available slot in the accumulator. When slots are determined from local indexes, only spatial locality can be exploited as, being on the critical event stream path of the system, they need to function as quickly as possible.
 \subsubsection{Global Instance}
 This is a read only shared instance that all worker have access to. After every time the window manager is updated with a new interval, indexes for all seen required variables (both for discrete and continuous feature types) are re computed based on a ranking of how frequently they have been seen. If \(p(x_1 | C_1)\) is the most observed posterior and \(p(x_2 | C_2)\) is the second most observed, then these will be reshuffled in to slots 0 and 1 respectively. By performing this reordering once every interval, temporal locality can be exploited by referencing the updates into the same leaf and therefore same underlying cache line. As this is a shared instance, a single \texttt{volatile} reference is shared amongst all workers and, as it is read only, no explicit locking is required, just the visibility guarantees. On each interval update, the window manager generates a new global index and reassigns the \texttt{volatile} reference to this new one for all the workers to see. To avoid boundary cases during updates, the global reference maintains its own namespace in the accumulators. This means that a given variable may be indexed from both a local and global slot and, as such, when constructing prior and posterior probability distributions, both need to be considered.
+
+\floatsetup[figure]{capposition=bottom,capbesideposition={top,right}}
+\begin{figure}[h!]
+\centering
+\caption{Show's the data flow between the global and local indexes and the local accumulators and window manager. Blackened arrows represent data pushes whereas grey arrows represent data fetches}
+\includegraphics[scale=0.35, trim=0 0 0 12, clip=true] {indexes.pdf}
+\label{fig:indexes}
+\end{figure}
+
 \chapter{Implementation}
-Discussion on how the design is implemented. Only areas of implementation note are provided as this section could get out of hand! Core interfaces such as EventConsumer, Accumulator, FeatureHandler, ClassificationHandler etc.
+\VerbatimFootnotes
+\section{Overview}
+The system is implemented on top of the java programming language and virtual machine allowing it to execute on commodity hardware and OS even if the certain architectural paradigms the system optimizes for are absent. A number of design patterns are carefully chosen for this implementation in order to alleviate some of the thread safety and IO concerns that naturally arise in such a concurrent system. As this is an event driven system, there needs to be a clear distinction between data and logic. 
+\subsection{Data}
+Data is stored throughout in dumb 'model' objects \footnote{designated within com.haines.ml.rce.*.model.* packages} which can be considered to be the events. These lightweight objects contain no business logic and exist to simply define the schema of data used in the application. For the most part, this data is immutable and final to ensure that data is visible and sharable across threads. Areas where contentious access occurs, namely within the shared global accumulator state (\verb|NaiveBayesGlobalIndexes|), are handled with great consideration and, due to the live/staging methodologies already discussed, safe updating of such shared data need only use volatile variables\footnote{One example of this is in the shared \verb|VolatileNaiveBayesGlobalIndexesProvider| instance.}.\\
+The model objects that exist outside of the application domain that relate to the public API of the system are coded to interfaces. This allows any of the application code to be agnostic of serialization concerns of the implementing classes used to move the data from external clients in and out of the public API. The MVC patten is one that helps enforce this separation and is adopted throughout this application. Normally large scale applications take this concept of API and domain isolation further via the inclusion of a mapping layer that converts serialization objects from the controller into the application domain. However as such a technique incurs significant costs both in the copying of data between objects and the extra memory footprint for the garbage collector to work with, this coding to interface approach is deemed a sensible compromise. \\
+In the rare scenarios where data needs to be transformed (i.e not changed but projected into a different structure), the delegation patten\cite{design-patterns} is used to transparently perform this task. The \verb|RCEConfig| object is an example of this.
+\subsection{Logic}
+Actual business logic is stored in classes in either two ways. More often than not, \verb|Service| classes are used which contain no state and are designed to be instantiated once as a shared global instance\footnote{although not implemented via the Singleton anti-pattern}. These instances then operate on supplied data model objects and coordinate flow based on the business logic each Service is responsible for. Due to the immutable contract of the model classes, some further classes where the control of data under contentious access is paramount, data and business logic is combined in a dedicated class. The Accumulators for instance contain both data (the accumulator structure) and business logic (how global and local indexes interact for example). These classes break this rule of data and execution logic separation to ensure thread safety without requiring on costly object allocation. 
+\subsection{Application Instantiation}
+Because certain objects have affinity to specific threads(like the \verb|Accumulator| and supporting classes) whilst others are more global in nature (\verb|Service| instances), a patten is required to manage instantiation and wiring of these instances. For this, inversion of control\cite{ioc} is adopted where instances assume nothing about implementations and life cycles of their dependent components whilst a single IOC factory is then responsible for the instantiation and injection of an instance and its components. In the case of this project, the \verb|RCEApplicationFactory| provides the main entry point into the construction of the application. Originally Google's Guice\cite{guice} was planned to be used to handle this task but, due to the thready affinity requirements of large parts of the system, this became unwieldy to manage \footnote{See \verb|GuiceRCEApplicationFactory| and corresponding \verb|RCEConfigConfiguredInitiationModule| for an idea of the complexities}. Consequently, a bespoke IOC factory was implemented catering to the novel requirements of the system design whilst the \verb|ServiceLoader| frameworkof the JDK is used to bootstrap the construction. The package \verb|com.haines.ml.rce.main.factory| contains the IOC factories used to instantiate and configure the system which will be discussed in more detail later in this chapter.
+\subsection{DataStructures}
+Apart from the bespoke structures already discussed, whenever the system needs to communicate a number of specific instances to downstream components, it does so using the most minimal building block of the Java collections API namely the \verb|Iterable| class. The reason for this is two fold. Firstly, the interface only allows read access which, even if implementing collections don't explicitly enforce immutability, the design of this API keeps access in a read only and thus thread safe manner by default\footnote{Technically care still needs to be taken to ensure visibility}. Secondly and more importantly it enables on demand manipulation of data in a functional manner. This can be extremely useful and performant especially in an event driven system such as this. Data that passes through may need to be manipulated in certain scenarios to downstream actors. Data could be manipulated in anticipation but what if downstream components dont need to use such data? This extra work would have been performed unnecessarily. A better approach is to wrap the iterable so that whenever a forEach construct is applied to it, on demand the translation function is executed during iteration. \\
+Prior to version 8 Java provides no natively functional constructs but this doesn't mean that such paradigms are impossible to implement. Because the system is designed to be compatible with as wide an infrastructure as possible, enforcing java 8 was something felt to be avoided. therefore, static and final instances of Google's Function class from the guava libraries are used to mimic functional behavior and reap its on demand benefits. Where multiple invocations of a given iterable are possible, to reduce the repeated invocation of a costly function, the \verb|com.haines.ml.util.CachedIterable| class is provided to wrap functional iterables to cache their results.
+
 \section{Maven Modules}
-How the application is structured and the reasons why for extension and customisation
-\section{Distributions}
-How the distribution framework for continuous features is defined 
+The system utilizes a number of different libraries and adopts a number of conceptual logical components. To manage the dependency tree's, versioning, lifecycles and build of these components, the apache maven project\cite{maven} is used. Maven allows versioned dependencies to be specified in an XML pom file and manages the build life cycle, including testing and packaging of various artifacts that make up the system. As the application is relative large, the reactor functionality of maven is used to help define atomic units of functionality into separate modules that make up the application. 
+
+\floatsetup[figure]{capposition=bottom,capbesideposition={top,right}}
+\begin{figure}[h!]
+\centering
+\caption{The main component structure of the RCE application}
+\includegraphics[scale=0.35, trim=0 0 0 0, clip=true] {reactor-layout.pdf}
+\label{fig:indexes}
+\end{figure}
+
+Two further modules exist within the reactor build that form the basis of acceptance testing of the application. \verb|rce-performance-test| is responsible for testing the classification performance whilst \verb|rce-loadtest| is tasked with performance throughput and latency analysis of the system.
+
+\subsection{The Components}
+\subsubsection[rce-model]{rce-model\protect\footnote{It is called \textit{model} to mimic the MVC definition that this component represents although it is understood that this might cause confusions when considering the implications of such a name in the machine learning universe}}
+This defines the data encapsulation interfaces or domain objects that all execution of the system interact with. That is not to say that all model objects are defined in this component. Other's exist to provide specific domain definitions for givens modules to function (like \verb|NaiveBayesDistributionCounts|) but all cross concern domain objects are defined here. Further to this, interfaces for some of the eventing mechanisms are also defined here such as \verb|EventConsumer| so that all high level components utilise these global definitions without needing to be concerned about their implementation. This functions are the data flow interface that allows modules to communicate with each other.
+
+\subsubsection{rce-dispatcher}
+This vertical module encapsulates all the queue and event driven paradigms that the other horizontal modules utilise. It uses provides an abstraction to the disruptor library to deal with message coordination along with the main thread affinity dispatcher to push events into dedicated CPU's.
+
+\subsubsection{rce-accumulator}
+This defines the core accumulator datastructure with indexing types. When an event is received, which slots are to implemented from the indexes is determined by implementations of the \verb|AccumulatorLookupStrategy| interface. Using this design keeps the framework completely agnostic from it's application usage. Currently a naive bayes implementation exists to convert an event into the slots required to increment it's prior and posterior counts but this need not be the only model employed. A spatial model such as Radial Basis Functions would also fit well in this design along with an application completely divergent from an ML classification task\footnote{Consider a application used for alerting that warns if too many failures of a particular type have occurred.}\\
+To facilitate the different usages of discrete verses distribution based continuous accumulation, \verb|FeatureHandler| and \verb|ClassificationHandler| interfaces are provided that self as the public API interaction with the accumulators along with two provided implementations namely \verb|SequentialDistributionFeatureHandler| and\\ \verb|DiscreteLookupAccumulatorHandler|\footnote{A third is also provided called \verb|BucketedFeatureHandler| that is discussed more in the Future Work chapter}
+
+\subsubsection{rce-naivebayes}
+This provides the naive bayes implementation for the classification task of this system. It includes a \verb|RONaiveBayesMapBasedLookupStrategy| implementation for determining which slots should be incremented for a given event. It also defines the classification service to classify unseen events using probability models defined by implementations of \verb|NaiveBayesProbabilitiesProvider|.
+
+\subsubsection{rce-aggregator}
+This provides logic to aggregate multiple naive bayes counts together. This serves as the tooling for not only merging multiple local accumulator states together but also within the window manager as windows are added and removed.
+
+\subsubsection{rce-window}
+Provides the window manager implementation that uses the \verb|Aggregator| to add and subtract windows from it's internal state. The \verb|WindowManager| class is also a\\ \verb|NaiveBayesProbabilitiesProvider| that represents the probability model used when classifying.
+
+\subsubsection{rce-event-stream}
+This defines the controller and main processing loop of the system that takes events off the network bus, deserialises them and sends them on to the dispatcher.
+
+\subsubsection{rce-io-protostuff}
+Implements the domain model interfaces with protostuff serialising and deserialising instances which read directly off the bus rather than from the heap.
+
+\subsubsection{rce-main}
+Provides the IOC factory instances that actually build and configure the system 
+
 \section{Configuration}
 overriding classpath configuration of jaxb objects.
 \section{Testing}

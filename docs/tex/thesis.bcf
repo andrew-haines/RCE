@@ -2251,6 +2251,10 @@
     <bcf:citekey order="13">mahout-site</bcf:citekey>
     <bcf:citekey order="14">knuth-aop</bcf:citekey>
     <bcf:citekey order="15">googleprotobuf</bcf:citekey>
+    <bcf:citekey order="16">design-patterns</bcf:citekey>
+    <bcf:citekey order="17">ioc</bcf:citekey>
+    <bcf:citekey order="18">guice</bcf:citekey>
+    <bcf:citekey order="19">maven</bcf:citekey>
   </bcf:section>
   <bcf:sortlist section="0" name="nty" type="entry" sortscheme="nty">
   <bcf:sorting>

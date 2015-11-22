@@ -61,6 +61,27 @@
       \verb https://developers.google.com/protocol-buffers/docs/reference/proto3-spec
       \endverb
     \endentry
+    \entry{ioc}{webpage}{}
+      \field{sortinit}{0}
+      \field{sortinithash}{990108227b3316c02842d895999a0165}
+      \verb{url}
+      \verb http://martinfowler.com/articles/injection.html
+      \endverb
+    \endentry
+    \entry{guice}{webpage}{}
+      \field{sortinit}{0}
+      \field{sortinithash}{990108227b3316c02842d895999a0165}
+      \verb{url}
+      \verb https://github.com/google/guice/wiki/Motivation
+      \endverb
+    \endentry
+    \entry{maven}{webpage}{}
+      \field{sortinit}{0}
+      \field{sortinithash}{990108227b3316c02842d895999a0165}
+      \verb{url}
+      \verb https://maven.apache.org/
+      \endverb
+    \endentry
     \entry{storm-twitter}{inproceedings}{}
       \name{author}{1}{}{%
         {{hash=33b04474e7bf12ec6ee7926819ece52f}{A.\bibnamedelimi Toshniwal}{A\bibinitperiod\bibinitdelim T\bibinitperiod}{et\bibnamedelima al}{e\bibinitperiod\bibinitdelim a\bibinitperiod}{}{}{S.\bibnamedelimi Taneja}{S\bibinitperiod\bibinitdelim T\bibinitperiod}}%
@@ -95,6 +116,22 @@
       \field{booktitle}{OSDI}
       \field{title}{MapReduce: Simplified Data Processing on Large Clusters}
       \field{year}{2004}
+    \endentry
+    \entry{design-patterns}{book}{}
+      \name{author}{1}{}{%
+        {{hash=fdbaf7c895e04035477da651f633a936}{E\bibnamedelima Gamma}{E\bibinitperiod\bibinitdelim G\bibinitperiod}{et\bibnamedelima al}{e\bibinitperiod\bibinitdelim a\bibinitperiod}{}{}{R\bibnamedelima Helm}{R\bibinitperiod\bibinitdelim H\bibinitperiod}}%
+      }
+      \list{publisher}{1}{%
+        {Addison-Wesley}%
+      }
+      \strng{namehash}{fdbaf7c895e04035477da651f633a936}
+      \strng{fullhash}{fdbaf7c895e04035477da651f633a936}
+      \field{sortinit}{E}
+      \field{sortinithash}{fefc5210ef4721525b2a478df41efcd4}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{title}{Design Patterns - Elements of Reusable Object-Oriented Software}
+      \field{year}{1994}
     \endentry
     \entry{knuth-aop}{book}{}
       \name{author}{1}{}{%

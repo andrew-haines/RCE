@@ -16,7 +16,6 @@ import com.haines.ml.rce.naivebayes.NaiveBayesService;
 import com.haines.ml.rce.naivebayes.model.NaiveBayesCounts.MutableDiscreteNaiveBayesCounts;
 import com.haines.ml.rce.naivebayes.model.NaiveBayesCounts.MutableNaiveBayesCounts;
 import com.haines.ml.rce.naivebayes.model.NaiveBayesCounts.MutableNaiveBayesDistributionCounts;
-import com.haines.ml.rce.naivebayes.model.NaiveBayesProperty;
 import com.haines.ml.rce.naivebayes.model.NaiveBayesCounts;
 import com.haines.ml.rce.naivebayes.model.NaiveBayesProperty.DiscreteNaiveBayesPosteriorProperty;
 import com.haines.ml.rce.naivebayes.model.NaiveBayesProperty.DiscreteNaiveBayesPriorProperty;

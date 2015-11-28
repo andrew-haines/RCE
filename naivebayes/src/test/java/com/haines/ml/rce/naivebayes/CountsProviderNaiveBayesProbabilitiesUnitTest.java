@@ -5,13 +5,13 @@ import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
 
 import java.util.Arrays;
+import java.util.Iterator;
 
 import org.junit.Before;
 import org.junit.Test;
 
-import com.haines.ml.rce.accumulator.HandlerRepository;
-import com.haines.ml.rce.accumulator.lookups.RONaiveBayesMapBasedLookupStrategy;
 import com.haines.ml.rce.naivebayes.model.NaiveBayesCounts;
+import com.haines.ml.rce.naivebayes.model.NaiveBayesProperty;
 import com.haines.ml.rce.naivebayes.model.NaiveBayesCounts.DiscreteNaiveBayesCounts;
 import com.haines.ml.rce.naivebayes.model.NaiveBayesProperty.DiscreteNaiveBayesPosteriorProperty;
 import com.haines.ml.rce.naivebayes.model.NaiveBayesProperty.DiscreteNaiveBayesPriorProperty;
@@ -69,6 +69,33 @@ public class CountsProviderNaiveBayesProbabilitiesUnitTest {
 	@Test
 	public void givenCandidate_whenCallingGetPriorProbabilitiesForUnknownFeature_thenNominalProbabilityReturned(){
 		assertThat(candidate.getPriorProbability(new TestClassification("class6")), is(equalTo(CountsProviderNaiveBayesProbabilities.NOMINAL_PROBABILITY)));
+	}
+	
+	@Test
+	public void givenCandidate_whenCallingOrderedProperties_thenPropertiesReturnedInOrderOfMostFrequent(){
+		Iterator<NaiveBayesProperty> orderedProperties = candidate.getOrderedProperties().iterator();
+		
+		NaiveBayesProperty nextProperty = orderedProperties.next();
+		
+		assertThat(nextProperty.getType().cast(nextProperty), is(equalTo((NaiveBayesProperty)new DiscreteNaiveBayesPosteriorProperty(new TestFeature("feature2"), new TestClassification("class1"))))); // absolute outcomes = 76
+		nextProperty = orderedProperties.next();
+		assertThat(nextProperty.getType().cast(nextProperty), is(equalTo((NaiveBayesProperty)new DiscreteNaiveBayesPriorProperty(new TestClassification("class4"))))); // absolute outcomes = 65
+		nextProperty = orderedProperties.next();
+		assertThat(nextProperty.getType().cast(nextProperty), is(equalTo((NaiveBayesProperty)new DiscreteNaiveBayesPriorProperty(new TestClassification("class2"))))); // absolute outcomes = 45
+		nextProperty = orderedProperties.next();
+		assertThat(nextProperty.getType().cast(nextProperty), is(equalTo((NaiveBayesProperty)new DiscreteNaiveBayesPosteriorProperty(new TestFeature("feature1"), new TestClassification("class1"))))); // absolute outcomes = 33
+		nextProperty = orderedProperties.next();
+		assertThat(nextProperty.getType().cast(nextProperty), is(equalTo((NaiveBayesProperty)new DiscreteNaiveBayesPosteriorProperty(new TestFeature("feature1"), new TestClassification("class2"))))); // absolute outcomes = 22
+		nextProperty = orderedProperties.next();
+		assertThat(nextProperty.getType().cast(nextProperty), is(equalTo((NaiveBayesProperty)new DiscreteNaiveBayesPosteriorProperty(new TestFeature("feature2"), new TestClassification("class2"))))); // absolute outcomes = 21
+		nextProperty = orderedProperties.next();
+		assertThat(nextProperty.getType().cast(nextProperty), is(equalTo((NaiveBayesProperty)new DiscreteNaiveBayesPriorProperty(new TestClassification("class1"))))); // absolute outcomes = 13
+		nextProperty = orderedProperties.next();
+		assertThat(nextProperty.getType().cast(nextProperty), is(equalTo((NaiveBayesProperty)new DiscreteNaiveBayesPriorProperty(new TestClassification("class5"))))); // absolute outcomes = 8
+		nextProperty = orderedProperties.next();
+		assertThat(nextProperty.getType().cast(nextProperty), is(equalTo((NaiveBayesProperty)new DiscreteNaiveBayesPriorProperty(new TestClassification("class3"))))); // absolute outcomes = 2
+
+
 	}
 	
 	@Test(expected=IllegalStateException.class)

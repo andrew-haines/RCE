@@ -31,8 +31,10 @@ import com.dyuproject.protostuff.Message;
 import com.dyuproject.protostuff.ProtostuffIOUtil;
 import com.google.common.collect.Lists;
 import com.haines.ml.rce.eventstream.EventStreamListener;
+import com.haines.ml.rce.main.config.OverrideRCEConfig;
 import com.haines.ml.rce.main.config.RCEConfig;
 import com.haines.ml.rce.main.config.RCEConfig.StreamType;
+import com.haines.ml.rce.main.config.jaxb.RCEConfigJAXB;
 import com.haines.ml.rce.main.factory.FeatureHandlerRepositoryFactory;
 import com.haines.ml.rce.model.Event;
 import com.haines.ml.rce.naivebayes.NaiveBayesProbabilitiesProvider;
@@ -142,7 +144,7 @@ public class RCEApplicationStartupTest {
 	}
 	
 	protected void startUpRCE(FeatureHandlerRepositoryFactory repositoryFactory) throws InterruptedException, RCEApplicationException, JAXBException, IOException{
-		startUpRCE(repositoryFactory, RCEConfig.UTIL.loadConfig(null));
+		startUpRCE(repositoryFactory, RCEConfig.UTIL.loadConfig());
 	}
 	
 	protected boolean isUsingSlf4jEventListener() {
@@ -318,18 +320,13 @@ public class RCEApplicationStartupTest {
 	}
 	
 	protected static RCEConfig getEventTransportDefinedConfig(final StreamType streamType) throws JAXBException, IOException {
-		RCEConfig config = RCEConfig.UTIL.loadConfig(null);
-		
-		config = new RCEConfig.DefaultRCEConfig(config){
+		return RCEConfig.UTIL.loadConfig(new RCEConfig.DefaultRCEConfig(null){
 
 			@Override
 			public StreamType getEventTransportProtocal() {
 				return streamType;
 			}
-			
-		};
-		
-		return config;
+		});
 	}
 
 	public static <T extends Message<T>> void sendViaSelector(T testEvent, RCEConfig rceConfig, Provider<? extends WritableByteChannel> channelProvider) throws IOException, InterruptedException {

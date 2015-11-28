@@ -55,7 +55,7 @@ public class CountsProviderNaiveBayesProbabilities implements NaiveBayesProbabil
 
 		@Override
 		public int compare(NaiveBayesProbability o1, NaiveBayesProbability o2) {
-			return o1.getProbability().getOutcomes() - o2.getProbability().getOutcomes();
+			return o2.getProbability().getOutcomes() - o1.getProbability().getOutcomes();
 		}
 		
 	};

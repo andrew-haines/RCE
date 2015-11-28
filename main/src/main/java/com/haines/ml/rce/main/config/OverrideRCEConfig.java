@@ -135,7 +135,7 @@ public class OverrideRCEConfig implements RCEConfig{
 	}
 
 	@Override
-	public int getDisruptorRingSize() {
+	public Integer getDisruptorRingSize() {
 		return doOverride(new ValueGetter<Integer>() {
 
 			@Override
@@ -146,7 +146,7 @@ public class OverrideRCEConfig implements RCEConfig{
 	}
 
 	@Override
-	public long getMicroBatchIntervalMs() {
+	public Long getMicroBatchIntervalMs() {
 		return doOverride(new ValueGetter<Long>(){
 
 			@Override
@@ -158,7 +158,7 @@ public class OverrideRCEConfig implements RCEConfig{
 	}
 
 	@Override
-	public int getNumWindows() {
+	public Integer getNumWindows() {
 		return doOverride(new ValueGetter<Integer>(){
 
 			@Override
@@ -169,7 +169,7 @@ public class OverrideRCEConfig implements RCEConfig{
 	}
 
 	@Override
-	public long getWindowPeriod() {
+	public Long getWindowPeriod() {
 		return doOverride(new ValueGetter<Long>(){
 
 			@Override
@@ -180,7 +180,7 @@ public class OverrideRCEConfig implements RCEConfig{
 	}
 
 	@Override
-	public int getGlobalIndexLimit() {
+	public Integer getGlobalIndexLimit() {
 		return doOverride(new ValueGetter<Integer>(){
 
 			@Override

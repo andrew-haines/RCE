@@ -17,7 +17,7 @@ public class RCEConfigJAXB implements RCEConfig{
 
 	private static final String LITTLE_BYTE_ORDER = "little";
 
-	private int numberOfEventWorkers;
+	private Integer numberOfEventWorkers;
 	
 	private TransportConfigJaxB transport;
 	
@@ -29,9 +29,9 @@ public class RCEConfigJAXB implements RCEConfig{
 
 	private AccumulatorConfigJaxB accumulatorConfig;
 	
-	private int disruptorRingSize;
+	private Integer disruptorRingSize;
 	
-	private long microBatchIntervalMs;
+	private Long microBatchIntervalMs;
 	
 	private WindowConfigJaxB window;
 	
@@ -43,7 +43,7 @@ public class RCEConfigJAXB implements RCEConfig{
 		return numberOfEventWorkers;
 	}
 
-	public void setNumberOfEventWorkers(int numberOfEventWorkers) {
+	public void setNumberOfEventWorkers(Integer numberOfEventWorkers) {
 		this.numberOfEventWorkers = numberOfEventWorkers;
 	}
 
@@ -66,7 +66,7 @@ public class RCEConfigJAXB implements RCEConfig{
 	
 	@Override
 	@XmlElement
-	public int getDisruptorRingSize() {
+	public Integer getDisruptorRingSize() {
 		return disruptorRingSize;
 	}
 
@@ -126,17 +126,17 @@ public class RCEConfigJAXB implements RCEConfig{
 		return transport.getHost();
 	}
 	
-	public void setDisruptorRingSize(int disruptorRingSize){
+	public void setDisruptorRingSize(Integer disruptorRingSize){
 		this.disruptorRingSize = disruptorRingSize;
 	}
 
 	@Override
 	@XmlElement(name="microBatchIntervalMs")
-	public long getMicroBatchIntervalMs() {
+	public Long getMicroBatchIntervalMs() {
 		return microBatchIntervalMs;
 	}
 
-	public void setMicroBatchIntervalMs(long asyncPushIntervalMs){
+	public void setMicroBatchIntervalMs(Long asyncPushIntervalMs){
 		this.microBatchIntervalMs = asyncPushIntervalMs;
 	}
 
@@ -150,12 +150,12 @@ public class RCEConfigJAXB implements RCEConfig{
 	}
 
 	@Override
-	public int getNumWindows() {
+	public Integer getNumWindows() {
 		return getWindow().getNumWindows();
 	}
 
 	@Override
-	public long getWindowPeriod() {
+	public Long getWindowPeriod() {
 		return getWindow().getWindowSizeMs();
 	}
 
@@ -179,11 +179,11 @@ public class RCEConfigJAXB implements RCEConfig{
 
 	@Override
 	@XmlElement
-	public int getGlobalIndexLimit() {
+	public Integer getGlobalIndexLimit() {
 		return globalIndexLimit;
 	}
 
-	public void setGlobalIndexLimit(int globalIndexLimit) {
+	public void setGlobalIndexLimit(Integer globalIndexLimit) {
 		this.globalIndexLimit = globalIndexLimit;
 	}
 }

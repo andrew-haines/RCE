@@ -99,6 +99,23 @@
       \field{title}{Storm @Twitter}
       \field{year}{2014}
     \endentry
+    \entry{mccabecc}{report}{}
+      \name{author}{1}{}{%
+        {{hash=376012c0c35d9f9d2a8c30c3fe4592e9}{A.Watson}{A\bibinitperiod}{T.\bibnamedelimi McCabe}{T\bibinitperiod\bibinitdelim M\bibinitperiod}{}{}{}{}}%
+      }
+      \list{institution}{1}{%
+        {McCabe}%
+      }
+      \strng{namehash}{376012c0c35d9f9d2a8c30c3fe4592e9}
+      \strng{fullhash}{376012c0c35d9f9d2a8c30c3fe4592e9}
+      \field{sortinit}{A}
+      \field{sortinithash}{b685c7856330eaee22789815b49de9bb}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{title}{Structured Testing: A Testing Methodology Using the Cyclomatic Complexity Metric}
+      \field{type}{techreport}
+      \field{year}{1996}
+    \endentry
     \entry{mapreduce}{inproceedings}{}
       \name{author}{2}{}{%
         {{hash=4aecfb0cc2e1e3b7899129fa2a94e2b8}{Dean}{D\bibinitperiod}{Jeffrey}{J\bibinitperiod}{}{}{}{}}%

@@ -146,6 +146,14 @@ public interface NaiveBayesCounts<T extends NaiveBayesCounts.MutableNaiveBayesCo
 		public String toString(){
 			return "{"+property.toString()+"->"+distribution+"}";
 		}
+		
+		@Override
+		public boolean equals(Object obj){
+			
+			NaiveBayesDistributionCounts other = (NaiveBayesDistributionCounts)obj;
+			
+			return distribution.equals(other.distribution) && property.equals(other.property);
+		}
 	}
 	
 	public static class MutableNaiveBayesDistributionCounts extends NaiveBayesDistributionCounts implements MutableNaiveBayesCounts<MutableNaiveBayesDistributionCounts>{

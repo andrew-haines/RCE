@@ -5,6 +5,7 @@ import org.junit.Test;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.not;
 
 public class DistributionParametersUnitTest {
 	
@@ -90,6 +91,9 @@ public class DistributionParametersUnitTest {
 		assertThat(summedParams.getMean(), is(equalTo(14.0)));
 		assertThat(summedParams.getVariance(), is(equalTo(11.333333333333334)));
 		assertThat(summedParams.getNumSamples(), is(equalTo(4)));
+		
+		// belts and braces check that the equals method works
+		assertThat(summedParams, is(equalTo(new DistributionParameters(4, 14.0, 11.333333333333334))));
 	}
 	
 	@Test
@@ -99,5 +103,12 @@ public class DistributionParametersUnitTest {
 		assertThat(summedParams.getMean(), is(equalTo(15.333333333333334)));
 		assertThat(summedParams.getVariance(), is(equalTo(6.333333333333334)));
 		assertThat(summedParams.getNumSamples(), is(equalTo(3)));
+		
+		assertThat(summedParams, is(equalTo(new DistributionParameters(3, 15.333333333333334, 6.333333333333334))));
+	}
+	
+	@Test
+	public void givenDistribution_whenCallingEqualsToOnDifferentParameters_thenReturnsFalse(){
+		assertThat(new DistributionParameters(4, 14.0, 11.333333333333336), is(not(equalTo(new DistributionParameters(6, 77, 11.333333333333336)))));
 	}
 }

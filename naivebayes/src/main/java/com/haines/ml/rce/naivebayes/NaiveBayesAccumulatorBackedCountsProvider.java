@@ -1,7 +1,7 @@
 package com.haines.ml.rce.naivebayes;
 
 import com.google.common.base.Function;
-import com.google.common.base.Predicate;
+import com.google.common.base.Predicates;
 import com.google.common.collect.Iterables;
 import com.haines.ml.rce.accumulator.AccumulatorProvider;
 import com.haines.ml.rce.accumulator.HandlerRepository;
@@ -21,13 +21,6 @@ import com.haines.ml.rce.naivebayes.model.NaiveBayesProperty.PropertyType;
 
 public class NaiveBayesAccumulatorBackedCountsProvider implements NaiveBayesCountsProvider{
 
-	private static final Predicate<NaiveBayesCounts<?>> NON_NULL_PREDICATE = new Predicate<NaiveBayesCounts<?>>(){
-
-		@Override
-		public boolean apply(NaiveBayesCounts<?> input) {
-			return input != null;
-		}
-	};
 	private final Function<NaiveBayesPosteriorProperty, NaiveBayesCounts<?>> posteriorPropertyToCountsFunction;
 	private final Function<NaiveBayesPriorProperty, NaiveBayesCounts<?>> priorPropertyToCountsFunction;
 	
@@ -113,11 +106,11 @@ public class NaiveBayesAccumulatorBackedCountsProvider implements NaiveBayesCoun
 	}
 
 	private Iterable<NaiveBayesCounts<?>> getPosteriorCounts(NaiveBayesIndexes indexes) {
-		return Iterables.filter(Iterables.transform(Iterables.concat(indexes.getDiscretePosteriors(), indexes.getPosteriorDistributionsTypes()), posteriorPropertyToCountsFunction), NON_NULL_PREDICATE);
+		return Iterables.filter(Iterables.transform(Iterables.concat(indexes.getDiscretePosteriors(), indexes.getPosteriorDistributionsTypes()), posteriorPropertyToCountsFunction), Predicates.notNull());
 	}
 
 	private Iterable<NaiveBayesCounts<?>> getPriorCounts(NaiveBayesIndexes indexes) {
-		return Iterables.filter(Iterables.transform(Iterables.concat(indexes.getDiscretePriors(), indexes.getPriorDistributionTypes()), priorPropertyToCountsFunction), NON_NULL_PREDICATE);
+		return Iterables.filter(Iterables.transform(Iterables.concat(indexes.getDiscretePriors(), indexes.getPriorDistributionTypes()), priorPropertyToCountsFunction), Predicates.notNull());
 	}
 	
 	private Iterable<NaiveBayesCounts<?>> getPosteriorCounts(){

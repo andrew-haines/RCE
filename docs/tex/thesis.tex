@@ -312,6 +312,8 @@ As previously mentioned, the IO bus on modern architectures relies on interrupts
 To limited this, advantage is taken of the off heap byte buffers of the NIO package. These abstractions ensure that data is taken directly from the network interface into the CPU for serialising, and thus avoids commuting to the heap.
 \subsection{Protostuff}
 Serialisation that governs data interchange needs to be defined so that a contract of how events can be passed from up stream producers into the system. As deserialising is one of the main overheads of any high throughput system, one that focuses on both flexibility and speed is paramount. Consequently, Google's protobuf\cite{googleprotobuf} format is provided using the protostuff extension as a default implementation\footnote{The application is capable of supporting any demarshalling technology via the generic \texttt{EventMarshalBuffer} interface}. This was chosen because of it's external schema design, variable length encoding and sequential byte stream support that aids in good cache utilisation. Unfortunately, protostuff does not support proper off heap byte buffers so an extension was specifically created to exploit this\footnote{Now contributed back into the protostuff project}.
+\subsection{Transport}
+There are two main IP protocols in wide use namely TCP and UDP. TCP allows data to sent into packets or windows of data where each packet needs to receive a checksum response to ensure that each packet has been received correctly. This provides delivery guarantees at the expense of extra communication and checksumming. UDP on the other hand transfers as a large stream of data which may or may not reach the target destination. Unlike TCP, although no guarantees can be made on whether data corruptness has occurred, UDP is free of the extra overhead and so, in theory, is faster. The system supports both mechanisms as, if corruption does occur with UDP, as this is a high throughput system running under big data load, such random permutations will not affect the underlying distributions too much\footnote{Assuming the environment is stable (such as within a datacenter) error rates should be relatively low}.
 \section{WindowManager}
 \floatsetup[figure]{capposition=bottom,capbesideposition={top,right}}
 \begin{figure}[h!]
@@ -376,7 +378,7 @@ This is a read only shared instance that all worker have access to. After every 
 \chapter{Implementation}
 \VerbatimFootnotes
 \section{Overview}
-The system is implemented on top of the java programming language and virtual machine allowing it to execute on commodity hardware and OS even if the certain architectural paradigms the system optimizes for are absent. A number of design patterns are carefully chosen for this implementation in order to alleviate some of the thread safety and IO concerns that naturally arise in such a concurrent system. As this is an event driven system, there needs to be a clear distinction between data and logic. 
+The system is implemented on top of the java programming language and virtual machine allowing it to execute on commodity hardware and OS even if the certain architectural paradigms the system optimizes for are absent. The name of RCE (Realtime Classification Engine) has been adopted as a working title for the system. \\A number of design patterns are carefully chosen for this implementation in order to alleviate some of the thread safety and IO concerns that naturally arise in such a concurrent system. As this is an event driven system, there needs to be a clear distinction between data and logic. 
 \subsection{Data}
 Data is stored throughout in dumb 'model' objects \footnote{designated within com.haines.ml.rce.*.model.* packages} which can be considered to be the events. These lightweight objects contain no business logic and exist to simply define the schema of data used in the application. For the most part, this data is immutable and final to ensure that data is visible and sharable across threads. Areas where contentious access occurs, namely within the shared global accumulator state (\verb|NaiveBayesGlobalIndexes|), are handled with great consideration and, due to the live/staging methodologies already discussed, safe updating of such shared data need only use volatile variables\footnote{One example of this is in the shared \verb|VolatileNaiveBayesGlobalIndexesProvider| instance.}.\\
 The model objects that exist outside of the application domain that relate to the public API of the system are coded to interfaces. This allows any of the application code to be agnostic of serialization concerns of the implementing classes used to move the data from external clients in and out of the public API. The MVC patten is one that helps enforce this separation and is adopted throughout this application. Normally large scale applications take this concept of API and domain isolation further via the inclusion of a mapping layer that converts serialization objects from the controller into the application domain. However as such a technique incurs significant costs both in the copying of data between objects and the extra memory footprint for the garbage collector to work with, this coding to interface approach is deemed a sensible compromise. \\
@@ -429,12 +431,49 @@ This defines the controller and main processing loop of the system that takes ev
 Implements the domain model interfaces with protostuff serialising and deserialising instances which read directly off the bus rather than from the heap.
 
 \subsubsection{rce-main}
-Provides the IOC factory instances that actually build and configure the system 
+Provides the IOC factory instances that actually build and configure the system. A main driver class for the application is also provided in the form of \verb|DefaultRCEApplication| but more bespoke invocations are possible such as the methodology used in the test cases as defined in \verb|RCEApplicationStartupTest|.
 
 \section{Configuration}
-overriding classpath configuration of jaxb objects.
+The system uses two fundamental configuration mechanisms - ServiceLoader invocation of custom pluggable objects and JAXB defined XML\footnote{JAXB also supports other serialization formats such as JSON but the default format the system uses is XML} property files.
+
+\subsubsection{ServiceLoader}
+The java JDK contains a lightweight service provider loading facility named the ServiceLoader. The mechanism allows implementations of interfaces to be provided at runtime using definitions detailed in META-INF/service/* files as they appear on the runtime classpath. This allows additional behavior to be defined by simply including extra jars on the classpath and the ServiceLoader will reflectively instantiate them and add them into the IOC container. The system uses the ServiceLoader to allow 2 primary execution components to be extended or to provide pluggable additional functionality.\\
+The first is the actual application container itself. This allows different ways of configuring the system to be programmatically defined which gives users the ability to completely customize the internals of how the system fits together. A number of 'building blocks' of abstract classes are provided that can aid in providing a default configuration of the system. The most specific class being\\ \verb|ProtostuffNaiveBayesRCEApplicationFactory| which users will need to extend to define the \verb|Schema| of the protostuff messages that form the (de)seriliasation protocol of the input API\footnote{see \verb|com.haines.ml.rce.main.factory.StaticProtostuffNaiveBayesRCEApplicationFactory| for an example of a concrete factory that only allows String based discrete feature and classification values}.\\
+
+The other place the ServiceLoader is used is in defining how different features and classification types are handled. If \(f_1\) should use a discrete modeling whilst \(f_2\) uses a continuous normal distribution fitting, one can programmatically define this functionality by implementing \verb|FeatureHandlerRepositoryFactory| and adding the appropriate jar onto the classpath. 
+
+\subsubsection{JAXB Config}
+For more parameter based configuration such as window sizes, accumulator bit depth etc, JAXB defined XML files detail these properties. Config files are determined at the IOC container level such as via the driver commandline argument of \verb|configOverrideLocation|. A default-config.xml is provided to define sensible defaults that are used if a user specific configuration file is omitting all or part of the configuration property set.
+
 \section{Testing}
-How the DataSet classes abstract the test and training sets and produce their results.
+There are 6 different test types that this project uses to verify semantic and performant correctness of the system. For all test types the Junit framework coordinates the test execution and integrates the results as part of the maven build configurations. Furthermore, the Cobertura code coverage tool can be invoked as part of the maven build using the \verb|site| target. This will produce reports detailing line-by-line coverage of tests see \ref{tab:coverage}
+\begin{table}[h!]
+\begin{tabular}{l*{6}{c}r}
+Module              & No. Classes & No. Lines & Line Coverage & Branch Coverage & Complexity\footnote{Complexity an indication of how complex (branch conditions) a module is. It uses the McCabe's cyclomatic code complexity routine\cite{mccabecc}} \\
+\hline
+rce-model & 28 & 168 & 0.762 & 0.706 & 1.638 \\
+rce-io-protostuff & 2 & 381 & 0.858 & 0.739 & 4.55 \\
+rce-dispatcher & 14 & 66 & 0.848 & 0.500 & 1.125 \\
+rce-accumulator & 25 & 281 & 0.630 & 0.729 & 1.274 \\
+rce-naivebayes & 59 & 646 & 0.749 & 0.591 & 1.717 \\
+rce-aggregator & 3 & 68 & 0.735 & 0.700 & 1.600 \\
+rce-window & 10 & 153 & 0.654 & 0.435 & 1.833 \\
+rce-eventstream & 24 & 227 & 0.692 & 0.512 & 1.382 \\
+rce-main & 57 & 524 & 0.761 & 0.551 & 1.423 \\
+\end{tabular}
+\caption{Code coverage of RCE application code base.}
+\label{tab:coverage}
+\end{table}
+
+\subsection{Unit Tests}
+For each conceptual unit of code (for the most part defined it's own file), a unit test exists that asserts the functional correctness of that component. Data used as input is either defined using test instances or via mocks provided by the mockito framework. Assertions are provided by the hamcrest library for more readable syntax.
+\subsection{Functional Tests}
+This suite of tests verifies that multiple instances of units of functionality within a single component or module interact with each other correctly, performing the correct semantic behaviour.
+\subsection{Integration Tests}
+This suite of tests verifies that various configurations of the entire system operate correctly. They are blanket tests that test the entire system is performing correctly at a broad level. In the system the \verb|RCEApplicationStartupTest| is such a test that verifies two configurations (UDP and TCP) start up and process a number of events without error. At this stage, no effort is made to ensure that the performance of the classifier is acceptable
+\subsection{Performance Tests}
+This test suite is responsible for ensuring that the performance of the system is acceptable. It does this using 3 datasets that 
+
 \chapter{Performance}
 \section{Classification Performance}
 PerformanceTest results. AUC curves on the different data sets tested

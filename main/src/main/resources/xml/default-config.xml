@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <config>
-    
     <microBatchIntervalMs>2000</microBatchIntervalMs>
     <disruptorRingSize>1024</disruptorRingSize>
     <eventByteOrder>big</eventByteOrder>

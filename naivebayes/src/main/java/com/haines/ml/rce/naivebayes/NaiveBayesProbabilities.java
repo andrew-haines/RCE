@@ -62,7 +62,10 @@ public interface NaiveBayesProbabilities {
 	Iterable<Classification> getAllClassifications();
 	
 	/**
-	 * Returns the properties stored in this instance sorted by order of their {@link Probability#getOutcomes()}
+	 * Returns the properties stored in this instance sorted by order of their {@link Probability#getOutcomes()}. This is
+	 * the ordering on the absolute numbers of each event seen rather than their relevant probabilities. This is to optimise
+	 * the accumulator slot allocation based on absolute numbers we have seen each event type. Most frequent event types can then
+	 * be assigned together to optimize cache locality.
 	 * @return
 	 */
 	Iterable<NaiveBayesProperty> getOrderedProperties();

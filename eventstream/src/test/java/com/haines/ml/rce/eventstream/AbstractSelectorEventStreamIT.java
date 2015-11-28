@@ -1,6 +1,7 @@
 package com.haines.ml.rce.eventstream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.net.UnknownHostException;
@@ -65,7 +66,7 @@ public abstract class AbstractSelectorEventStreamIT<T extends SelectableChannel 
 		config = new SelectorEventStreamConfig.SelectorEventStreamConfigBuilder()
 		.bufferCapacity(getBufferCapacity())
 		.bufferType(BufferType.DIRECT_BUFFER)
-		.socketAddress(new InetSocketAddress(TEST_PORT))
+		.socketAddress(new InetSocketAddress(InetAddress.getLoopbackAddress(), TEST_PORT))
 		.build();
 		
 		startupLatch = new CountDownLatch(1);

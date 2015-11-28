@@ -45,6 +45,7 @@ public class NaiveBayesIndexesUnitTest {
 		};
 		
 		candidate = new NaiveBayesLocalIndexes(getLocalPosteriorIndexes(), getLocalPriorIndexes(), getLocalPosteriorTypeIndexes(), getLocalPriorTypeIndexes(), indexes);
+		candidate.clear();
 	}
 
 	@Test

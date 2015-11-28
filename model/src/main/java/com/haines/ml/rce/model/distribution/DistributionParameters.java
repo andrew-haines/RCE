@@ -59,6 +59,21 @@ public class DistributionParameters {
 		return "{mean: "+mean+",numSamples:"+numSamples+",variance:"+variance+"}";
 	}
 	
+	@Override
+	public boolean equals(Object obj){
+		DistributionParameters other = (DistributionParameters)obj;
+		
+		if (numSamples == other.numSamples){
+			if (mean == other.mean){
+				if ((Double.isNaN(variance) && Double.isNaN(other.variance)) ||variance == other.variance){
+					return true;
+				}
+			}
+		}
+		
+		return false;
+	}
+	
 	public final static class Math {
 		
 		/**

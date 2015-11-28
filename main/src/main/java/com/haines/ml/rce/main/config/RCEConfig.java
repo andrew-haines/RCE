@@ -70,17 +70,31 @@ public interface RCEConfig {
 	
 	Integer getFinalAccumulatorLineBitDepth();
 	
-	long getMicroBatchIntervalMs();
+	Long getMicroBatchIntervalMs();
 	
 	public static class Util{
 		
 		private static final String DEFAULT_CONFIG_LOC = "/xml/default-config.xml";
+		
+		public RCEConfig loadConfig() throws JAXBException{
+			return getDefaultConfig();
+		}
 		
 		public RCEConfig loadConfig(Path configOverrideLocation) throws JAXBException, IOException{
 			RCEConfig config = getDefaultConfig();
 			
 			if (configOverrideLocation != null){
 				config = new OverrideRCEConfig(config, getOverrideConfig(configOverrideLocation));
+			}
+			
+			return config;
+		}
+		
+		public RCEConfig loadConfig(RCEConfig config) throws JAXBException, IOException{
+			RCEConfig defaultConfig = getDefaultConfig();
+			
+			if (config != null){
+				config = new OverrideRCEConfig(defaultConfig, config);
 			}
 			
 			return config;
@@ -113,22 +127,20 @@ public interface RCEConfig {
 		
 		public SelectorEventStreamConfig getSelectorEventStreamConfig(RCEConfig config){
 			SelectorEventStreamConfigBuilder configBuilder = new SelectorEventStreamConfigBuilder()
-			.socketAddress(config.getEventStreamSocketAddress())
-			.heartBeatPeriod(config.getMicroBatchIntervalMs()); // if this is a sync call, we use the heart beat to trigger the microbatch if no events have been seen
+															.socketAddress(config.getEventStreamSocketAddress())
+															.heartBeatPeriod(config.getMicroBatchIntervalMs()); // if this is a sync call, we use the heart beat to trigger the microbatch if no events have been seen
 
 			if (config.getEventBufferCapacity() != null){
-			configBuilder.bufferCapacity(config.getEventBufferCapacity());
+				configBuilder.bufferCapacity(config.getEventBufferCapacity());
 			}
 			
 			if (config.getEventBufferType() != null){
-			configBuilder.bufferType(config.getEventBufferType());
+				configBuilder.bufferType(config.getEventBufferType());
 			}
 			
 			if (config.getByteOrder() != null){
-			configBuilder.byteOrder(config.getByteOrder());
+				configBuilder.byteOrder(config.getByteOrder());
 			}
-			
-	
 			
 			return configBuilder.build();
 		}
@@ -224,76 +236,128 @@ public interface RCEConfig {
 
 		@Override
 		public StreamType getEventTransportProtocal() {
-			return delegate.getEventTransportProtocal();
+			if (delegate != null){
+				return delegate.getEventTransportProtocal();
+			} else{
+				return null;
+			}
 		}
 
 		@Override
 		public Integer getEventBufferCapacity() {
-			return delegate.getEventBufferCapacity();
+			if (delegate != null){
+				return delegate.getEventBufferCapacity();
+			} else{
+				return null;
+			}
 		}
 
 		@Override
 		public BufferType getEventBufferType() {
-			return delegate.getEventBufferType();
+			if (delegate != null){
+				return delegate.getEventBufferType();
+			} else{
+				return null;
+			}
 		}
 
 		@Override
 		public ByteOrder getByteOrder() {
-			return delegate.getByteOrder();
+			if (delegate != null){
+				return delegate.getByteOrder();
+			} else{
+				return null;
+			}
 		}
 
 		@Override
 		public SocketAddress getEventStreamSocketAddress() {
-			return delegate.getEventStreamSocketAddress();
+			if (delegate != null){
+				return delegate.getEventStreamSocketAddress();
+			} else{
+				return null;
+			}
 		}
 
 		@Override
 		public Integer getFirstAccumulatorLineBitDepth() {
-			return delegate.getFirstAccumulatorLineBitDepth();
+			if (delegate != null){
+				return delegate.getFirstAccumulatorLineBitDepth();
+			} else{
+				return null;
+			}
 		}
 
 		@Override
 		public Integer getSecondAccumulatorLineBitDepth() {
-			return delegate.getSecondAccumulatorLineBitDepth();
+			if (delegate != null){
+				return delegate.getSecondAccumulatorLineBitDepth();
+			} else{
+				return null;
+			}
 		}
 
 		@Override
 		public Integer getFinalAccumulatorLineBitDepth() {
-			return delegate.getFinalAccumulatorLineBitDepth();
+			if (delegate != null){
+				return delegate.getFinalAccumulatorLineBitDepth();
+			} else{
+				return null;
+			}
 		}
 
 		@Override
-		public int getDisruptorRingSize() {
-			return delegate.getDisruptorRingSize();
+		public Integer getDisruptorRingSize() {
+			if (delegate != null){
+				return delegate.getDisruptorRingSize();
+			} else{
+				return null;
+			}
 		}
 
 		@Override
-		public long getMicroBatchIntervalMs() {
-			return delegate.getMicroBatchIntervalMs();
+		public Long getMicroBatchIntervalMs() {
+			if (delegate != null){
+				return delegate.getMicroBatchIntervalMs();
+			} else{
+				return null;
+			}
 		}
 
 		@Override
-		public int getNumWindows() {
-			return delegate.getNumWindows();
+		public Integer getNumWindows() {
+			if (delegate != null){
+				return delegate.getNumWindows();
+			} else{
+				return null;
+			}
 		}
 
 		@Override
-		public long getWindowPeriod() {
-			return delegate.getWindowPeriod();
+		public Long getWindowPeriod() {
+			if (delegate != null){
+				return delegate.getWindowPeriod();
+			} else{
+				return null;
+			}
 		}
 
 		@Override
-		public int getGlobalIndexLimit() {
-			return delegate.getGlobalIndexLimit();
+		public Integer getGlobalIndexLimit() {
+			if (delegate != null){
+				return delegate.getGlobalIndexLimit();
+			} else{
+				return null;
+			}
 		}
 		
 	}
 
-	int getDisruptorRingSize();
+	Integer getDisruptorRingSize();
 
-	int getGlobalIndexLimit();
+	Integer getGlobalIndexLimit();
 
-	int getNumWindows();
+	Integer getNumWindows();
 
-	long getWindowPeriod();
+	Long getWindowPeriod();
 }

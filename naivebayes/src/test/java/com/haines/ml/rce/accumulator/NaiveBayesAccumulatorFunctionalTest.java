@@ -10,10 +10,14 @@ import org.junit.Test;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
+import com.haines.ml.rce.accumulator.handlers.ClassificationHandler;
 import com.haines.ml.rce.accumulator.handlers.ClassifiedEventAccumulatorConsumer;
+import com.haines.ml.rce.accumulator.handlers.FeatureHandler;
+import com.haines.ml.rce.accumulator.handlers.SequentialDistributionFeatureHandler;
 import com.haines.ml.rce.accumulator.lookups.RONaiveBayesMapBasedLookupStrategy;
 import com.haines.ml.rce.model.Classification;
 import com.haines.ml.rce.model.Feature;
+import com.haines.ml.rce.model.distribution.DistributionParameters;
 import com.haines.ml.rce.naivebayes.NaiveBayesAccumulatorBackedCountsProvider;
 import com.haines.ml.rce.naivebayes.NaiveBayesCountsProvider.Counts;
 import com.haines.ml.rce.naivebayes.NaiveBayesGlobalIndexes;
@@ -23,6 +27,7 @@ import com.haines.ml.rce.naivebayes.NaiveBayesIndexesProvider;
 import com.haines.ml.rce.naivebayes.NaiveBayesLocalIndexes;
 import com.haines.ml.rce.naivebayes.model.NaiveBayesCounts;
 import com.haines.ml.rce.naivebayes.model.NaiveBayesCounts.DiscreteNaiveBayesCounts;
+import com.haines.ml.rce.naivebayes.model.NaiveBayesCounts.NaiveBayesDistributionCounts;
 import com.haines.ml.rce.naivebayes.model.NaiveBayesProperty.DiscreteNaiveBayesPosteriorProperty;
 import com.haines.ml.rce.naivebayes.model.NaiveBayesProperty.DiscreteNaiveBayesPriorProperty;
 import com.haines.ml.rce.test.TestClassification;
@@ -51,7 +56,11 @@ public class NaiveBayesAccumulatorFunctionalTest {
 		
 		RONaiveBayesMapBasedLookupStrategy<TestEvent> lookup = new RONaiveBayesMapBasedLookupStrategy<TestEvent>(localIndexes);
 		
-		featureHandlers = HandlerRepository.create();
+		featureHandlers = HandlerRepository.create(ImmutableMap.<Integer, FeatureHandler<TestEvent>>builder()
+																											 .put(3, new SequentialDistributionFeatureHandler<TestEvent>())
+																											 .build(), 
+											       ImmutableMap.<Integer, ClassificationHandler<TestEvent>>builder()
+											       																	.build());
 		
 		candidate = new ClassifiedEventAccumulatorConsumer<TestEvent>(Accumulator.DEFAULT_CONFIG, lookup, featureHandlers);
 	}
@@ -71,7 +80,7 @@ public class NaiveBayesAccumulatorFunctionalTest {
 	@Test
 	public void givenEmptyLocalIndexes_whenCallingGetAccumlatorProviderAfter1EventAdded_thenCountsWithAppropriateCountsSet(){
 		
-		candidate.consume(new TestEvent(Arrays.asList(new TestFeature("true", 1), new TestFeature("false", 2)), Arrays.asList(new TestClassification("class1", 1))));
+		candidate.consume(new TestEvent(Arrays.asList(new TestFeature("true", 1), new TestFeature("false", 2), new TestFeature(4.6, 3)), Arrays.asList(new TestClassification("class1", 1))));
 		
 		AccumulatorProvider<TestEvent> accProvider = candidate.getAccumulatorProvider();
 		
@@ -82,11 +91,12 @@ public class NaiveBayesAccumulatorFunctionalTest {
 		assertThat(counts.getPosteriors(), is(not(emptyIterable())));
 		assertThat(counts.getPriors(), is(not(emptyIterable())));
 		
-		assertThat(Iterables.size(counts.getPosteriors()), is(equalTo(2)));
+		assertThat(Iterables.size(counts.getPosteriors()), is(equalTo(3)));
 		assertThat(Iterables.size(counts.getPriors()), is(equalTo(1)));
 		
 		assertThat(counts.getPosteriors(), Matchers.<NaiveBayesCounts<?>>contains(new DiscreteNaiveBayesCounts(new DiscreteNaiveBayesPosteriorProperty(new TestFeature("true", 1), new TestClassification("class1", 1)), 1),
-																				  new DiscreteNaiveBayesCounts(new DiscreteNaiveBayesPosteriorProperty(new TestFeature("false", 2), new TestClassification("class1", 1)), 1)));
+																				  new DiscreteNaiveBayesCounts(new DiscreteNaiveBayesPosteriorProperty(new TestFeature("false", 2), new TestClassification("class1", 1)), 1),
+																				  new NaiveBayesDistributionCounts(new NaiveBayesPosteriorDistributionProperty(3, new TestClassification("class1", 1)), new DistributionParameters(1, 4.599999904632568, Double.NaN))));
 		
 		assertThat(counts.getPriors(), Matchers.<NaiveBayesCounts<?>>contains(new DiscreteNaiveBayesCounts(new DiscreteNaiveBayesPriorProperty(new TestClassification("class1", 1)), 1)));
 	}
@@ -94,10 +104,10 @@ public class NaiveBayesAccumulatorFunctionalTest {
 	@Test
 	public void givenEmptyLocalIndexes_whenCallingGetAccumlatorProviderAfterMultipleEventsAdded_thenCountsWithAppropriateCountsSet(){
 		
-		candidate.consume(new TestEvent(Arrays.asList(new TestFeature("true", 1), new TestFeature("false", 2)), Arrays.asList(new TestClassification("class1", 1))));
-		candidate.consume(new TestEvent(Arrays.asList(new TestFeature("false", 1), new TestFeature("false", 2)), Arrays.asList(new TestClassification("class1", 1))));
-		candidate.consume(new TestEvent(Arrays.asList(new TestFeature("true", 1), new TestFeature("true", 2)), Arrays.asList(new TestClassification("class2", 1))));
-		candidate.consume(new TestEvent(Arrays.asList(new TestFeature("true", 1), new TestFeature("false", 2)), Arrays.asList(new TestClassification("class1", 1))));
+		candidate.consume(new TestEvent(Arrays.asList(new TestFeature("true", 1), new TestFeature("false", 2), new TestFeature(4.6, 3)), Arrays.asList(new TestClassification("class1", 1))));
+		candidate.consume(new TestEvent(Arrays.asList(new TestFeature("false", 1), new TestFeature("false", 2), new TestFeature(3.5, 3)), Arrays.asList(new TestClassification("class1", 1))));
+		candidate.consume(new TestEvent(Arrays.asList(new TestFeature("true", 1), new TestFeature("true", 2), new TestFeature(9.323, 3)), Arrays.asList(new TestClassification("class2", 1))));
+		candidate.consume(new TestEvent(Arrays.asList(new TestFeature("true", 1), new TestFeature("false", 2), new TestFeature(2.66, 3)), Arrays.asList(new TestClassification("class1", 1))));
 		
 		AccumulatorProvider<TestEvent> accProvider = candidate.getAccumulatorProvider();
 		
@@ -108,14 +118,16 @@ public class NaiveBayesAccumulatorFunctionalTest {
 		assertThat(counts.getPosteriors(), is(not(emptyIterable())));
 		assertThat(counts.getPriors(), is(not(emptyIterable())));
 		
-		assertThat(Iterables.size(counts.getPosteriors()), is(equalTo(5)));
+		assertThat(Iterables.size(counts.getPosteriors()), is(equalTo(7)));
 		assertThat(Iterables.size(counts.getPriors()), is(equalTo(2)));
 		
 		assertThat(counts.getPosteriors(), Matchers.<NaiveBayesCounts<?>>containsInAnyOrder(new DiscreteNaiveBayesCounts(new DiscreteNaiveBayesPosteriorProperty(new TestFeature("true", 1), new TestClassification("class1", 1)), 2),
 																				  new DiscreteNaiveBayesCounts(new DiscreteNaiveBayesPosteriorProperty(new TestFeature("false", 2), new TestClassification("class1", 1)), 3),
 																				  new DiscreteNaiveBayesCounts(new DiscreteNaiveBayesPosteriorProperty(new TestFeature("false", 1), new TestClassification("class1", 1)), 1),
 																				  new DiscreteNaiveBayesCounts(new DiscreteNaiveBayesPosteriorProperty(new TestFeature("true", 1), new TestClassification("class2", 1)), 1),
-																				  new DiscreteNaiveBayesCounts(new DiscreteNaiveBayesPosteriorProperty(new TestFeature("true", 2), new TestClassification("class2", 1)), 1)));
+																				  new DiscreteNaiveBayesCounts(new DiscreteNaiveBayesPosteriorProperty(new TestFeature("true", 2), new TestClassification("class2", 1)), 1),
+																				  new NaiveBayesDistributionCounts(new NaiveBayesPosteriorDistributionProperty(3, new TestClassification("class1", 1)), new DistributionParameters(3, 3.5866668224334717, 0.9465337991714478)),
+																				  new NaiveBayesDistributionCounts(new NaiveBayesPosteriorDistributionProperty(3, new TestClassification("class2", 1)), new DistributionParameters(1, 9.322999954223633, Double.NaN))));
 		
 		assertThat(counts.getPriors(), Matchers.<NaiveBayesCounts<?>>containsInAnyOrder(new DiscreteNaiveBayesCounts(new DiscreteNaiveBayesPriorProperty(new TestClassification("class1", 1)), 3),
 																			  new DiscreteNaiveBayesCounts(new DiscreteNaiveBayesPriorProperty(new TestClassification("class2", 1)), 1)));

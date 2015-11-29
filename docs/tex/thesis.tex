@@ -262,7 +262,7 @@ Framing the classifier as a personalised trending now predictor, the formula is 
 \[\text{Without loss of generality and assuming that }  \hat{y_j} \geq \hat{y_{j'}} \text{ if } j < j'.\]
 \[\mathbf{\hat{y}} = (\hat{y}_1, ..., \hat{y}_m) \text{ where } m \leq K\]
 The prior \(p(C_j)\) term captures the traditional trending now function whereas the posterior \(p(x_i | C_j)\) captures the personalised extension.\\
-To build the probability distribution using an accumulator methodology is simple. When a labelled event is observed, an accumulator slot is referenced based on the classification value (to capture the prior) and one for each discrete feature value / classification pairing (capturing the posterior). The values in each of this slots is then incremented by 1. The probability for each prior term is then the total number of events seen of each classification value over the total number of events and the posterior terms is calculated as the total number of events seen of each feature/classification pairing over the total number of events of that particular class.
+To build the probability distribution using an accumulator methodology is simple. When a labelled event is observed, an accumulator slot is referenced based on the classification value (to capture the prior) and one for each discrete feature value / classification pairing (capturing the posterior). The values in each of this slots is then incremented by 1. The probability for each prior term is then the total number of events seen of each classification value over the total number of events and the posterior terms is calculated as the total number of events seen of each feature/classification pairing over the total number of events of that particular class. Because of this setting, the classifier is also capable of predicting multi-class classification tasks.
 
 \begin{figure}[h!]
 \begin{subfigure}[t]{2 in}
@@ -446,10 +446,10 @@ The other place the ServiceLoader is used is in defining how different features 
 For more parameter based configuration such as window sizes, accumulator bit depth etc, JAXB defined XML files detail these properties. Config files are determined at the IOC container level such as via the driver commandline argument of \verb|configOverrideLocation|. A default-config.xml is provided to define sensible defaults that are used if a user specific configuration file is omitting all or part of the configuration property set.
 
 \section{Testing}
-There are 6 different test types that this project uses to verify semantic and performant correctness of the system. For all test types the Junit framework coordinates the test execution and integrates the results as part of the maven build configurations. Furthermore, the Cobertura code coverage tool can be invoked as part of the maven build using the \verb|site| target. This will produce reports detailing line-by-line coverage of tests see \ref{tab:coverage}
+There are 5 different test types that this project uses to verify semantic and performant correctness of the system. For all test types the Junit framework coordinates the test execution and integrates the results as part of the maven build configurations. Furthermore, the Cobertura code coverage tool can be invoked as part of the maven build using the \verb|site| target. This will produce reports detailing line-by-line coverage of tests see \ref{tab:coverage}
 \begin{table}[h!]
 \begin{tabular}{l*{6}{c}r}
-Module              & No. Classes & No. Lines & Line Coverage & Branch Coverage & Complexity\footnote{Complexity an indication of how complex (branch conditions) a module is. It uses the McCabe's cyclomatic code complexity routine\cite{mccabecc}} \\
+Module              & No. Classes & No. Lines & Line Coverage & Branch Coverage & Complexity\footnote{Complexity an indication of how complex (no branch conditions) a module is. It uses the McCabe's cyclomatic code complexity routine\cite{mccabecc}} \\
 \hline
 rce-model & 28 & 168 & 0.762 & 0.706 & 1.638 \\
 rce-io-protostuff & 2 & 381 & 0.858 & 0.739 & 4.55 \\
@@ -472,8 +472,25 @@ This suite of tests verifies that multiple instances of units of functionality w
 \subsection{Integration Tests}
 This suite of tests verifies that various configurations of the entire system operate correctly. They are blanket tests that test the entire system is performing correctly at a broad level. In the system the \verb|RCEApplicationStartupTest| is such a test that verifies two configurations (UDP and TCP) start up and process a number of events without error. At this stage, no effort is made to ensure that the performance of the classifier is acceptable
 \subsection{Performance Tests}
-This test suite is responsible for ensuring that the performance of the system is acceptable. It does this using 3 datasets that 
+This test suite is responsible for ensuring that the performance of the system is acceptable. The basis of these tests is to use known labelled datasets (input with expected output) and partition them into two disjoint subsets each using a fixed ratio. The larger of the subsets is deemed the training set and is used to train the classifier by pushing events into the main input of the system. The remaining set, known as the test set, is then used to see how well the learned classifier does at predicting these remaining labelled instances. To further the accuracy of the test, the test is repeated a total of \(n\) times with different partitions of the training and test sets. This technique is known as n-fold cross validation. A small framework has been built in \verb|rce-performance-test| that defines the these datasets, performs this type of testing and produces reporting (precision, recall, fmeasure and AUC metrics) along with ROC plots\footnote{see \verb|AbstractPerformanceTest| and the \verb|ReportGenerator| and \verb|ReportRenderer| class for details}. The 3 data sets are:
 
+\subsubsection{Synthetic Dataset}
+This test set (implemented in \verb|SyntheticTestDataset|) is synthetic in that a mixture model of defined fixed parameter normal distributions are used to generate feature values and their corresponding classification labels. In addition to the distributions, a uniform random process is added to simulate noise and ensure that the model generalises. The task of the classifier is to learn the underlying distributions so that when unseen samples from the mixture model are taken, the system can predict the class.\\ This test is used to help test how well the classifier functions as noise is increased in a controlled manner, provides a good setting for continous feature type tests and, as is a generator, the number of instances can be increased to a level required for the load tests, mentioned later on.
+\floatsetup[figure]{capposition=bottom,capbesideposition={top,right}}
+\begin{figure}[h!]
+\centering
+\caption{An example of a 1 feature, 3 class mixture distribution model where probability densities are shown according to the class (colour). When adding more features, the distribution mixtures fan out into more dimensions according to their hyper parameters}
+\includegraphics[scale=0.35, trim=0 0 0 0, clip=true] {synthetic-class-distributions.pdf}
+\label{fig:indexes}
+\end{figure}
+\subsubsection{Adults Earnings} 
+Taken from the 1994 Census database and hosted on the UCI repository, this dataset represents a real life 50k instance dataset used to predict income levels of adults. This data set is used to see how the system performs in a real world setting but also provides a comparison against other system. The dataset primarily contains discrete features and it's expected label is a binary classification task
+
+\subsubsection{Shuttle Satlog}
+This data set, again taken from the UCI repository represents satlog information taken over time. The data contains purely continuous features so gives a foundation for verifying accuracy of the continuous features of the system. Furthermore, the dataset provides a multi class label set to test the performance of the multi-class functionality of the classifier.
+
+\subsection{Load Tests}
+Finally, a load testing framework called grinder is used to apply a distributed load from multiple injector instances on to a single deployment of the RCE system to determine the total amount of throughput it can handle including information on latency and error rates. The implementation is provided in the \verb|performance-test| module.
 \chapter{Performance}
 \section{Classification Performance}
 PerformanceTest results. AUC curves on the different data sets tested

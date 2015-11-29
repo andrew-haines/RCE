@@ -50,6 +50,8 @@ public interface NetworkChannelProcessor<T extends SelectableChannel & NetworkCh
 
 	void closeAccept(Channel readerChannel) throws IOException;
 	
+	String getProtocolName();
+	
 	public static final class Util{
 		
 		private Util(){}
@@ -95,6 +97,11 @@ public interface NetworkChannelProcessor<T extends SelectableChannel & NetworkCh
 			@Override
 			public void closeAccept(Channel readerChannel) throws IOException {
 				readerChannel.close();
+			}
+
+			@Override
+			public String getProtocolName() {
+				return "TCP";
 			}
 			
 		};
@@ -142,6 +149,11 @@ public interface NetworkChannelProcessor<T extends SelectableChannel & NetworkCh
 			@Override
 			public void closeAccept(Channel readerChannel)throws IOException {
 				// socket does not need closing for datagrams
+			}
+
+			@Override
+			public String getProtocolName() {
+				return "UDP";
 			}
 			
 		};

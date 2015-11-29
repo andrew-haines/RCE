@@ -261,7 +261,9 @@ Framing the classifier as a personalised trending now predictor, the formula is 
 \[\hat{y_j}= p(C_j)\prod_{i=1}^n p(x_i | C_j))\]
 \[\text{Without loss of generality and assuming that }  \hat{y_j} \geq \hat{y_{j'}} \text{ if } j < j'.\]
 \[\mathbf{\hat{y}} = (\hat{y}_1, ..., \hat{y}_m) \text{ where } m \leq K\]
-The prior \(p(C_j)\) term captures the traditional trending now function whereas the posterior \(p(x_i | C_j)\) captures the personalised extension.\\
+The prior \(p(C_j)\) term captures the traditional trending now function whereas the posterior \(p(x_i | C_j)\) captures the personalised extension.\\\\ There is an issue with the above in that, when dealing with features, the probabilities can approach zero very quickly resulting in underflow even when considering 64bit floating point values. To handle this, instead of taking the product of the probabilities, the ranking can be performed in log space where the sum of the log of the probabilities is used:
+
+\[\hat{y_j}= \log p(C_j) + \sum_{i=1}^n \log p(x_i | C_j))\]
 To build the probability distribution using an accumulator methodology is simple. When a labelled event is observed, an accumulator slot is referenced based on the classification value (to capture the prior) and one for each discrete feature value / classification pairing (capturing the posterior). The values in each of this slots is then incremented by 1. The probability for each prior term is then the total number of events seen of each classification value over the total number of events and the posterior terms is calculated as the total number of events seen of each feature/classification pairing over the total number of events of that particular class. Because of this setting, the classifier is also capable of predicting multi-class classification tasks.
 
 \begin{figure}[h!]
@@ -304,7 +306,7 @@ As it is not possible to store all event data in memory, calculation of the \(\m
 \end{subfigure}
 \end{figure}
 
-
+The classifier needs to also handle the scenario where certain events may not have all features present. Handling missing features is done explicitly by the model as the counts for neither the numerator or denominator are incremented, assuming that this event for this feature/classification has never been observed. Because of the assumption of independence between posteriors, such an approach is possible but it worth mentioning that if, on the training set only a few events occur with a given feature, then this posterior maybe greatly biased as the laws of big numbers will not be applicable. The assumption here is that events needing classification will also be drawn from the same distribution of missing features and thus such a bias will not effect the overall performance.
 \section{IO}
 In order for events to enter the system, a sensible IO strategy is needed not just to transport the bytes but also to deserialize them into a format that can be made sense of. This deserialising is a major bottleneck in any IO heavy system so care needs to be taken to ensure it is as efficient as possible
 \subsection{Selectors}
@@ -382,11 +384,12 @@ The system is implemented on top of the java programming language and virtual ma
 \subsection{Data}
 Data is stored throughout in dumb 'model' objects \footnote{designated within com.haines.ml.rce.*.model.* packages} which can be considered to be the events. These lightweight objects contain no business logic and exist to simply define the schema of data used in the application. For the most part, this data is immutable and final to ensure that data is visible and sharable across threads. Areas where contentious access occurs, namely within the shared global accumulator state (\verb|NaiveBayesGlobalIndexes|), are handled with great consideration and, due to the live/staging methodologies already discussed, safe updating of such shared data need only use volatile variables\footnote{One example of this is in the shared \verb|VolatileNaiveBayesGlobalIndexesProvider| instance.}.\\
 The model objects that exist outside of the application domain that relate to the public API of the system are coded to interfaces. This allows any of the application code to be agnostic of serialization concerns of the implementing classes used to move the data from external clients in and out of the public API. The MVC patten is one that helps enforce this separation and is adopted throughout this application. Normally large scale applications take this concept of API and domain isolation further via the inclusion of a mapping layer that converts serialization objects from the controller into the application domain. However as such a technique incurs significant costs both in the copying of data between objects and the extra memory footprint for the garbage collector to work with, this coding to interface approach is deemed a sensible compromise. \\
+When indexing data the gnu trove libraries are used in place of the java JDK collections framework to allow primitive values to be stored directly without the unnecessarily need to create wrapper objects that add to the footprint of the garbage collector process.\\
 In the rare scenarios where data needs to be transformed (i.e not changed but projected into a different structure), the delegation patten\cite{design-patterns} is used to transparently perform this task. The \verb|RCEConfig| object is an example of this.
 \subsection{Logic}
 Actual business logic is stored in classes in either two ways. More often than not, \verb|Service| classes are used which contain no state and are designed to be instantiated once as a shared global instance\footnote{although not implemented via the Singleton anti-pattern}. These instances then operate on supplied data model objects and coordinate flow based on the business logic each Service is responsible for. Due to the immutable contract of the model classes, some further classes where the control of data under contentious access is paramount, data and business logic is combined in a dedicated class. The Accumulators for instance contain both data (the accumulator structure) and business logic (how global and local indexes interact for example). These classes break this rule of data and execution logic separation to ensure thread safety without requiring on costly object allocation. 
 \subsection{Application Instantiation}
-Because certain objects have affinity to specific threads(like the \verb|Accumulator| and supporting classes) whilst others are more global in nature (\verb|Service| instances), a patten is required to manage instantiation and wiring of these instances. For this, inversion of control\cite{ioc} is adopted where instances assume nothing about implementations and life cycles of their dependent components whilst a single IOC factory is then responsible for the instantiation and injection of an instance and its components. In the case of this project, the \verb|RCEApplicationFactory| provides the main entry point into the construction of the application. Originally Google's Guice\cite{guice} was planned to be used to handle this task but, due to the thready affinity requirements of large parts of the system, this became unwieldy to manage \footnote{See \verb|GuiceRCEApplicationFactory| and corresponding \verb|RCEConfigConfiguredInitiationModule| for an idea of the complexities}. Consequently, a bespoke IOC factory was implemented catering to the novel requirements of the system design whilst the \verb|ServiceLoader| frameworkof the JDK is used to bootstrap the construction. The package \verb|com.haines.ml.rce.main.factory| contains the IOC factories used to instantiate and configure the system which will be discussed in more detail later in this chapter.
+Because certain objects have affinity to specific threads(like the \verb|Accumulator| and supporting classes) whilst others are more global in nature (\verb|Service| instances), a patten is required to manage instantiation and wiring of these instances. For this, inversion of control\cite{ioc} is adopted where instances assume nothing about implementations and life cycles of their dependent components whilst a single IOC factory is then responsible for the instantiation and injection of an instance and its components. In the case of this project, the \verb|RCEApplicationFactory| provides the main entry point into the construction of the application. Originally Google's Guice\cite{guice} was planned to be used to handle this task but, due to the thready affinity requirements of large parts of the system, this became unwieldy to manage \footnote{See \verb|GuiceRCEApplicationFactory| and corresponding \verb|RCEConfigConfiguredInitiationModule| for an idea of the complexities}. Consequently, a bespoke IOC factory was implemented catering to the novel requirements of the system design whilst the \verb|ServiceLoader| framework of the JDK is used to bootstrap the construction. The package \verb|com.haines.ml.rce.main.factory| contains the IOC factories used to instantiate and configure the system which will be discussed in more detail later in this chapter.
 \subsection{DataStructures}
 Apart from the bespoke structures already discussed, whenever the system needs to communicate a number of specific instances to downstream components, it does so using the most minimal building block of the Java collections API namely the \verb|Iterable| class. The reason for this is two fold. Firstly, the interface only allows read access which, even if implementing collections don't explicitly enforce immutability, the design of this API keeps access in a read only and thus thread safe manner by default\footnote{Technically care still needs to be taken to ensure visibility}. Secondly and more importantly it enables on demand manipulation of data in a functional manner. This can be extremely useful and performant especially in an event driven system such as this. Data that passes through may need to be manipulated in certain scenarios to downstream actors. Data could be manipulated in anticipation but what if downstream components dont need to use such data? This extra work would have been performed unnecessarily. A better approach is to wrap the iterable so that whenever a forEach construct is applied to it, on demand the translation function is executed during iteration. \\
 Prior to version 8 Java provides no natively functional constructs but this doesn't mean that such paradigms are impossible to implement. Because the system is designed to be compatible with as wide an infrastructure as possible, enforcing java 8 was something felt to be avoided. therefore, static and final instances of Google's Function class from the guava libraries are used to mimic functional behavior and reap its on demand benefits. Where multiple invocations of a given iterable are possible, to reduce the repeated invocation of a costly function, the \verb|com.haines.ml.util.CachedIterable| class is provided to wrap functional iterables to cache their results.
@@ -416,7 +419,7 @@ This defines the core accumulator datastructure with indexing types. When an eve
 To facilitate the different usages of discrete verses distribution based continuous accumulation, \verb|FeatureHandler| and \verb|ClassificationHandler| interfaces are provided that self as the public API interaction with the accumulators along with two provided implementations namely \verb|SequentialDistributionFeatureHandler| and\\ \verb|DiscreteLookupAccumulatorHandler|\footnote{A third is also provided called \verb|BucketedFeatureHandler| that is discussed more in the Future Work chapter}
 
 \subsubsection{rce-naivebayes}
-This provides the naive bayes implementation for the classification task of this system. It includes a \verb|RONaiveBayesMapBasedLookupStrategy| implementation for determining which slots should be incremented for a given event. It also defines the classification service to classify unseen events using probability models defined by implementations of \verb|NaiveBayesProbabilitiesProvider|.
+This provides the naive bayes implementation for the classification task of this system. It includes a \verb|RONaiveBayesMapBasedLookupStrategy| implementation for determining which slots should be incremented for a given event. It also defines the classification service to classify unseen events using probability models defined by implementations of \verb|NaiveBayesProbabilitiesProvider|. \\There is a scenario where the model may not have seen any occurrences of a given feature value and therefore it's posterior probability will be zero\footnote{More specifically this will be \(\infty\) once the \(\log\) is taken} and thus the final likelihood probability will be evaluated to zero. To tackle this, a nominal probability is defined that is \(> 0\) that acts as a lower bound of any probability calculation to ensure that one posterior can't have too great an influence on the overall outcome.  
 
 \subsubsection{rce-aggregator}
 This provides logic to aggregate multiple naive bayes counts together. This serves as the tooling for not only merging multiple local accumulator states together but also within the window manager as windows are added and removed.
@@ -472,7 +475,7 @@ This suite of tests verifies that multiple instances of units of functionality w
 \subsection{Integration Tests}
 This suite of tests verifies that various configurations of the entire system operate correctly. They are blanket tests that test the entire system is performing correctly at a broad level. In the system the \verb|RCEApplicationStartupTest| is such a test that verifies two configurations (UDP and TCP) start up and process a number of events without error. At this stage, no effort is made to ensure that the performance of the classifier is acceptable
 \subsection{Performance Tests}
-This test suite is responsible for ensuring that the performance of the system is acceptable. The basis of these tests is to use known labelled datasets (input with expected output) and partition them into two disjoint subsets each using a fixed ratio. The larger of the subsets is deemed the training set and is used to train the classifier by pushing events into the main input of the system. The remaining set, known as the test set, is then used to see how well the learned classifier does at predicting these remaining labelled instances. To further the accuracy of the test, the test is repeated a total of \(n\) times with different partitions of the training and test sets. This technique is known as n-fold cross validation. A small framework has been built in \verb|rce-performance-test| that defines the these datasets, performs this type of testing and produces reporting (precision, recall, fmeasure and AUC metrics) along with ROC plots\footnote{see \verb|AbstractPerformanceTest| and the \verb|ReportGenerator| and \verb|ReportRenderer| class for details}. The 3 data sets are:
+This test suite is responsible for ensuring that the performance of the system is acceptable. The basis of these tests is to use known labelled datasets (input with expected output) and partition them into two disjoint subsets each using a fixed ratio. The larger of the subsets is deemed the training set and is used to train the classifier by pushing events into the main input of the system. The remaining set, known as the test set, is then used to see how well the learned classifier does at predicting these remaining labelled instances. To further the accuracy of the test, the test is repeated a total of \(n\) times with different partitions of the training and test sets known as n-fold cross validation whilst multi-class performance is evaluated using a 1 vs rest scheme. A small framework has been built in \verb|rce-performance-test| that defines the these datasets, performs this type of testing and produces reporting (precision, recall, fmeasure and AUC metrics) along with ROC plots\footnote{see \verb|AbstractPerformanceTest| and the \verb|ReportGenerator| and \verb|ReportRenderer| class for details}. The 3 data sets are:
 
 \subsubsection{Synthetic Dataset}
 This test set (implemented in \verb|SyntheticTestDataset|) is synthetic in that a mixture model of defined fixed parameter normal distributions are used to generate feature values and their corresponding classification labels. In addition to the distributions, a uniform random process is added to simulate noise and ensure that the model generalises. The task of the classifier is to learn the underlying distributions so that when unseen samples from the mixture model are taken, the system can predict the class.\\ This test is used to help test how well the classifier functions as noise is increased in a controlled manner, provides a good setting for continous feature type tests and, as is a generator, the number of instances can be increased to a level required for the load tests, mentioned later on.
@@ -490,14 +493,58 @@ Taken from the 1994 Census database and hosted on the UCI repository, this datas
 This data set, again taken from the UCI repository represents satlog information taken over time. The data contains purely continuous features so gives a foundation for verifying accuracy of the continuous features of the system. Furthermore, the dataset provides a multi class label set to test the performance of the multi-class functionality of the classifier.
 
 \subsection{Load Tests}
-Finally, a load testing framework called grinder is used to apply a distributed load from multiple injector instances on to a single deployment of the RCE system to determine the total amount of throughput it can handle including information on latency and error rates. The implementation is provided in the \verb|performance-test| module.
+As the intension of the system is to not just provide a powerful classifier but also to do so under extreme load within a stream based setting. Consequently a load testing framework called grinder\cite{grinder} is used to apply a distributed load from multiple injector instances onto a single deployment of the RCE system to determine the total amount of throughput it can handle including information on latency and error rates. The implementation is provided in the \verb|performance-test| module.
+
 \chapter{Performance}
 \section{Classification Performance}
-PerformanceTest results. AUC curves on the different data sets tested
+The following section presents the results of both the performance and load tests as described in the previous chapter.
 \subsection{Synthetic Test}
-Synthetic test to see if it can learn multivariate distributions in the presence of noise. Also mention how it is used in the load test to generate BigData equivalent volumes.
+To begin with, the synthetic test is used to evaluate a comparison of the discrete\footnote{The actual synthetic feature values are continuous in nature being drawn from means of the range of 0-300 with similar covariances. Discretization of the feature values occurs as the events are serialized from the test driver by casting to discrete integer values } and continuous feature handlers at fitting a normal mixture model of 10000 training instances.
+
+\begin{figure}[h!]
+\centering
+\caption{ROC of continuous and discrete feature handlers using 11000 labelled instances and a 5 fold cross validation. The synthetic dataset consists of 3 classification types and 6 features type with distributed mean and covariances for each classification value. A 30\% probability that a given feature will be picked from a uniform distribution is also included to include an element of noise in the dataset}
+\includegraphics[scale=0.45, trim=0 0 0 0, clip=true] {10000-instance-training-1000-testing-synthetictest.png}
+\label{fig:indexes}
+\begin{tabular}{l*{60}{c}r}
+Test Type & AUC & Accuracy \\
+\hline
+Synthetic Continuous Feature Handlers & 0.90 & 0.808 \\
+Synthetic Discrete Feature Handlers & 0.904 & 0.81 \\
+
+\end{tabular}
+\end{figure}
+
+As the discrete and continuous feature handler tests are fairly comparable, another test is performed to see how the two approaches compare in the presence of limited samples\footnote{Technically a scenario the system was not built to consider but included for completeness}
+
+\begin{figure}[h!]
+\centering
+\caption{ROC of continuous and discrete feature handlers using 1100 synthentic instances and 5 fold cross validation}
+\includegraphics[scale=0.45, trim=0 0 0 0, clip=true] {1000-instance-training-100-testing-synthetictest.png}
+\label{fig:indexes}
+\begin{tabular}{l*{6}{c}r}
+Test Type & AUC & Accuracy \\
+\hline
+Synthetic Continuous Feature Handlers & 0.872 & 0.8 \\
+Synthetic Discrete Feature Handlers & 0.833 & 0.74 \\
+
+\end{tabular}
+\end{figure}
+
 \subsection{Adult Wages}
-A classification Task
+Next the adult wages dataset is considered to offer a comparison of the classifier against other published known implementations. Configuring the system with all features being treated as discrete yields the following ROC curve.
+\begin{figure}[h!]
+\centering
+\caption{ROC of all discrete feature handlers using adult wage test set. N-fold validation is not used in this test so that the provided training/test splits can be used to compare against the published results of different classifiers}
+\includegraphics[scale=0.45, trim=0 5 0 0, clip=true] {all_discrete_features_adult_earnings.png}
+\label{fig:indexes}
+\begin{tabular}{l*{6}{c}r}
+Test Type & AUC & Accuracy \\
+\hline
+Adult Wage Discrete Feature Handlers & 0.858 & 0.837 \\
+\end{tabular}
+\end{figure}
+Next a comparison of the performance of the system is considered when different features are considered as being continuous.
 \subsection{Space Shuttle}
 A regression Task
 \section{Throughput Performance}

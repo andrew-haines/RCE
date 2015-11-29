@@ -14,7 +14,6 @@ import org.apache.commons.math3.distribution.MixtureMultivariateRealDistribution
 import org.apache.commons.math3.distribution.MultivariateNormalDistribution;
 import org.apache.commons.math3.distribution.MultivariateRealDistribution;
 import org.apache.commons.math3.distribution.RealDistribution;
-import org.apache.commons.math3.distribution.UniformRealDistribution;
 import org.apache.commons.math3.distribution.WeibullDistribution;
 import org.apache.commons.math3.linear.MatrixUtils;
 import org.apache.commons.math3.random.JDKRandomGenerator;
@@ -62,14 +61,30 @@ public class SyntheticTestDataset implements DataSet{
 	}
 	
 	private MultivariateRealDistribution addNoise(MultivariateNormalDistribution normalDistribution) {
-		
-		return new MixtureMultivariateRealDistribution<AbstractMultivariateRealDistribution>(Arrays.asList(new Pair<Double, AbstractMultivariateRealDistribution>(0.5, normalDistribution),
-																										   new Pair<Double, AbstractMultivariateRealDistribution>(0.5, new UniformDistribution(normalDistribution.getDimension(), normalDistribution.getMeans(), normalDistribution.getStandardDeviations()))));
+		return new MixtureMultivariateRealDistribution<AbstractMultivariateRealDistribution>(Arrays.asList(new Pair<Double, AbstractMultivariateRealDistribution>(1.0, normalDistribution), new Pair<Double, AbstractMultivariateRealDistribution>(0.0, new AbstractMultivariateRealDistribution(new JDKRandomGenerator(), normalDistribution.getDimension()){
+
+			@Override
+			public double density(double[] x) {
+				return 0;
+			}
+
+			@Override
+			public double[] sample() {
+				double[] randoms = new double[getDimension()];
+				
+				for (int i = 0; i < randoms.length; i++){
+					randoms[i] = this.random.nextDouble() * 100;
+				}
+				
+				return randoms;
+			}
+			
+		})));
 	}
 
 	public SyntheticTestDataset(int numPossibleClasses, int numFeatures, double probabilityOfFeatureBeingPresent){
 		// provides a randomised constructor of mean values
-		this(numPossibleClasses, probabilityOfFeatureBeingPresent, getRandomMeans(numFeatures, numPossibleClasses, 100000, true), getRandomCovariances(numFeatures, numPossibleClasses));
+		this(numPossibleClasses, probabilityOfFeatureBeingPresent, getRandomMeans(numFeatures, numPossibleClasses, 2), getRandomCovariances(numFeatures, numPossibleClasses));
 	}
 	
 	private static double[][][] getRandomCovariances(int numFeatures, int numClasses) {
@@ -79,7 +94,7 @@ public class SyntheticTestDataset implements DataSet{
 		 * as there are an awful lot of possible 'bins' (integer numbers) that can be used.
 		 */
 		
-		double[][] randomVariances = getRandomMeans(numFeatures, numClasses, 1000000, false);  
+		double[][] randomVariances = getRandomMeans(numFeatures, numClasses, 3);  
 		double[][][] randomCovarianceMatrix = new double[numClasses][][];
 		for (int i = 0; i < randomVariances.length; i++){
 			randomCovarianceMatrix[i] = MatrixUtils.createRealDiagonalMatrix(randomVariances[i]).getData();
@@ -87,20 +102,27 @@ public class SyntheticTestDataset implements DataSet{
 		return randomCovarianceMatrix;
 	}
 
-	private static double[][] getRandomMeans(int numFeatures, int numClasses, int maxValue, boolean allowNegative) {
+	private static double[][] getRandomMeans(int numFeatures, int numClasses, double multiplier) {
 		double[][] means = new double[numClasses][numFeatures];
 		
 		for (int i = 0; i < numClasses; i++){
-			for (int j = 0; j < numFeatures; j++){
-				
-				double offset = 0;
-				
-				if (allowNegative){
-					offset = maxValue /2;
-				}
-				
-				means[i][j] = (Math.random() * maxValue) - offset;
-			}
+
+			means[i] = getDeterministicRandomNumbers(numFeatures, (i+1 * multiplier));
+		}
+		
+		return means;
+	}
+	
+	private static double[] getDeterministicRandomNumbers(int numFeatures, double multiplier){
+		double[] means = new double[numFeatures];
+		
+		if (multiplier < 1){
+			multiplier = 1;
+		}
+		
+		for (int i = 0; i < numFeatures; i++){
+			int n = (int)(Math.pow(2, i) * ((2 % (i+1) == 0)?-1:1));
+			means[i] = (((n << 1) ^ (n >> 31)) * multiplier) + multiplier; // use zipzag encoding to generate a deterministic distribution of positive means based on the number of features
 		}
 		
 		return means;
@@ -212,46 +234,4 @@ public class SyntheticTestDataset implements DataSet{
 		
 		return possibleClasses.get(classIdx);
 	}
-	
-	private static class UniformDistribution extends AbstractMultivariateRealDistribution {
-
-		private final RealDistribution[] distribution;
-		
-		protected UniformDistribution(int dimensionality, double[] means, double[] sd) {
-			super(new JDKRandomGenerator(), dimensionality);
-			this.distribution = new RealDistribution[dimensionality];
-			
-			for (int i = 0; i < dimensionality; i++){ // create uniform distributions from 95% confidence intervals using the mean and variance of each dimension
-				
-				double lower = means[i] - sd[i];
-				double higher = means[i] + sd[i];
-				
-				distribution[i] = new UniformRealDistribution(lower, higher);
-			}
-		}
-
-		@Override
-		public double density(double[] x) {
-			double density = 0;
-			
-			for (int i = 0; i < x.length; i++){
-				density += distribution[i].density(x[i]);
-			}
-			
-			return density / x.length; // TODO not sure if this is correct!
-		}
-
-		@Override
-		public double[] sample() {
-			double[] samples = new double[getDimension()];
-			
-			for (int i = 0;i < samples.length; i++){
-				samples[i] = distribution[i].sample();
-			}
-			
-			return samples;
-		}
-		
-	}
-
 }

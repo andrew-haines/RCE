@@ -27,7 +27,7 @@ public class SyntheticDataPerformanceTest extends AbstractPerformanceTest{
 	private Collection<Integer> continuousFeatureTypes = Collections.emptyList();
 	
 	public SyntheticDataPerformanceTest(){
-		this.dataset = new SyntheticTestDataset(3, 6, 0.6);
+		this.dataset = new SyntheticTestDataset(3, 6, 0.9);
 	}
 
 	public void before() throws InterruptedException, RCEApplicationException, JAXBException, IOException{
@@ -42,7 +42,7 @@ public class SyntheticDataPerformanceTest extends AbstractPerformanceTest{
 		
 		Report report = testCurrentCandidate();
 		
-		assertThat("Accuracy "+report.getAccuracy()+" is not above 0.83", DoubleMath.fuzzyEquals(report.getAccuracy(), 0.83, 0.01) || report.getAccuracy() > 0.83, is(equalTo(true)));
+		assertThat("Accuracy "+report.getAccuracy()+" is not above 0.75", DoubleMath.fuzzyEquals(report.getAccuracy(), 0.75, 0.01) || report.getAccuracy() > 0.75, is(equalTo(true)));
 	}
 	
 	@Test
@@ -66,7 +66,7 @@ public class SyntheticDataPerformanceTest extends AbstractPerformanceTest{
 
 	@Override
 	protected Iterable<ClassifiedEvent> loadTrainingEvents() throws IOException {
-		return dataset.getEventsFromDistribution(1000);
+		return dataset.getEventsFromDistribution(10000);
 	}
 
 	@Override
@@ -77,5 +77,10 @@ public class SyntheticDataPerformanceTest extends AbstractPerformanceTest{
 	@Override
 	protected DataSet getDataSet() {
 		return dataset;
+	}
+
+	@Override
+	protected boolean isUsingNFoldValidation() {
+		return true;
 	}
 }

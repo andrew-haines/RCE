@@ -70,4 +70,9 @@ public class DiscreteEarningsPerformanceTest extends AbstractPerformanceTest {
 	protected DataSet getDataSet() {
 		return dataSet;
 	}
+
+	@Override
+	protected boolean isUsingNFoldValidation() {
+		return false; // for comparison against the published results, dont use n-fold cross validation
+	}
 }

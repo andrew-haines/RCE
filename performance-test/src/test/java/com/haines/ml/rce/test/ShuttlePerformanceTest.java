@@ -214,4 +214,9 @@ public class ShuttlePerformanceTest extends AbstractPerformanceTest {
 	protected DataSet getDataSet() {
 		return dataSet;
 	}
+
+	@Override
+	protected boolean isUsingNFoldValidation() {
+		return true;
+	}
 }

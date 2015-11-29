@@ -360,6 +360,13 @@ public class ReportGenerator {
 		return combinedReport;
 	}
 	
+	/**
+	 * This method defines the training and test sets based on an n-fold validation strategy. 
+	 * @param events
+	 * @param numFolds
+	 * @param classes
+	 * @return
+	 */
 	public Report getReport(Collection<? extends ClassifiedEvent> events, int numFolds, List<? extends Classification> classes){
 		int foldSize = (int)Math.floor(events.size() / numFolds);
 		

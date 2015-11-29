@@ -11,6 +11,7 @@ import java.util.Collections;
 
 import javax.xml.bind.JAXBException;
 
+import org.junit.Before;
 import org.junit.Test;
 
 import com.dyuproject.protostuff.Message;
@@ -50,7 +51,7 @@ public class ContinuousEarningsPerformanceTest extends AbstractPerformanceTest {
 	}
 	
 	public void before() throws InterruptedException, RCEApplicationException, JAXBException, IOException{
-		this.startUpRCE(getFeatureHandlerRepositoryFactory());
+		
 		if (featureTypes.isEmpty()){
 			dataSet = new CsvDataSet.EarningsDataSet(Collections.<Integer>emptyList());
 			
@@ -158,5 +159,10 @@ public class ContinuousEarningsPerformanceTest extends AbstractPerformanceTest {
 	
 	private Iterable<Message<?>> loadEvents(String datafileLocation) throws IOException{
 		return PerformanceTest.UTILS.loadEvents(datafileLocation, true, ',', dataSet);
+	}
+
+	@Override
+	protected boolean isUsingNFoldValidation() {
+		return false; // for comparison against the published results, dont use n-fold cross validation
 	}
 }

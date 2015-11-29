@@ -15,6 +15,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
 import com.haines.ml.rce.accumulator.HandlerRepository;
 import com.haines.ml.rce.accumulator.handlers.ClassificationHandler;
 import com.haines.ml.rce.accumulator.handlers.FeatureHandler;
@@ -139,6 +141,8 @@ public abstract class AbstractPerformanceTest extends RCEApplicationStartupTest 
 		return super.candidate.getNaiveBayesService();
 	}
 	
+	protected abstract boolean isUsingNFoldValidation();
+	
 	protected Report testCurrentCandidate() throws IOException{
 		String existingThreadName = Thread.currentThread().getName();
 		
@@ -151,9 +155,15 @@ public abstract class AbstractPerformanceTest extends RCEApplicationStartupTest 
 		
 		LOG.info("Finished loading required data. Starting tests");
 		
+		ReportGenerator reportGenerator = new ReportGenerator(getTestName(), 3, 200, this);
 		try{
-			Report report = new ReportGenerator(getTestName(), 3, 200, this).getReport(trainingEvents, testingEvents, getDataSet().getExpectedClasses());
 			
+			Report report;
+			if (isUsingNFoldValidation()){
+				report = reportGenerator.getReport(Lists.newArrayList(Iterables.concat(trainingEvents, testingEvents)), 5, getDataSet().getExpectedClasses());
+			}else {
+				report = reportGenerator.getReport(trainingEvents, testingEvents, getDataSet().getExpectedClasses());
+			}
 			GENERATED_REPORTS.add(report);
 			
 			return report;

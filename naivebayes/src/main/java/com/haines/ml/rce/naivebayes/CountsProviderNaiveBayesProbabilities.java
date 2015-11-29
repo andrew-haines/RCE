@@ -67,7 +67,6 @@ public class CountsProviderNaiveBayesProbabilities implements NaiveBayesProbabil
 	
 	public CountsProviderNaiveBayesProbabilities(NaiveBayesCountsProvider provider, HandlerRepository<?> featureHandlers){
 		
-		
 		this.featureHandlers = featureHandlers;
 		Counts counts = provider.getCounts();
 		

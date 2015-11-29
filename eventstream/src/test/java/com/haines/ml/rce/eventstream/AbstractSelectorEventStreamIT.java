@@ -63,6 +63,8 @@ public abstract class AbstractSelectorEventStreamIT<T extends SelectableChannel 
 		executor = Executors.newSingleThreadExecutor();
 		dispatcher = new TestDispatcher(eventsExpected);
 		
+		NetworkChannelProcessor<T> processor = createNetworkChannelProcessor();
+		
 		config = new SelectorEventStreamConfig.SelectorEventStreamConfigBuilder()
 		.bufferCapacity(getBufferCapacity())
 		.bufferType(BufferType.DIRECT_BUFFER)
@@ -72,7 +74,7 @@ public abstract class AbstractSelectorEventStreamIT<T extends SelectableChannel 
 		startupLatch = new CountDownLatch(1);
 		shutdownLatch = new CountDownLatch(1);
 		
-		SelectorEventStreamFactory<T, TestEvent> streamFactory = new SelectorEventStreamFactory<T, TestEvent>(Clock.SYSTEM_CLOCK, config, createNetworkChannelProcessor(), new TestEventBuffer(), new LatchNotifierEventStreamListener(startupLatch, shutdownLatch));
+		SelectorEventStreamFactory<T, TestEvent> streamFactory = new SelectorEventStreamFactory<T, TestEvent>(Clock.SYSTEM_CLOCK, config, processor, new TestEventBuffer(), new LatchNotifierEventStreamListener(startupLatch, shutdownLatch));
 		candidate = streamFactory.create(dispatcher);
 	}
 	

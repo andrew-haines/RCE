@@ -7,6 +7,12 @@ import javax.inject.Inject;
 import com.google.common.collect.Iterables;
 import com.haines.ml.rce.model.Event;
 
+/**
+ * This class dispatches events uniformly amongst an array of event consumders
+ * @author haines
+ *
+ * @param <E>
+ */
 public class Dispatcher<E extends Event> {
 
 	private final DispatcherConsumer<E>[] consumers;

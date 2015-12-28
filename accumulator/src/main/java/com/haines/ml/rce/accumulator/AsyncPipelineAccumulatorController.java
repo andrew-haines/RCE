@@ -16,6 +16,13 @@ import com.haines.ml.rce.model.PipelinedEventConsumer;
 import com.haines.ml.rce.model.system.Clock;
 import com.haines.ml.rce.model.system.SystemStartedListener;
 
+/**
+ * An event consumer that uses a dedicated coordinator thread to push accumulated events downstream
+ * @author haines
+ *
+ * @param <E>
+ * @param <T>
+ */
 public class AsyncPipelineAccumulatorController<E extends Event, T extends AccumulatorLookupStrategy<? super E>> extends PipelineAccumulatorController implements Runnable, SystemStartedListener{
 
 	public static final String SCHEDULE_EXECUTOR_BINDING_KEY = "AsyncPipelineAccumulatorController.asyncExecutor";

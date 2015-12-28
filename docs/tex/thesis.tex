@@ -118,12 +118,15 @@ The Directed Acyclic Graph\cite{dryad, spark-paper} approach tackles the deficie
 \subsection{Stream processing}
 One of the big problems with batch processing is that it is not real time. For most applications this isn't too much of a draw back but imagine budget caps on an advertiser spend. Waiting for the next hour's processing window to cut off an advertisers supply could be extremely costly. Assuming that processing never overruns\footnote{There is overhead with starting up distributed tasks that can easily make stall resource allocation and cause SLA's to be missed}, near realtime updates could be possible by reducing the processing window of the batch to a few minutes to help mitigate this issue but this isn't going to help a nuclear cooling processor from reacting to a sudden over heating. Stream processing provides a solution to this by processing events in a stream manner as they enter the system and distributed across a cluster of nodes. This means that events are processed, for the most part, either directly from the network bus or in a temporarily buffer, but never needing to be saved on the distributed file system. Processing is structured as a topology using concepts such as spouts and bolts to represent the data flow and processing respectively. In the trending now example, processing occurs in a very similar manner to that of the DAG approach. The difference being of course that at no point does a node get to see anything other than the current event. This is fine in our trending now example until we get to the ranking stage. \\
 
-Choices have to be made in streaming about concepts like where an accumulating histogram is stored and for how long does it persist for? There is no point in keeping the histogram for all time as this defeats the purpose of the trending \textbf{\textit{\underline{now}}}. One option would be to reset every hour, assuming the behavior of the batch processing methodology - except that it wouldn't. A few seconds after the reset and there may not be enough data seen in the histogram to make accurate predictions meaning that periods just after each reset are inherently noisy as the law of large numbers does not hold. Another approach would be a rolling window but this means that you need to keep all events in memory for each window. The larger the window the more likely to exhaust memory whilst smaller windows may not capture enough data. Also consider the median calculation mentioned previously. Without access to all the events, online versions such as a TDigest\cite{tdigest} need to be used which are far harder to implement and understand. Not only is stream based programming a lot harder but they are also extremely sensitive to the throughput coming and what can actually be processed. If your cluster is not large enough to process the influx of events coming into the system, then events are either dropped or buffered, reducing it's real time nature.\\
+Choices have to be made in streaming about concepts like where an accumulating histogram is stored and for how long does it persist for? There is no point in keeping the histogram for all time as this defeats the purpose of the trending \textbf{\textit{\underline{now}}}. One option would be to reset every hour, assuming the behavior of the batch processing methodology - except that it wouldn't. A few seconds after the reset and there may not be enough data seen in the histogram to make accurate predictions meaning that periods just after each reset are inherently noisy as the law of large numbers does not hold. Another approach would be a rolling window but this means that you need to keep all events in memory for each window. The larger the window the more likely to exhaust memory whilst smaller windows may not capture enough data. Also consider the median calculation mentioned previously. Without access to all the events, online versions such as a TDigest\cite{tdigest} need to be used which are far harder to implement and understand. Not only is stream based programming a lot harder but they are also extremely sensitive to the throughput coming and what can actually be processed. If your cluster is not large enough to process the influx of events coming into the system, then events are either dropped or buffered, hindering it's real time nature.\\
 
 Obviously the upside of the stream approach, other than it's realtime operating behavior, is that it's also super fast as IO is reduced to bare minimum. Apache Storm\cite{storm-site}\footnote{a commonly used distributed stream processing framework open sourced from Twitter\cite{storm-twitter}. Apache Spark also offers a streaming mode but underneath the hood this is really a micro batch mode to approximate real time\cite{spark-streaming-paper}} claims to be able to process 1M events a second using just a 10 node cluster\footnote{It is worth mentioning that the author's experience of such throughput requires slightly more nodes in a real setting}. Furthermore, if storage capacity is deemed a premium, then this approach can allow big data processing to function without the need of a distributed file system. 
 
-\subsection{High Throughput Systems}
+\subsection{Vertically Scaled Systems}
 On the other side of the technology spectrum, high throughput processing used in real time exchanges such as those within financial and scientific industries, are able to process huge streams of data but instead of scaling horizontally by adding more machines into a cluster, a single workhouse instance is used with multiple CPUs, huge memory addresses and dedicated transport buses that coordinate the data between. These are concurrent systems that are considered to scale vertically because obtaining more processing power and memory involves the reconfiguration of the instance itself by adding better CPU's or memory modules. These bespoke systems execute code that is specifically tailored to the underlying hardware which makes them incredibly efficient and able to outperform similar speced Hadoop or Storm clusters. Although typically favoring CPU bound tasks, these so called 'supercomputers' can still process vast amounts of data.
+
+At the same time, certain applications that utilise processing of large matrix operations can be performed on GPU processors at speeds far exceeding standard CPU's due to complex instruction sets and dedicated core and transistor architectures customised for graphic processing. Spatial models such as KMeans and CF algorithms can be structured to make the use of these chipsets and perform the computational aspects of learning and prediction in a fraction of the time it would take on a traditional CPU. BidMach\cite{bidmach} is a GPU directed machine learning library that is quoted as being able to cluster the MNIST image dataset into digit clusters on a single Titan-X GPU equipped system in only twice the time of a 128 core cluster\cite{bidmachbench}. Although impressive, this library is only really applicable to certain applications that can be formed using matrix representations where there is a large CPU bound overhead. It still suffers from the plight of processing large volumes of data if the application is IO bound.
+
 \begin{figure}[h!]
 
 \centering
@@ -382,9 +385,12 @@ This is a read only shared instance that all worker have access to. After every 
 \section{Overview}
 The system is implemented on top of the java programming language and virtual machine allowing it to execute on commodity hardware and OS even if the certain architectural paradigms the system optimizes for are absent. The name of RCE (Realtime Classification Engine) has been adopted as a working title for the system. \\A number of design patterns are carefully chosen for this implementation in order to alleviate some of the thread safety and IO concerns that naturally arise in such a concurrent system. As this is an event driven system, there needs to be a clear distinction between data and logic. 
 \subsection{Data}
-Data is stored throughout in dumb 'model' objects \footnote{designated within com.haines.ml.rce.*.model.* packages} which can be considered to be the events. These lightweight objects contain no business logic and exist to simply define the schema of data used in the application. For the most part, this data is immutable and final to ensure that data is visible and sharable across threads. Areas where contentious access occurs, namely within the shared global accumulator state (\verb|NaiveBayesGlobalIndexes|), are handled with great consideration and, due to the live/staging methodologies already discussed, safe updating of such shared data need only use volatile variables\footnote{One example of this is in the shared \verb|VolatileNaiveBayesGlobalIndexesProvider| instance.}.\\
-The model objects that exist outside of the application domain that relate to the public API of the system are coded to interfaces. This allows any of the application code to be agnostic of serialization concerns of the implementing classes used to move the data from external clients in and out of the public API. The MVC patten is one that helps enforce this separation and is adopted throughout this application. Normally large scale applications take this concept of API and domain isolation further via the inclusion of a mapping layer that converts serialization objects from the controller into the application domain. However as such a technique incurs significant costs both in the copying of data between objects and the extra memory footprint for the garbage collector to work with, this coding to interface approach is deemed a sensible compromise. \\
-When indexing data the gnu trove libraries are used in place of the java JDK collections framework to allow primitive values to be stored directly without the unnecessarily need to create wrapper objects that add to the footprint of the garbage collector process.\\
+Data is stored throughout in dumb 'model' objects \footnote{designated within com.haines.ml.rce.*.model.* packages} which can be considered to be the events. These lightweight objects contain no business logic and exist to simply define the schema of data used in the application. For the most part, this data is immutable and final to ensure that data is visible and sharable across threads. Areas where contentious access occurs, namely within the shared global accumulator state (\verb|NaiveBayesGlobalIndexes|), are handled with great consideration and, due to the live/staging methodologies already discussed, safe updating of such shared data need only use volatile variables\footnote{One example of this is in the shared \verb|VolatileNaiveBayesGlobalIndexesProvider| instance.}. 
+
+The model objects that exist outside of the application domain that relate to the public API of the system are coded to interfaces. This allows any of the application code to be agnostic of serialization concerns of the implementing classes used to move the data from external clients in and out of the public API. The MVC patten is one that helps enforce this separation and is adopted throughout this application. Normally large scale applications take this concept of API and domain isolation further via the inclusion of a mapping layer that converts serialization objects from the controller into the application domain. However as such a technique incurs significant costs both in the copying of data between objects and the extra memory footprint for the garbage collector to work with, this coding to interface approach is deemed a sensible compromise. 
+
+When indexing data the gnu trove libraries are used in place of the java JDK collections framework to allow primitive values to be stored directly without the unnecessarily need to create wrapper objects that add to the footprint of the garbage collector process.
+
 In the rare scenarios where data needs to be transformed (i.e not changed but projected into a different structure), the delegation patten\cite{design-patterns} is used to transparently perform this task. The \verb|RCEConfig| object is an example of this.
 \subsection{Logic}
 Actual business logic is stored in classes in either two ways. More often than not, \verb|Service| classes are used which contain no state and are designed to be instantiated once as a shared global instance\footnote{although not implemented via the Singleton anti-pattern}. These instances then operate on supplied data model objects and coordinate flow based on the business logic each Service is responsible for. Due to the immutable contract of the model classes, some further classes where the control of data under contentious access is paramount, data and business logic is combined in a dedicated class. The Accumulators for instance contain both data (the accumulator structure) and business logic (how global and local indexes interact for example). These classes break this rule of data and execution logic separation to ensure thread safety without requiring on costly object allocation. 
@@ -498,6 +504,7 @@ As the intension of the system is to not just provide a powerful classifier but 
 \chapter{Performance}
 \section{Classification Performance}
 The following section presents the results of both the performance and load tests as described in the previous chapter.
+\clearpage
 \subsection{Synthetic Test}
 To begin with, the synthetic test is used to evaluate a comparison of the discrete\footnote{The actual synthetic feature values are continuous in nature being drawn from means of the range of 0-300 with similar covariances. Discretization of the feature values occurs as the events are serialized from the test driver by casting to discrete integer values } and continuous feature handlers at fitting a normal mixture model of 10000 training instances.
 
@@ -509,13 +516,15 @@ To begin with, the synthetic test is used to evaluate a comparison of the discre
 \begin{tabular}{l*{60}{c}r}
 Test Type & AUC & Accuracy \\
 \hline
+
 Synthetic Continuous Feature Handlers & 0.90 & 0.808 \\
 Synthetic Discrete Feature Handlers & 0.904 & 0.81 \\
 
 \end{tabular}
 \end{figure}
 
-As the discrete and continuous feature handler tests are fairly comparable, another test is performed to see how the two approaches compare in the presence of limited samples\footnote{Technically a scenario the system was not built to consider but included for completeness}
+As the discrete and continuous feature handler tests are fairly comparable, another test is performed to see how the two approaches compare in the presence of limited samples\footnote{As the system was built with large scale datasets in mind, such a scenario is not really valid but included for completeness}
+
 
 \begin{figure}[h!]
 \centering
@@ -530,7 +539,7 @@ Synthetic Discrete Feature Handlers & 0.833 & 0.74 \\
 
 \end{tabular}
 \end{figure}
-
+\clearpage
 \subsection{Adult Wages}
 Next the adult wages dataset is considered to offer a comparison of the classifier against other published known implementations. Configuring the system with all features being treated as discrete yields the following ROC curve.
 \begin{figure}[h!]
@@ -544,7 +553,24 @@ Test Type & AUC & Accuracy \\
 Adult Wage Discrete Feature Handlers & 0.858 & 0.837 \\
 \end{tabular}
 \end{figure}
-Next a comparison of the performance of the system is considered when different features are considered as being continuous.
+\\Next a comparison of the performance of the system is considered when different features are considered as being continuous.
+\begin{figure}[h!]
+\centering
+\caption{ROC of using individual feature types configured as continuous features with the rest defined as discrete features. Also includes corresponding model sizes}
+\includegraphics[scale=0.50, trim=0 0 0 2, clip=true] {continuous_features_adult_earnings.png}
+\label{fig:indexes}
+\begin{tabular}{l*{6}{c}r}
+Test Type & AUC & Accuracy & Model Size (bytes)\\
+\hline
+\verb|capGain| Continuous Feature & 0.856 & 0.837 & 20,163,444\\
+\verb|age| Continuous Feature & 0.854 & 0.837 & 18,439,648\\
+\verb|hrPerWk| Continuous Feature & 0.853 & 0.837 & 18,920,264\\
+\verb|capLoss| Continuous Feature & 0.858 & 0.838 & 21,071,320\\
+All Continuous Features & 0.858 & 0.838 & 20,068,252\\
+All Discrete Features & 0.858 & 0.838 & 24,671,836\\
+\end{tabular}
+\end{figure}
+\clearpage
 \subsection{Space Shuttle}
 A regression Task
 \section{Throughput Performance}

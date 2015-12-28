@@ -11,6 +11,13 @@ import com.haines.ml.rce.model.Event;
 import com.haines.ml.rce.model.EventConsumer;
 import com.haines.ml.rce.model.system.SystemStoppedListener;
 
+/**
+ * An event consumer that uses the current consume thread to push accumulated events downstream
+ * @author haines
+ *
+ * @param <E>
+ * @param <T>
+ */
 public class SyncPipelineEventConsumer<E extends Event, T extends AccumulatorLookupStrategy<? super E>> implements EventConsumer<E>, SystemStoppedListener  {
 
 	private static final Logger LOG = LoggerFactory.getLogger(SyncPipelineEventConsumer.class);

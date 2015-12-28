@@ -50,6 +50,7 @@ public class ContinuousEarningsPerformanceTest extends AbstractPerformanceTest {
 		super(new DynamicClassLoader());
 	}
 	
+	//@Before
 	public void before() throws InterruptedException, RCEApplicationException, JAXBException, IOException{
 		
 		if (featureTypes.isEmpty()){
@@ -66,6 +67,9 @@ public class ContinuousEarningsPerformanceTest extends AbstractPerformanceTest {
 	@Test
 	public void givenRCEApplicationConfiguredWithAllDiscreteData_whenTrainedUsingEarningDataSet_thenGetAndReportClassifierPerformance() throws IOException, InterruptedException, RCEApplicationException, JAXBException {
 		this.testName = "discrete";
+		
+		featureTypes = Collections.emptyList();
+		this.dataSet = new CsvDataSet.EarningsDataSet(featureTypes);
 		
 		Report report = testCurrentCandidate();
 		

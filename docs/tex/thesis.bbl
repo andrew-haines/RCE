@@ -47,6 +47,20 @@
       \verb http://storm.apache.org/documentation/Rationale.html
       \endverb
     \endentry
+    \entry{bidmach}{webpage}{}
+      \field{sortinit}{0}
+      \field{sortinithash}{990108227b3316c02842d895999a0165}
+      \verb{url}
+      \verb https://github.com/BIDData/BIDMach
+      \endverb
+    \endentry
+    \entry{bidmachbench}{webpage}{}
+      \field{sortinit}{0}
+      \field{sortinithash}{990108227b3316c02842d895999a0165}
+      \verb{url}
+      \verb https://github.com/BIDData/BIDMach/wiki/Benchmarks
+      \endverb
+    \endentry
     \entry{mahout-site}{webpage}{}
       \field{sortinit}{0}
       \field{sortinithash}{990108227b3316c02842d895999a0165}

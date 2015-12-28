@@ -2,10 +2,24 @@ package com.haines.ml.rce.model.distribution;
 
 import org.apache.commons.math3.util.FastMath;
 
+/**
+ * An interface that defines a given distribution.
+ * @author haines
+ *
+ */
 public interface Distribution {
 	
-	public static Distribution NORMAL_DISTRIBUTION = new NormalDistribution();
+	/**
+	 * A distribution corresponding to a normal or guassian distribution.
+	 */
+	public static final Distribution NORMAL_DISTRIBUTION = new NormalDistribution();
 
+	/**
+	 * Given some distribution parameters and a given input, returns a result that corresponds to the underlying distribution mechanics.
+	 * @param params
+	 * @param input
+	 * @return
+	 */
 	double getValue(DistributionParameters params, double input);
 	
 	public static class NormalDistribution implements Distribution{

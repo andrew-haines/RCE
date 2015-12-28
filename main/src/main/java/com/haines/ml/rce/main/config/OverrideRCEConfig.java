@@ -5,11 +5,22 @@ import java.nio.ByteOrder;
 
 import com.haines.ml.rce.eventstream.SelectorEventStreamConfig.BufferType;
 
+/**
+ * A delegating implementation of {@link RCEConfig} that will try the override config first and, if no value is found,
+ * uses the default config.
+ * @author haines
+ *
+ */
 public class OverrideRCEConfig implements RCEConfig{
 
 	private final RCEConfig defaultConfig;
 	private final RCEConfig overrideConfig;
 	
+	/**
+	 * Constructor
+	 * @param defaultConfig The default config that will be used if no override is found
+	 * @param overrideConfig The override config
+	 */
 	public OverrideRCEConfig(RCEConfig defaultConfig, RCEConfig overrideConfig){
 		if (defaultConfig == null){
 			throw new IllegalArgumentException("Unable to create config. Default cannot be null");

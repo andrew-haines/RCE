@@ -13,6 +13,7 @@ import com.dyuproject.protostuff.Message;
 import com.google.common.base.Function;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
+import com.haines.ml.rce.main.RCEApplication;
 import com.haines.ml.rce.model.Classification;
 import com.haines.ml.rce.model.Event;
 import com.haines.ml.rce.service.ClassifierService;
@@ -23,14 +24,34 @@ public interface PerformanceTest {
 
 	public static final Util UTILS = new Util();
 	
+	/**
+	 * Returns the classifier service of this test based on the state constructed by the previous events
+	 * @return
+	 */
 	ClassifierService getClassifierService();
 
+	/**
+	 * Sends a given event into the test system
+	 * @param e
+	 */
 	void sendEvent(Event e);
 
+	/**
+	 * Notifies that the test system has finished being trained so that certain locks can be released
+	 */
 	void notifyTrainingCompleted();
 
-	void reset();
+	/**
+	 * Resets the the application and returns the newly created Application
+	 * @return
+	 */
+	RCEApplication<?> reset();
 	
+	/**
+	 * A random performance test that randomly assigns a class to a given event
+	 * @author haines
+	 *
+	 */
 	public static class RandomPerformanceTest implements PerformanceTest {
 
 		private final RandomisedClassifierService randomService;
@@ -55,8 +76,10 @@ public interface PerformanceTest {
 		}
 
 		@Override
-		public void reset() {
+		public RCEApplication<?> reset() {
 			// no op
+			
+			return new RCEApplication.DefaultRCEApplication<TestEvent>(null, null, null, null);
 		}
 	}
 	

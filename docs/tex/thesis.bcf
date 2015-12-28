@@ -2246,17 +2246,19 @@
     <bcf:citekey order="8">storm-site</bcf:citekey>
     <bcf:citekey order="9">storm-twitter</bcf:citekey>
     <bcf:citekey order="10">spark-streaming-paper</bcf:citekey>
-    <bcf:citekey order="11">disruptor-paper</bcf:citekey>
-    <bcf:citekey order="12">processor-affinity</bcf:citekey>
-    <bcf:citekey order="13">mahout-site</bcf:citekey>
-    <bcf:citekey order="14">knuth-aop</bcf:citekey>
-    <bcf:citekey order="15">googleprotobuf</bcf:citekey>
-    <bcf:citekey order="16">design-patterns</bcf:citekey>
-    <bcf:citekey order="17">ioc</bcf:citekey>
-    <bcf:citekey order="18">guice</bcf:citekey>
-    <bcf:citekey order="19">maven</bcf:citekey>
-    <bcf:citekey order="20">mccabecc</bcf:citekey>
-    <bcf:citekey order="21">grinder</bcf:citekey>
+    <bcf:citekey order="11">bidmach</bcf:citekey>
+    <bcf:citekey order="12">bidmachbench</bcf:citekey>
+    <bcf:citekey order="13">disruptor-paper</bcf:citekey>
+    <bcf:citekey order="14">processor-affinity</bcf:citekey>
+    <bcf:citekey order="15">mahout-site</bcf:citekey>
+    <bcf:citekey order="16">knuth-aop</bcf:citekey>
+    <bcf:citekey order="17">googleprotobuf</bcf:citekey>
+    <bcf:citekey order="18">design-patterns</bcf:citekey>
+    <bcf:citekey order="19">ioc</bcf:citekey>
+    <bcf:citekey order="20">guice</bcf:citekey>
+    <bcf:citekey order="21">maven</bcf:citekey>
+    <bcf:citekey order="22">mccabecc</bcf:citekey>
+    <bcf:citekey order="23">grinder</bcf:citekey>
   </bcf:section>
   <bcf:sortlist section="0" name="nty" type="entry" sortscheme="nty">
   <bcf:sorting>

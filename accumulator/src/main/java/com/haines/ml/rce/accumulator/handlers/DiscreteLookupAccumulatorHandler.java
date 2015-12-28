@@ -10,6 +10,12 @@ import com.haines.ml.rce.model.Classification;
 import com.haines.ml.rce.model.Event;
 import com.haines.ml.rce.model.Feature;
 
+/**
+ * A Feature and Classification handler that uses discrete values of the features to index each accumular slot
+ * @author haines
+ *
+ * @param <T>
+ */
 public class DiscreteLookupAccumulatorHandler<T extends Event> implements FeatureHandler<T>, ClassificationHandler<T>{
 
 	private final static Logger LOG = LoggerFactory.getLogger(DiscreteLookupAccumulatorHandler.class);

@@ -10,6 +10,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import net.sourceforge.sizeof.SizeOf;
+
 import org.apache.commons.math3.analysis.UnivariateFunction;
 import org.apache.commons.math3.analysis.interpolation.SplineInterpolator;
 import org.apache.commons.math3.analysis.interpolation.UnivariateInterpolator;
@@ -18,6 +20,7 @@ import org.apache.commons.math3.util.FastMath;
 import com.google.common.base.Function;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
+import com.haines.ml.rce.main.RCEApplication;
 import com.haines.ml.rce.model.Classification;
 import com.haines.ml.rce.model.ClassifiedEvent;
 import com.haines.ml.rce.service.ClassifierService;
@@ -26,22 +29,19 @@ import com.haines.ml.rce.service.ClassifierService.PredictedClassification;
 public class ReportGenerator {
 
 	private final int numOfTests;
-	private final int numRocSteps;
 	private final PerformanceTest test;
 	private final String reportName;
 	private static final UnivariateInterpolator INTERPOLATOR = new SplineInterpolator();
 	private static final int NUM_ROC_STEPS = 1000;
 	
-	public ReportGenerator(String reportName, int numTests, int numRocSteps, PerformanceTest test){
+	public ReportGenerator(String reportName, int numTests, PerformanceTest test){
 		this.reportName = reportName;
 		this.numOfTests = numTests;
-		this.numRocSteps = numRocSteps;
 		this.test = test;
 	}
 	
-	private Report runReport(Collection<? extends ClassifiedEvent> trainingSet, Collection<? extends ClassifiedEvent> testSet, final List<? extends Classification> classes){
+	private Report runReport(Collection<? extends ClassifiedEvent> trainingSet, Collection<? extends ClassifiedEvent> testSet, final List<? extends Classification> classes, RCEApplication<?> application){
 		
-		long heapSize = getMemoryAfterGC();
 		
 		long startTime = System.currentTimeMillis();
 		for (ClassifiedEvent event: trainingSet){
@@ -53,8 +53,6 @@ public class ReportGenerator {
 		long timeToTrain = System.currentTimeMillis() - startTime;
 		
 		test.notifyTrainingCompleted();
-		
-		long heapAfterTrainingSize = getMemoryAfterGC();
 		
 		final ClassifierService classifierService = test.getClassifierService();
 		
@@ -118,7 +116,7 @@ public class ReportGenerator {
 			aucTotal += report.getValue().getAuc() * (numPositives.get(report.getKey()) / (double)scores.size()); 
 		}
 		
-		return new Report(avReport.getAccuracy(), avReport.getFmeasure(), aucTotal, FastMath.max(0, heapAfterTrainingSize - heapSize), 1, avReport.getRocData(), reportName, timeToTrain, timeToTest);
+		return new Report(avReport.getAccuracy(), avReport.getFmeasure(), aucTotal, SizeOf.deepSizeOf(application), 1, avReport.getRocData(), reportName, timeToTrain, timeToTest);
 	}
 
 	private Report getReport(List<Scores> scores, Classification positiveClassification, int totalP) {
@@ -232,30 +230,6 @@ public class ReportGenerator {
 		return sum;
 	}
 
-	private double[] getScores(List<? extends Classification> classes, ClassifiedEvent event, ClassifierService classifierService) {
-		
-		double[] scores = new double[classes.size()];
-		for (int i = 0; i < classes.size(); i++){
-			scores[i] = classifierService.getScore(event.getFeaturesList(), classes.get(i));
-		}
-		return scores;
-	}
-
-	private double[][] getRocData(int[] rocTp, int[] rocFp, int[] rocTn, int[] rocFn) {
-		
-		double[] tpr = new double[numRocSteps+1];
-		double[] fpr = new double[numRocSteps+1];
-		
-		for (int step = 0; step <= numRocSteps; step++){
-			tpr[step] = getRecall(rocTp[step], rocFn[step]);
-			fpr[step] = getFallout(rocFp[step], rocTn[step]);
-		}
-		
-		// add the point (0,0) to data if it doesnt already exist
-		
-		return new double[][]{fpr, tpr};
-	}
-
 	private final double getPrecision(double tp, double fp){
 		return tp / (tp + fp);
 	}
@@ -266,15 +240,6 @@ public class ReportGenerator {
 	
 	private final double getFallout(double fp, double tn){ // also FPR
 		return fp / (fp + tn);
-	}
-	
-	private double getAverage(int[] values) {
-		int sum = 0;
-		
-		for (int value: values){
-			sum += value;
-		}
-		return sum / values.length;
 	}
 	
 	private static double[][] getAverage(double[][] values1, double[][] values2){
@@ -345,10 +310,10 @@ public class ReportGenerator {
 		
 		for (int i = 0; i < numOfTests; i++){
 			
-			test.reset();
+			RCEApplication<?> newApplication = test.reset();
 			
 			@SuppressWarnings("unchecked")
-			Report report = runReport((List<ClassifiedEvent>)trainingSet, (List<ClassifiedEvent>)testSet, classes);
+			Report report = runReport((List<ClassifiedEvent>)trainingSet, (List<ClassifiedEvent>)testSet, classes, newApplication);
 			
 			if (combinedReport == null){
 				combinedReport = report;
@@ -387,17 +352,6 @@ public class ReportGenerator {
 		}
 		
 		return combinedReport;
-	}
-	
-	private long getMemoryAfterGC() {
-		
-		Runtime rt = Runtime.getRuntime();
-		
-		rt.gc();
-		
-		long usedMemory = rt.totalMemory() - rt.freeMemory();
-		
-		return usedMemory;
 	}
 	
 	private Iterable<? extends ClassifiedEvent> getInverseFold(int i, int foldSize, Collection<? extends ClassifiedEvent> events) {

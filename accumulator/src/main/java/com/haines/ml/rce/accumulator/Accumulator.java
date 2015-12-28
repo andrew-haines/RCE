@@ -192,30 +192,50 @@ public abstract class Accumulator<T extends Event> implements EventConsumer<T>, 
 		return (firstAccumulatorIdx * secondAccumualtorLineSize * finalAccumulatorLineSize) + ((1+secondAccumulatorIdx) * finalAccumulatorLineSize);
 	}
 
+	/**
+	 * Increment the slot at the specified index by 1.
+	 * @param slot
+	 */
 	public void incrementAccumulator(int slot) {
 		int accumulatorIdx = getAccumulatorIdx(slot);
 
 		getAccumulatorLine(slot)[accumulatorIdx]++;
 	}
 	
+	/**
+	 * Increment the integer value at the specified slot by the specified valueToSum.
+	 * @param slot
+	 * @param valueToSum
+	 */
 	public void sumAccumulator(int slot, int valueToSum) {
 		int accumulatorIdx = getAccumulatorIdx(slot);
 		
 		getAccumulatorLine(slot)[accumulatorIdx] =+ valueToSum;
 	}
 	
+	/**
+	 * Increment the float value at the specified slot by the specified valueToSum.
+	 * @param slot
+	 * @param valueToSum
+	 */
 	public void sumAccumulator(int slot, float valueToSum){
 		int accumulatorIdx = getAccumulatorIdx(slot);
 		
 		getAccumulatorLine(slot)[accumulatorIdx] = Float.floatToIntBits(getAccumulatorValueAsFloat(slot) + valueToSum);
 	}
 	
+	/**
+	 * Returns the integrer value at the specified slot.
+	 */
 	public int getAccumulatorValue(int slot) {
 		int accumulatorIdx = getAccumulatorIdx(slot);
 		
 		return getAccumulatorLine(slot)[accumulatorIdx];
 	}
 	
+	/**
+	 * Returns the float value at the specified slot.
+	 */
 	public float getAccumulatorValueAsFloat(int slot) {
 		return Float.intBitsToFloat(getAccumulatorValue(slot));
 	}
@@ -224,6 +244,10 @@ public abstract class Accumulator<T extends Event> implements EventConsumer<T>, 
 		return (slot & finalAccumulatorMask);
 	}
 
+	/**
+	 * Returns an accumulator provider that represents a copy of the data at the moment this method was invoked.
+	 * @return
+	 */
 	public AccumulatorProvider<T> getAccumulatorProvider() {
 		
 		//LOG.debug("current maxId: {}", lookup.getMaxIndex());
@@ -231,6 +255,10 @@ public abstract class Accumulator<T extends Event> implements EventConsumer<T>, 
 		return new MemorySafeAccumulatorProvider<T>(accumulators, lookup.getMaxIndex(), finalAccumulatorLineSize, lookup);
 	}
 	
+	/**
+	 * Returns the maximum slot number that this accumulator can represent.
+	 * @return
+	 */
 	public int getMaxIndex() {
 		return phyisicalLimitOfAccumulator;
 	}

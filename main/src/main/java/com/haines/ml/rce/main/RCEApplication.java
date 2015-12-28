@@ -27,13 +27,40 @@ import com.haines.ml.rce.model.system.SystemListener;
 import com.haines.ml.rce.model.system.SystemStartedListener;
 import com.haines.ml.rce.model.system.SystemStoppedListener;
 
+/**
+ * An interface that represents a single instance of the entire application. It simply exists to allow clients to start
+ * and shut it down with an additional 'backdoor' method to inject events into the system directly. The later functionality is
+ * only really intended for testing although other event passing harnesses can be written to act as event injectors.
+ * @author haines
+ *
+ * @param <E>
+ */
 public interface RCEApplication<E extends Event> {
 	
+	/**
+	 * Starts a the application
+	 * @throws RCEApplicationException
+	 */
 	void start() throws RCEApplicationException;
 	
+	/**
+	 * Stops the application
+	 * 
+	 * @throws RCEApplicationException
+	 */
 	void stop() throws RCEApplicationException;
 	
+	/**
+	 * Returns the underlying event consumer to inject events manually into the system
+	 * @return
+	 */
 	EventConsumer<E> getEventConsumer();
+	
+	/**
+	 * Returns the {@link RCEConfig} object used to configure this application instance.
+	 * @return
+	 */
+	RCEConfig getConfig();
 
 	public static class DefaultRCEApplication<E extends Event> implements RCEApplication<E>{
 		
@@ -104,6 +131,13 @@ public interface RCEApplication<E extends Event> {
 			return config;
 		}
 	}
+	
+	/**
+	 * A builder for creating instances of {@link RCEApplication}.
+	 * @author haines
+	 *
+	 * @param <T>
+	 */
 	public static class RCEApplicationBuilder<T extends Event> {
 		
 		// set the number of event worker to be 1 less than the number of CPUs on the VM
@@ -161,5 +195,4 @@ public interface RCEApplication<E extends Event> {
 			throw new IllegalArgumentException("No service loader found.");
 		}
 	}
-	RCEConfig getConfig();
 }

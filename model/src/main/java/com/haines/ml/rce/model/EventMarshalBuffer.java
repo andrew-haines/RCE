@@ -23,6 +23,12 @@ public interface EventMarshalBuffer<E extends Event> {
 	 */
 	boolean marshal(ByteBuffer content);
 	
+	/**
+	 * Based on previous invocations to {@link #marshal(ByteBuffer)}, implementors will return an {@link Event} object that represents
+	 * the data passed within and resets the internal state ready for the event event.
+	 * @return
+	 * @throws UnMarshalableException
+	 */
 	E buildEventAndResetBuffer() throws UnMarshalableException;
 	
 }

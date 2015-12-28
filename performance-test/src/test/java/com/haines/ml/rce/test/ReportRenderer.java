@@ -23,8 +23,18 @@ public interface ReportRenderer {
 	
 	public final static Util UTIL = new Util();
 	
+	/**
+	 * Renders the supplied reports using a particular implementation (to console or to graphical output)
+	 * @param reports
+	 * @throws IOException
+	 */
 	void render(Iterable<Report> reports) throws IOException;
 	
+	/**
+	 * A report renderer that output statistics to the logging mechanism configured by slf4j
+	 * @author haines
+	 *
+	 */
 	public static class SLF4JReportRenderer implements ReportRenderer {
 
 		private static final Logger LOG = LoggerFactory.getLogger(SLF4JReportRenderer.class);
@@ -70,6 +80,11 @@ public interface ReportRenderer {
 		}
 	}
 	
+	/**
+	 * A ReportRenderer that renders the ROC data to a jchart graph in a jframe
+	 * @author haines
+	 *
+	 */
 	public static class JPanelJChartROCRenderer implements ReportRenderer{
 
 		@Override
@@ -88,6 +103,11 @@ public interface ReportRenderer {
 		}
 	}
 	
+	/**
+	 * A ReportRenderer that renders the ROC data to a jchart graph to a specified output stream
+	 * @author haines
+	 *
+	 */
 	public static class JChartROCRenderer implements ReportRenderer {
 
 		private final OutputStream out;
@@ -115,31 +135,6 @@ public interface ReportRenderer {
 			}
 			
 			return ChartFactory.createXYLineChart("ROC", "FPR", "TPR", dataset, PlotOrientation.VERTICAL, !Iterables.isEmpty((Iterables.skip(reports, 1))), false, false);
-		}
-
-		private static double[][] zeroBased(double[][] rocData) {
-			
-			double[] fpr = rocData[0];
-			double[] tpr = rocData[1];
-			
-			if (tpr[tpr.length - 1] != 0 || fpr[fpr.length - 1] != 0){
-				double[] tmptpr = new double[tpr.length + 1];
-				double[] tmpfpr = new double[fpr.length + 1];
-				
-				System.arraycopy(tpr, 0, tmptpr, 0, tpr.length);
-				System.arraycopy(fpr, 0, tmpfpr, 0, fpr.length);
-				
-				tmptpr[tpr.length] = 0;
-				tmpfpr[fpr.length] = 0;
-				
-				tpr = tmptpr;
-				fpr = tmpfpr;
-				
-				return new double[][]{fpr, tpr};
-				
-			} else{
-				return rocData;
-			}
 		}
 	}
 }

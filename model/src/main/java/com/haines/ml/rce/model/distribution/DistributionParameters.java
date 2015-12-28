@@ -2,6 +2,11 @@ package com.haines.ml.rce.model.distribution;
 
 import org.apache.commons.math3.util.FastMath;
 
+/**
+ * A class that defines the hyper parameters of a distribution
+ * @author haines
+ *
+ */
 public class DistributionParameters {
 	
 	public final static Math MATHS = new Math();
@@ -74,7 +79,14 @@ public class DistributionParameters {
 		return false;
 	}
 	
+	/**
+	 * Some common mathematical functions used in operation on distribution parameters.
+	 * @author haines
+	 *
+	 */
 	public final static class Math {
+		
+		private Math(){}
 		
 		/**
 		 * Takes to distributions and returns a distribution that represents the addition of both sets of data that the input distributions
@@ -109,6 +121,13 @@ public class DistributionParameters {
 			return new DistributionParameters(numSamples, mean, variance);
 		}
 		
+		/**
+		 * The same as {@link #add(DistributionParameters, DistributionParameters)} except that this will subtract 2 parameter objects
+		 * from each other.
+		 * @param dist1
+		 * @param dist2
+		 * @return
+		 */
 		public DistributionParameters sub(DistributionParameters dist1, DistributionParameters dist2){
 			
 			int numSamples = dist1.numSamples - dist2.numSamples;

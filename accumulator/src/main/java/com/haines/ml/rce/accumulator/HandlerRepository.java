@@ -11,6 +11,13 @@ import com.haines.ml.rce.model.Event;
 import com.haines.ml.rce.model.Feature;
 import com.haines.ml.rce.model.FeaturedEvent;
 
+/**
+ * Provides an index repository that maps {@link FeatureHandler} and {@link ClassificationHandler} handlers to given 
+ * feature and classification types ({@link Feature#getType()}/{@link Classification#getType()}).
+ * @author haines
+ *
+ * @param <E>
+ */
 public class HandlerRepository<E extends Event> {
 	
 	private final Map<Integer, FeatureHandler<E>> featureHandlers;
@@ -35,10 +42,20 @@ public class HandlerRepository<E extends Event> {
 		return create(Collections.<Integer, FeatureHandler<E>>emptyMap(), Collections.<Integer, ClassificationHandler<E>>emptyMap());
 	}
 	
+	/**
+	 * Returns the handler for this feature
+	 * @param feature
+	 * @return
+	 */
 	public FeatureHandler<E> getFeatureHandler(Feature feature){
 		return this.getFeatureHandler(feature.getType());
 	}
 	
+	/**
+	 * Returns the handler for this feature type
+	 * @param feature
+	 * @return
+	 */
 	public FeatureHandler<E> getFeatureHandler(int featureType){
 		FeatureHandler<E> handler = featureHandlers.get(featureType);
 		
@@ -49,10 +66,20 @@ public class HandlerRepository<E extends Event> {
 		return handler;
 	}
 	
+	/**
+	 * Returns the handler for this classification
+	 * @param feature
+	 * @return
+	 */
 	public ClassificationHandler<E> getClassificationHandler(Classification classification){
 		return getClassificationHandler(classification.getType());
 	}
 	
+	/**
+	 * Returns the handler for this classification type
+	 * @param feature
+	 * @return
+	 */
 	public ClassificationHandler<E> getClassificationHandler(int classificationType){
 		ClassificationHandler<E> handler = classificationHandlers.get(classificationType);
 		

@@ -85,7 +85,7 @@ public class RCEApplicationStartupTest {
 		this(null);
 	}
 	
-	protected void startUpRCE(FeatureHandlerRepositoryFactory repositoryFactory, RCEConfig config) throws InterruptedException, RCEApplicationException, JAXBException, IOException{
+	protected RCEApplication<?> startUpRCE(FeatureHandlerRepositoryFactory repositoryFactory, RCEConfig config) throws InterruptedException, RCEApplicationException, JAXBException, IOException{
 		started = new CountDownLatch(1);
 		finished = new CountDownLatch(1);
 		windowUpdated = new CountDownLatch(3);
@@ -139,10 +139,12 @@ public class RCEApplicationStartupTest {
 		candidate = (NaiveBayesRCEApplication<Event>)builder.build();
 		
 		startServerAndWait();
+		
+		return candidate;
 	}
 	
-	protected void startUpRCE(FeatureHandlerRepositoryFactory repositoryFactory) throws InterruptedException, RCEApplicationException, JAXBException, IOException{
-		startUpRCE(repositoryFactory, RCEConfig.UTIL.loadConfig());
+	protected RCEApplication<?> startUpRCE(FeatureHandlerRepositoryFactory repositoryFactory) throws InterruptedException, RCEApplicationException, JAXBException, IOException{
+		return startUpRCE(repositoryFactory, RCEConfig.UTIL.loadConfig());
 	}
 	
 	protected boolean isUsingSlf4jEventListener() {

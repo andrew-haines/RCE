@@ -21,6 +21,7 @@ import com.haines.ml.rce.accumulator.HandlerRepository;
 import com.haines.ml.rce.accumulator.handlers.ClassificationHandler;
 import com.haines.ml.rce.accumulator.handlers.FeatureHandler;
 import com.haines.ml.rce.accumulator.handlers.SequentialDistributionFeatureHandler;
+import com.haines.ml.rce.main.RCEApplication;
 import com.haines.ml.rce.main.RCEApplicationException;
 import com.haines.ml.rce.main.RCEApplicationStartupTest;
 import com.haines.ml.rce.main.factory.FeatureHandlerRepositoryFactory;
@@ -66,7 +67,7 @@ public abstract class AbstractPerformanceTest extends RCEApplicationStartupTest 
 		
 		Iterable<? extends ClassifiedEvent> testingEvents = loadTestEvents();
 		
-		Report randomReport = new ReportGenerator("Random", 2, 100, new RandomPerformanceTest(getDataSet().getExpectedClasses())).getReport(trainingEvents, testingEvents, getDataSet().getExpectedClasses());
+		Report randomReport = new ReportGenerator("Random", 2, new RandomPerformanceTest(getDataSet().getExpectedClasses())).getReport(trainingEvents, testingEvents, getDataSet().getExpectedClasses());
 		
 		GENERATED_REPORTS.add(randomReport);
 	}
@@ -127,10 +128,10 @@ public abstract class AbstractPerformanceTest extends RCEApplicationStartupTest 
 	}
 
 	@Override
-	public void reset() {
+	public RCEApplication<?> reset() {
 		try {
 			this.after();
-			this.startUpRCE(getFeatureHandlerRepositoryFactory());
+			return this.startUpRCE(getFeatureHandlerRepositoryFactory());
 		} catch (RCEApplicationException | InterruptedException | JAXBException | IOException e) {
 			throw new RuntimeException("Unable to stop existing service", e);
 		}
@@ -155,7 +156,7 @@ public abstract class AbstractPerformanceTest extends RCEApplicationStartupTest 
 		
 		LOG.info("Finished loading required data. Starting tests");
 		
-		ReportGenerator reportGenerator = new ReportGenerator(getTestName(), 3, 200, this);
+		ReportGenerator reportGenerator = new ReportGenerator(getTestName(), 3, this);
 		try{
 			
 			Report report;

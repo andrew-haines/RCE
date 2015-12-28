@@ -1,8 +1,6 @@
 package com.haines.ml.rce.accumulator.handlers;
 
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.Comparator;
 
 import org.apache.commons.math3.util.FastMath;
 
@@ -14,7 +12,7 @@ import com.haines.ml.rce.model.ClassifiedEvent;
 import com.haines.ml.rce.model.Feature;
 
 /**
- * A feature/classification handler that defines buckets 
+ * A feature/classification handler that defines buckets for continuous variables.
  * @author haines
  *
  * @param <T>

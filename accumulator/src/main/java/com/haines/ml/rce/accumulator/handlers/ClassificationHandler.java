@@ -6,10 +6,16 @@ import com.haines.ml.rce.accumulator.DistributionProvider;
 import com.haines.ml.rce.model.Classification;
 import com.haines.ml.rce.model.Event;
 
+/**
+ * A classification handler is one that determines how an accumulator should be updated given a particular classification, event and strategy
+ * @author haines
+ *
+ * @param <T>
+ */
 public interface ClassificationHandler<T extends Event> {
 
 	/**
-	 * Given the classification and even, increment the accumulator appropriately
+	 * Given the classification and event, increment the accumulator appropriately
 	 * @param classification
 	 * @param event
 	 * @param accumulator

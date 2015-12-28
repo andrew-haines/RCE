@@ -19,6 +19,13 @@ import com.lmax.disruptor.TimeoutException;
 import com.lmax.disruptor.dsl.Disruptor;
 import com.lmax.disruptor.dsl.ProducerType;
 
+/**
+ * A {@link DispatcherConsumer} that uses the imax disruptor structure to queue events off to downstream worker
+ * threads.
+ * @author haines
+ *
+ * @param <T>
+ */
 public class DisruptorConsumer<T extends Event> implements DispatcherConsumer<T>{
 
 	private final Disruptor<DisruptorEvent<T>> queue;

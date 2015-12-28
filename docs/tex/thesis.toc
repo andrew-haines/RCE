@@ -16,9 +16,9 @@
 \defcounter {refsection}{0}\relax 
 \contentsline {subsection}{\numberline {2.1.2}Stream processing}{10}{subsection.2.1.2}
 \defcounter {refsection}{0}\relax 
-\contentsline {subsection}{\numberline {2.1.3}High Throughput Systems}{11}{subsection.2.1.3}
+\contentsline {subsection}{\numberline {2.1.3}Vertically Scaled Systems}{11}{subsection.2.1.3}
 \defcounter {refsection}{0}\relax 
-\contentsline {section}{\numberline {2.2}Machine Learning Applications at scale}{12}{section.2.2}
+\contentsline {section}{\numberline {2.2}Machine Learning Applications at scale}{13}{section.2.2}
 \defcounter {refsection}{0}\relax 
 \contentsline {chapter}{\numberline {3}Motivation \& Scope}{14}{chapter.3}
 \defcounter {refsection}{0}\relax 
@@ -124,18 +124,18 @@
 \defcounter {refsection}{0}\relax 
 \contentsline {section}{\numberline {6.1}Classification Performance}{39}{section.6.1}
 \defcounter {refsection}{0}\relax 
-\contentsline {subsection}{\numberline {6.1.1}Synthetic Test}{39}{subsection.6.1.1}
+\contentsline {subsection}{\numberline {6.1.1}Synthetic Test}{40}{subsection.6.1.1}
 \defcounter {refsection}{0}\relax 
-\contentsline {subsection}{\numberline {6.1.2}Adult Wages}{39}{subsection.6.1.2}
+\contentsline {subsection}{\numberline {6.1.2}Adult Wages}{42}{subsection.6.1.2}
 \defcounter {refsection}{0}\relax 
-\contentsline {subsection}{\numberline {6.1.3}Space Shuttle}{39}{subsection.6.1.3}
+\contentsline {subsection}{\numberline {6.1.3}Space Shuttle}{44}{subsection.6.1.3}
 \defcounter {refsection}{0}\relax 
-\contentsline {section}{\numberline {6.2}Throughput Performance}{39}{section.6.2}
+\contentsline {section}{\numberline {6.2}Throughput Performance}{44}{section.6.2}
 \defcounter {refsection}{0}\relax 
-\contentsline {chapter}{\numberline {7}Conclusions}{43}{chapter.7}
+\contentsline {chapter}{\numberline {7}Conclusions}{45}{chapter.7}
 \defcounter {refsection}{0}\relax 
-\contentsline {section}{\numberline {7.1}Results}{43}{section.7.1}
+\contentsline {section}{\numberline {7.1}Results}{45}{section.7.1}
 \defcounter {refsection}{0}\relax 
-\contentsline {section}{\numberline {7.2}Limitations}{43}{section.7.2}
+\contentsline {section}{\numberline {7.2}Limitations}{45}{section.7.2}
 \defcounter {refsection}{0}\relax 
-\contentsline {section}{\numberline {7.3}Future Work}{43}{section.7.3}
+\contentsline {section}{\numberline {7.3}Future Work}{45}{section.7.3}

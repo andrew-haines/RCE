@@ -6,6 +6,12 @@ import com.haines.ml.rce.accumulator.DistributionProvider;
 import com.haines.ml.rce.model.Event;
 import com.haines.ml.rce.model.Feature;
 
+/**
+ * A feature handler is one that determines how an accumulator should be updated given a particular feature, event and strategy
+ * @author haines
+ *
+ * @param <T>
+ */
 public interface FeatureHandler<T extends Event> {
 
 	/**

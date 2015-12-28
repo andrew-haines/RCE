@@ -8,5 +8,8 @@ package com.haines.ml.rce.model.system;
  */
 public interface SystemStartedListener extends SystemListener{
 
+	/**
+	 * Notifies when the system has finished starting up all threads, io paths and data structures
+	 */
 	void systemStarted();
 }

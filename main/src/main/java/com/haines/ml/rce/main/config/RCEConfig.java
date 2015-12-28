@@ -23,6 +23,11 @@ import com.haines.ml.rce.eventstream.SelectorEventStreamConfig.SelectorEventStre
 import com.haines.ml.rce.main.config.jaxb.RCEConfigJAXB;
 import com.haines.ml.rce.window.WindowConfig;
 
+/**
+ * A config object that defines the entire configuration parameters of the system.
+ * @author haines
+ *
+ */
 public interface RCEConfig {
 	
 	public static final Util UTIL = new Util();
@@ -52,25 +57,97 @@ public interface RCEConfig {
 		}
 	}
 
+	/** 
+	 * The number of worker threads in the system. This should be tuned to (|cpu| - 1) so that we have exactly 1 
+	 * worker assigned to each CPU core
+	 * @return
+	 */
 	Integer getNumberOfEventWorkers();
 	
+	/**
+	 * Whether the system should use TCP or UDP or another transport protocol.
+	 * @return
+	 */
 	StreamType getEventTransportProtocal();
 	
+	/**
+	 * The capacity of the buffer used to serialise each event. The larger the capacity the more data can read of the network card
+	 * at once but too big and unneccessary off-heap space is allocated.
+	 * @return
+	 */
 	Integer getEventBufferCapacity();
 	
+	/**
+	 * Whether the system should use off or on heap memory for serialising data. off heap (direct) offers potentially direct access
+	 * to the io network (DMA) bus if the underlying OS supports it which avoids unnecessary copying from DMA bus to java heap space.
+	 * @return
+	 */
 	BufferType getEventBufferType();
 	
+	/**
+	 * The endian ordering of the bytes that data coming into the system is organised with
+	 * @return
+	 */
 	ByteOrder getByteOrder();
 	
+	/**
+	 * The address of the socket that is listening to receive data into the system
+	 * @return
+	 */
 	SocketAddress getEventStreamSocketAddress();
 	
+	/**
+	 * The number of bits used in the first accumulator line
+	 * @return
+	 */
 	Integer getFirstAccumulatorLineBitDepth();
 	
+	/**
+	 * The number of bits used in the second accumulator line
+	 * @return
+	 */
 	Integer getSecondAccumulatorLineBitDepth();
 	
+	/**
+	 * The number of bits used in the last accumulator line
+	 * @return
+	 */
 	Integer getFinalAccumulatorLineBitDepth();
 	
+	/**
+	 * How long in ms should the system wait before accumulating events together. The larger the value the less pauses are present in
+	 * the system and the less overal amount of space is needed to represent a given model but at the cost of not updating the system 
+	 * till this time is elapsed and therefore reducing it's 'realtime' properties
+	 * @return
+	 */
 	Long getMicroBatchIntervalMs();
+	
+	/**
+	 * The size of the disruptor ring used to queue the events as they arrive into the system.
+	 * @return
+	 */
+	Integer getDisruptorRingSize();
+
+	/**
+	 * Where the global name space starts. The larger the value the more room you have for new, unseen event value/type at the cost
+	 * of how many type/values you can store in the global index
+	 * @return
+	 */
+	Integer getGlobalIndexLimit();
+
+	/**
+	 * The number of windows to store. Based on the {@link #getWindowPeriod()} this determines how long the whole model is representative
+	 * for. It's total time period can be determined using {@link #getNumWindows()} * {@link #getWindowPeriod()}. The larger the value
+	 * the longer the model can be representative for at the expense of a linearly increasing memory foortprint.
+	 * @return
+	 */
+	Integer getNumWindows();
+
+	/**
+	 * How long each window should be valid for.
+	 * @return
+	 */
+	Long getWindowPeriod();
 	
 	public static class Util{
 		
@@ -352,12 +429,4 @@ public interface RCEConfig {
 		}
 		
 	}
-
-	Integer getDisruptorRingSize();
-
-	Integer getGlobalIndexLimit();
-
-	Integer getNumWindows();
-
-	Long getWindowPeriod();
 }

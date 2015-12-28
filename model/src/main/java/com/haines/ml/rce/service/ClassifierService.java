@@ -44,6 +44,12 @@ public interface ClassifierService {
 		}
 	}
 	
+	/**
+	 * A classifier that randomly assigns labels from a list of provided classes to a given event. The classies are randomly
+	 * assigned uniformly.
+	 * @author haines
+	 *
+	 */
 	public static class RandomisedClassifierService implements ClassifierService {
 
 		private final List<? extends Classification> possibleClassifications;

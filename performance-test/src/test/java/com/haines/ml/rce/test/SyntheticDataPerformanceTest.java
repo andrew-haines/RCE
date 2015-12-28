@@ -15,6 +15,7 @@ import org.junit.Test;
 import com.google.common.collect.Lists;
 import com.google.common.math.DoubleMath;
 import com.haines.ml.rce.main.RCEApplicationException;
+import com.haines.ml.rce.main.factory.FeatureHandlerRepositoryFactory;
 import com.haines.ml.rce.model.ClassifiedEvent;
 import com.haines.ml.rce.test.ReportGenerator.Report;
 import com.haines.ml.rce.test.data.SyntheticTestDataset;
@@ -35,6 +36,11 @@ public class SyntheticDataPerformanceTest extends AbstractPerformanceTest{
 		super.startUpRCE(getFeatureHandlerRepositoryFactory(continuousFeatureTypes));
 	}
 	
+	@Override
+	public FeatureHandlerRepositoryFactory getFeatureHandlerRepositoryFactory() {
+		return getFeatureHandlerRepositoryFactory(continuousFeatureTypes);
+	}
+
 	@Test
 	public void givenRCEApplicationConfiguredWithAllContinuousFeaturesData_whenTrainedUsingEarningDataSet_thenGetAndReportClassifierPerformance() throws IOException, InterruptedException, RCEApplicationException, JAXBException {
 		this.testName = "SyntheticData_continuous";

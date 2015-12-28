@@ -5,6 +5,8 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.List;
 
+import javax.xml.bind.JAXBException;
+
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
@@ -14,6 +16,8 @@ import com.google.common.base.Function;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.haines.ml.rce.main.RCEApplication;
+import com.haines.ml.rce.main.RCEApplicationException;
+import com.haines.ml.rce.main.RCEApplicationStartupTest;
 import com.haines.ml.rce.model.Classification;
 import com.haines.ml.rce.model.Event;
 import com.haines.ml.rce.service.ClassifierService;
@@ -55,9 +59,11 @@ public interface PerformanceTest {
 	public static class RandomPerformanceTest implements PerformanceTest {
 
 		private final RandomisedClassifierService randomService;
+		private final RCEApplicationStartupTest applicationTest;
 		
-		public RandomPerformanceTest(List<? extends Classification> possibleClassifications){
+		public RandomPerformanceTest(List<? extends Classification> possibleClassifications, RCEApplicationStartupTest applicationTest){
 			this.randomService = new RandomisedClassifierService(possibleClassifications);
+			this.applicationTest = applicationTest;
 		}
 		
 		@Override
@@ -79,7 +85,14 @@ public interface PerformanceTest {
 		public RCEApplication<?> reset() {
 			// no op
 			
-			return new RCEApplication.DefaultRCEApplication<TestEvent>(null, null, null, null);
+			try {
+				applicationTest.shutdownAndWait();
+				
+				return applicationTest.startUpRCE(applicationTest.getFeatureHandlerRepositoryFactory());
+			} catch (InterruptedException | RCEApplicationException
+					| JAXBException | IOException e) {
+				throw new RuntimeException("Unable to reset test", e);
+			}
 		}
 	}
 	

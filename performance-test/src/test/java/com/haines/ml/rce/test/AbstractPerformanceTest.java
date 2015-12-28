@@ -67,7 +67,7 @@ public abstract class AbstractPerformanceTest extends RCEApplicationStartupTest 
 		
 		Iterable<? extends ClassifiedEvent> testingEvents = loadTestEvents();
 		
-		Report randomReport = new ReportGenerator("Random", 2, new RandomPerformanceTest(getDataSet().getExpectedClasses())).getReport(trainingEvents, testingEvents, getDataSet().getExpectedClasses());
+		Report randomReport = new ReportGenerator("Random", 2, new RandomPerformanceTest(getDataSet().getExpectedClasses(), this)).getReport(trainingEvents, testingEvents, getDataSet().getExpectedClasses());
 		
 		GENERATED_REPORTS.add(randomReport);
 	}
@@ -182,6 +182,7 @@ public abstract class AbstractPerformanceTest extends RCEApplicationStartupTest 
 				ImmutableMap.Builder<Integer, FeatureHandler<E>> featureHandlers = new ImmutableMap.Builder<Integer, FeatureHandler<E>>();
 				
 				for (Integer featureType: continuousFeatureTypes){
+					LOG.info("using continuous feature of type: {}", featureType);
 					featureHandlers.put(featureType, new SequentialDistributionFeatureHandler<E>());
 				}
 				Map<Integer, ClassificationHandler<E>> classificationHandlers = new ImmutableMap.Builder<Integer, ClassificationHandler<E>>().build();

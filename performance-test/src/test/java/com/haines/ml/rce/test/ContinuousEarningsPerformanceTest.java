@@ -17,6 +17,7 @@ import org.junit.Test;
 import com.dyuproject.protostuff.Message;
 import com.google.common.math.DoubleMath;
 import com.haines.ml.rce.main.RCEApplicationException;
+import com.haines.ml.rce.main.factory.FeatureHandlerRepositoryFactory;
 import com.haines.ml.rce.model.ClassifiedEvent;
 import com.haines.ml.rce.test.ReportGenerator.Report;
 import com.haines.ml.rce.test.model.CsvDataSet;
@@ -50,20 +51,17 @@ public class ContinuousEarningsPerformanceTest extends AbstractPerformanceTest {
 		super(new DynamicClassLoader());
 	}
 	
-	//@Before
-	public void before() throws InterruptedException, RCEApplicationException, JAXBException, IOException{
+	@Before
+	public void before() throws InterruptedException, RCEApplicationException, JAXBException, IOException {
 		
-		if (featureTypes.isEmpty()){
-			dataSet = new CsvDataSet.EarningsDataSet(Collections.<Integer>emptyList());
-			
-			super.startUpRCE(getFeatureHandlerRepositoryFactory());
-		} else{
-			dataSet = new CsvDataSet.EarningsDataSet(featureTypes);
-		
-			super.startUpRCE(getFeatureHandlerRepositoryFactory(featureTypes));
-		}
+		dataSet = new CsvDataSet.EarningsDataSet(featureTypes);
 	}
-	
+
+	@Override
+	public FeatureHandlerRepositoryFactory getFeatureHandlerRepositoryFactory() {
+		return getFeatureHandlerRepositoryFactory(featureTypes);
+	}
+
 	@Test
 	public void givenRCEApplicationConfiguredWithAllDiscreteData_whenTrainedUsingEarningDataSet_thenGetAndReportClassifierPerformance() throws IOException, InterruptedException, RCEApplicationException, JAXBException {
 		this.testName = "discrete";

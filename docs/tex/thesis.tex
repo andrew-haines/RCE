@@ -562,12 +562,13 @@ Adult Wage Discrete Feature Handlers & 0.858 & 0.837 \\
 \begin{tabular}{l*{6}{c}r}
 Test Type & AUC & Accuracy & Model Size (bytes)\\
 \hline
-\verb|capGain| Continuous Feature & 0.856 & 0.837 & 20,163,444\\
-\verb|age| Continuous Feature & 0.854 & 0.837 & 18,439,648\\
-\verb|hrPerWk| Continuous Feature & 0.853 & 0.837 & 18,920,264\\
-\verb|capLoss| Continuous Feature & 0.858 & 0.838 & 21,071,320\\
-All Continuous Features & 0.858 & 0.838 & 20,068,252\\
-All Discrete Features & 0.858 & 0.838 & 24,671,836\\
+\verb|capGain| Continuous Feature & 0.800 & 0.849 & 20,345,126 & \\
+\verb|age| Continuous Feature & 0.857 & 0.841 & 20,909,350\\
+\verb|hrPerWk| Continuous Feature & 0.858 & 0.838 & 20,299,080\\
+\verb|capLoss| Continuous Feature & 0.838 & 0.834 & 21,084,010\\
+All Continuous Features & 0.767 & 0.829 & 18,360,056\\
+All Discrete Features & 0.858 & 0.838 & 24,542,576\\
+Random & 0.500 & 0.498 & 1,771,168\footnote{This is the \it{at rest} model size which has seen no actual events}
 \end{tabular}
 \end{figure}
 \clearpage

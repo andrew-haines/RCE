@@ -143,7 +143,7 @@ public class RCEApplicationStartupTest {
 		return candidate;
 	}
 	
-	protected RCEApplication<?> startUpRCE(FeatureHandlerRepositoryFactory repositoryFactory) throws InterruptedException, RCEApplicationException, JAXBException, IOException{
+	public RCEApplication<?> startUpRCE(FeatureHandlerRepositoryFactory repositoryFactory) throws InterruptedException, RCEApplicationException, JAXBException, IOException{
 		return startUpRCE(repositoryFactory, RCEConfig.UTIL.loadConfig());
 	}
 	
@@ -151,7 +151,7 @@ public class RCEApplicationStartupTest {
 		return false;
 	}
 
-	protected FeatureHandlerRepositoryFactory getFeatureHandlerRepositoryFactory() {
+	public FeatureHandlerRepositoryFactory getFeatureHandlerRepositoryFactory() {
 		return FeatureHandlerRepositoryFactory.ALL_DISCRETE_FEATURES;
 	}
 
@@ -253,7 +253,7 @@ public class RCEApplicationStartupTest {
 		assertThat(eventNum, is(equalTo(eventsSeen.get())));
 	}
 	
-	private void shutdownAndWait() throws RCEApplicationException, InterruptedException {
+	public void shutdownAndWait() throws RCEApplicationException, InterruptedException {
 		
 		// now stop the system
 		

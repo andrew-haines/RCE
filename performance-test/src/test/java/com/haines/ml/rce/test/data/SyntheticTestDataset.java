@@ -61,7 +61,7 @@ public class SyntheticTestDataset implements DataSet{
 	}
 	
 	private MultivariateRealDistribution addNoise(MultivariateNormalDistribution normalDistribution) {
-		return new MixtureMultivariateRealDistribution<AbstractMultivariateRealDistribution>(Arrays.asList(new Pair<Double, AbstractMultivariateRealDistribution>(1.0, normalDistribution), new Pair<Double, AbstractMultivariateRealDistribution>(0.0, new AbstractMultivariateRealDistribution(new JDKRandomGenerator(), normalDistribution.getDimension()){
+		return new MixtureMultivariateRealDistribution<AbstractMultivariateRealDistribution>(Arrays.asList(new Pair<Double, AbstractMultivariateRealDistribution>(0.7, normalDistribution), new Pair<Double, AbstractMultivariateRealDistribution>(0.3, new AbstractMultivariateRealDistribution(new JDKRandomGenerator(), normalDistribution.getDimension()){
 
 			@Override
 			public double density(double[] x) {

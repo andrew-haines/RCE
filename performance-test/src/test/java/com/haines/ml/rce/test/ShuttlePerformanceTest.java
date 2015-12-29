@@ -16,6 +16,7 @@ import org.junit.Test;
 import com.dyuproject.protostuff.Message;
 import com.google.common.math.DoubleMath;
 import com.haines.ml.rce.main.RCEApplicationException;
+import com.haines.ml.rce.main.factory.FeatureHandlerRepositoryFactory;
 import com.haines.ml.rce.model.ClassifiedEvent;
 import com.haines.ml.rce.test.ReportGenerator.Report;
 import com.haines.ml.rce.test.model.CsvDataSet;
@@ -75,6 +76,11 @@ public class ShuttlePerformanceTest extends AbstractPerformanceTest {
 		return PerformanceTest.UTILS.loadEvents(datafileLocation, false, ' ', dataSet);
 	}
 	
+	@Override
+	public FeatureHandlerRepositoryFactory getFeatureHandlerRepositoryFactory() {
+		return getFeatureHandlerRepositoryFactory(featureTypes);
+	}
+
 	@Test
 	public void givenRCEApplicationConfiguredWithAllDiscreteData_whenTrainedUsingShuttleDataSet_thenGetAndReportClassifierPerformance() throws IOException, InterruptedException, RCEApplicationException, JAXBException {
 		this.dataSet = new CsvDataSet.ShuttleDataSet(Collections.<Integer>emptyList());

@@ -2258,7 +2258,8 @@
     <bcf:citekey order="20">guice</bcf:citekey>
     <bcf:citekey order="21">maven</bcf:citekey>
     <bcf:citekey order="22">mccabecc</bcf:citekey>
-    <bcf:citekey order="23">grinder</bcf:citekey>
+    <bcf:citekey order="23">roc-analysis</bcf:citekey>
+    <bcf:citekey order="24">grinder</bcf:citekey>
   </bcf:section>
   <bcf:sortlist section="0" name="nty" type="entry" sortscheme="nty">
   <bcf:sorting>

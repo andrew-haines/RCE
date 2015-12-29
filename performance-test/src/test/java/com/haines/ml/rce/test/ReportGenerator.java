@@ -93,7 +93,13 @@ public class ReportGenerator {
 		// now perform 1 vs all
 		for (Classification positiveClassification: classes){
 			
-			reports.put(positiveClassification, getReport(scores, positiveClassification, numPositives.get(positiveClassification)));
+			Integer numPositiveInstances = numPositives.get(positiveClassification);
+			
+			if (numPositiveInstances == null){
+				numPositiveInstances = 1;
+			}
+			
+			reports.put(positiveClassification, getReport(scores, positiveClassification, numPositiveInstances));
 		}
 		
 		Report avReport = null;
@@ -113,7 +119,13 @@ public class ReportGenerator {
 			 * so this formulation of AUCtotal is as well.
 			 */
 			
-			aucTotal += report.getValue().getAuc() * (numPositives.get(report.getKey()) / (double)scores.size()); 
+			Integer numPositiveInstances = numPositives.get(report.getKey());
+			
+			if (numPositiveInstances == null){
+				numPositiveInstances = 1;
+			}
+			
+			aucTotal += report.getValue().getAuc() * (numPositiveInstances / (double)scores.size()); 
 		}
 		
 		return new Report(avReport.getAccuracy(), avReport.getFmeasure(), aucTotal, SizeOf.deepSizeOf(application), 1, avReport.getRocData(), reportName, timeToTrain, timeToTest);
@@ -136,8 +148,10 @@ public class ReportGenerator {
 		double prevScore = Double.NEGATIVE_INFINITY;
 		Deque<Double[]> stack = new ArrayDeque<Double[]>();
 		
+		int predictedTrue = 0;
 		//stack.add(new Double[]{0.0, 0.0});
 		
+		// the following is an adaption of the algorithm in https://ccrma.stanford.edu/workshops/mir2009/references/ROCintro.pdf
 		for (Scores score: scores){
 			double positiveClassificationScore = score.getScore(positiveClassification);
 			
@@ -154,6 +168,7 @@ public class ReportGenerator {
 				tn--;
 			}
 			
+			// ignoring what the positive classification is, is this classification's prediction the same as the actual classification. Used to calculate the accuracy
 			if (score.getExpectedClassifications().contains(score.getPredictedClassification().getClassification())){
 				correctlyPredicted++;
 			}
@@ -204,7 +219,9 @@ public class ReportGenerator {
 		
 		double fmeasure = 2 / ((1 / precision) + (1 / recall));
 		
-		return new Report(correctlyPredicted / (double)total, fmeasure, auc, -1, 1, rocDataTrimed, reportName+"_"+positiveClassification.toString(), -1, -1);
+		double accuracy = correctlyPredicted / (double)total;
+		
+		return new Report(accuracy, fmeasure, auc, -1, 1, rocDataTrimed, reportName+"_"+positiveClassification.toString(), -1, -1);
 	}
 
 	private double getAuc(double[][] rocData) {
@@ -333,14 +350,19 @@ public class ReportGenerator {
 	 * @return
 	 */
 	public Report getReport(Collection<? extends ClassifiedEvent> events, int numFolds, List<? extends Classification> classes){
-		int foldSize = (int)Math.floor(events.size() / numFolds);
+		
+		List<ClassifiedEvent> shuffledEvents = Lists.newArrayList(events);
+		
+		Collections.shuffle(shuffledEvents);
+		
+		int foldSize = (int)Math.floor(shuffledEvents.size() / numFolds);
 		
 		Report combinedReport = null;
 		
 		for (int i = 0; i < numFolds; i++){
 			
-			Iterable<? extends ClassifiedEvent> trainingSet = getFold(i, foldSize, events);
-			Iterable<? extends ClassifiedEvent> testSet = getInverseFold(i, foldSize, events);
+			Iterable<? extends ClassifiedEvent> trainingSet = getInverseFold(i, foldSize, shuffledEvents);
+			Iterable<? extends ClassifiedEvent> testSet = getFold(i, foldSize, shuffledEvents);
 			
 			Report results = getReport(trainingSet, testSet, classes);
 			
@@ -354,10 +376,46 @@ public class ReportGenerator {
 		return combinedReport;
 	}
 	
+	/**
+	 * foldSize = 3
+	 * 
+	 * data:
+	 * [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17]
+	 * 
+	 * foldNum:
+	 * |<- 1 ->||<- 2 ->||<- 3 ->||<-  4  ->||<-  5   ->||<-  6   ->|
+	 * 
+	 * returns:
+	 * 
+	 * [3,4,5,6,7,8,9,10,11,12,13,14,15,16,17]   [0,1,2,6,7,8,9,10,11,12,13,14,15,16,17]  [0,1,2,3,4,5,9,10,11,12,13,14,15,16,17]  [0,1,2,3,4,5,6,7,8,12,13,14,15,16,17]  [0,1,2,3,4,5,6,7,8,9,10,11,15,16,17]  [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14]
+	 * 
+	 * @param foldNum
+	 * @param foldSize
+	 * @param events
+	 * @return
+	 */
 	private Iterable<? extends ClassifiedEvent> getInverseFold(int i, int foldSize, Collection<? extends ClassifiedEvent> events) {
-		return Iterables.concat(Iterables.limit(events, i*foldSize), getFold(i+1, foldSize, events));
+		return Iterables.concat(Iterables.limit(events, i*foldSize), Iterables.skip(events, (i*foldSize +foldSize)));
 	}
 
+	/**
+	 * foldSize = 3
+	 * 
+	 * data:
+	 * [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17]
+	 * 
+	 * foldNum:
+	 * |<- 1 ->||<- 2 ->||<- 3 ->||<-  4  ->||<-  5   ->||<-  6   ->|
+	 * 
+	 * returns:
+	 * 
+	 * [0,1,2]   [3,4,5]  [6,7,8]  [9,10,11]  [12,13,14]  [15,16,17]
+	 * 
+	 * @param foldNum
+	 * @param foldSize
+	 * @param events
+	 * @return
+	 */
 	private Iterable<? extends ClassifiedEvent> getFold(int foldNum, int foldSize, Collection<? extends ClassifiedEvent> events) {
 		
 		return Iterables.limit(Iterables.skip(events, foldNum * foldSize), foldSize);

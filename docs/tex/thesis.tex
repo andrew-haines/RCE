@@ -7,8 +7,7 @@
 \usepackage[hscale=0.69,vscale=0.79,heightrounded,includehead]{geometry}
 %\pagestyle{headings}
 \usepackage{fancyvrb}
-\usepackage[usenames,dvipsnames]{xcolor}
-\usepackage{soul}
+\usepackage[table,usenames,dvipsnames]{xcolor}
 \usepackage{wrapfig}
 \usepackage[english]{babel}
 \usepackage{graphicx}
@@ -35,6 +34,7 @@
 \definecolor{mauve}{rgb}{0.58,0,0.82}
 \usepackage{amssymb,amsmath}
 \usepackage{abstract}
+
 \DeclareMathOperator*{\argmax}{\arg\!\max}
 
 \addtokomafont{chapterprefix}{\raggedleft}
@@ -481,10 +481,10 @@ This suite of tests verifies that multiple instances of units of functionality w
 \subsection{Integration Tests}
 This suite of tests verifies that various configurations of the entire system operate correctly. They are blanket tests that test the entire system is performing correctly at a broad level. In the system the \verb|RCEApplicationStartupTest| is such a test that verifies two configurations (UDP and TCP) start up and process a number of events without error. At this stage, no effort is made to ensure that the performance of the classifier is acceptable
 \subsection{Performance Tests}
-This test suite is responsible for ensuring that the performance of the system is acceptable. The basis of these tests is to use known labelled datasets (input with expected output) and partition them into two disjoint subsets each using a fixed ratio. The larger of the subsets is deemed the training set and is used to train the classifier by pushing events into the main input of the system. The remaining set, known as the test set, is then used to see how well the learned classifier does at predicting these remaining labelled instances. To further the accuracy of the test, the test is repeated a total of \(n\) times with different partitions of the training and test sets known as n-fold cross validation whilst multi-class performance is evaluated using a 1 vs rest scheme. A small framework has been built in \verb|rce-performance-test| that defines the these datasets, performs this type of testing and produces reporting (precision, recall, fmeasure and AUC metrics) along with ROC plots\footnote{see \verb|AbstractPerformanceTest| and the \verb|ReportGenerator| and \verb|ReportRenderer| class for details}. The 3 data sets are:
+This test suite is responsible for ensuring that the performance of the system is acceptable. The basis of these tests is to use known labelled datasets (input with expected output) and partition them into two disjoint subsets each using a fixed ratio. The larger of the subsets is deemed the training set and is used to train the classifier by pushing events into the main input of the system. The remaining set, known as the test set, is then used to see how well the learned classifier does at predicting these remaining labelled instances. To further the accuracy of the test, the test is repeated a total of \(n\) times with different partitions of the training and test sets known as n-fold cross validation whilst multi-class performance is evaluated using a 1 vs rest scheme. A small framework has been built in \verb|rce-performance-test| that defines the these datasets, performs this type of testing and produces reporting (precision, recall, accuracy, fmeasure, model size, time to train/test and AUC metrics) along with ROC\cite{roc-analysis} plots\footnote{see \verb|AbstractPerformanceTest| and the \verb|ReportGenerator| and \verb|ReportRenderer| class for details}. As precision/recall only gives an indication of how well the system performs with predicting correct positive or negative labels and does not consider how many false positives there where, particular focus is placed on AUC measures which reports TPR / FPR ratios. The 3 data sets are:
 
 \subsubsection{Synthetic Dataset}
-This test set (implemented in \verb|SyntheticTestDataset|) is synthetic in that a mixture model of defined fixed parameter normal distributions are used to generate feature values and their corresponding classification labels. In addition to the distributions, a uniform random process is added to simulate noise and ensure that the model generalises. The task of the classifier is to learn the underlying distributions so that when unseen samples from the mixture model are taken, the system can predict the class.\\ This test is used to help test how well the classifier functions as noise is increased in a controlled manner, provides a good setting for continous feature type tests and, as is a generator, the number of instances can be increased to a level required for the load tests, mentioned later on.
+This test set (implemented in \verb|SyntheticTestDataset|) is synthetic in that a mixture model of defined fixed parameter normal distributions are used to generate feature values and their corresponding classification labels. In addition to the distributions, a uniform random process is added to simulate noise and ensure that the model generalises. The task of the classifier is to learn the underlying distributions so that when unseen samples from the mixture model are taken, the system can predict the class.\\ This test is used to also observe how the system reacts to missing values (at a 10\% chance of a feature value to be obmitted), provides a good setting for continuous feature type tests and, as it is a generator, the number of instances can be increased to a level required for the load tests, mentioned later on.
 \floatsetup[figure]{capposition=bottom,capbesideposition={top,right}}
 \begin{figure}[h!]
 \centering
@@ -493,10 +493,10 @@ This test set (implemented in \verb|SyntheticTestDataset|) is synthetic in that 
 \label{fig:indexes}
 \end{figure}
 \subsubsection{Adults Earnings} 
-Taken from the 1994 Census database and hosted on the UCI repository, this dataset represents a real life 50k instance dataset used to predict income levels of adults. This data set is used to see how the system performs in a real world setting but also provides a comparison against other system. The dataset primarily contains discrete features and it's expected label is a binary classification task
+Taken from the 1994 Census database and hosted on the UCI repository, this dataset represents a real life 50k instance dataset used to predict income levels of adults. This data set is used to see how the system performs in a real world setting but also provides a comparison against other system. The dataset primarily contains discrete features used to predict a binary classification label in the presence of some missing features.
 
-\subsubsection{Shuttle Satlog}
-This data set, again taken from the UCI repository represents satlog information taken over time. The data contains purely continuous features so gives a foundation for verifying accuracy of the continuous features of the system. Furthermore, the dataset provides a multi class label set to test the performance of the multi-class functionality of the classifier.
+\subsubsection{Shuttle Statlog}
+This data set, again taken from the UCI repository represents statlog information taken over time. The data contains purely continuous features so gives a foundation for verifying accuracy of the continuous features of the system. Furthermore, the dataset provides a multi class label set to test the performance of the multi-class functionality of the classifier with a far larger 
 
 \subsection{Load Tests}
 As the intension of the system is to not just provide a powerful classifier but also to do so under extreme load within a stream based setting. Consequently a load testing framework called grinder\cite{grinder} is used to apply a distributed load from multiple injector instances onto a single deployment of the RCE system to determine the total amount of throughput it can handle including information on latency and error rates. The implementation is provided in the \verb|performance-test| module.
@@ -510,7 +510,7 @@ To begin with, the synthetic test is used to evaluate a comparison of the discre
 
 \begin{figure}[h!]
 \centering
-\caption{ROC of continuous and discrete feature handlers using 11000 labelled instances and a 5 fold cross validation. The synthetic dataset consists of 3 classification types and 6 features type with distributed mean and covariances for each classification value. A 30\% probability that a given feature will be picked from a uniform distribution is also included to include an element of noise in the dataset}
+\caption{ROC of continuous and discrete feature handlers using 11000 labelled instances and a 5 fold cross validation. The synthetic dataset consists of 3 classification types and 6 feature types with distributed mean and covariances for each classification value. A 30\% probability that a given feature will be picked from a uniform distribution is also included to include an element of noise in this artificial dataset}
 \includegraphics[scale=0.45, trim=0 0 0 0, clip=true] {10000-instance-training-1000-testing-synthetictest.png}
 \label{fig:indexes}
 \begin{tabular}{l*{60}{c}r}
@@ -522,7 +522,7 @@ Synthetic Discrete Feature Handlers & 0.904 & 0.81 \\
 
 \end{tabular}
 \end{figure}
-
+\clearpage
 As the discrete and continuous feature handler tests are fairly comparable, another test is performed to see how the two approaches compare in the presence of limited samples\footnote{As the system was built with large scale datasets in mind, such a scenario is not really valid but included for completeness}
 
 
@@ -553,10 +553,11 @@ Test Type & AUC & Accuracy \\
 Adult Wage Discrete Feature Handlers & 0.858 & 0.837 \\
 \end{tabular}
 \end{figure}
-\\Next a comparison of the performance of the system is considered when different features are considered as being continuous.
+\clearpage
+Next a comparison of the performance of the system is considered when the 4 numerical features are considered as being continuous.
 \begin{figure}[h!]
 \centering
-\caption{ROC of using individual feature types configured as continuous features with the rest defined as discrete features. Also includes corresponding model sizes}
+\caption{ROC of using individual feature types configured as continuous features with the rest defined as discrete features. Also includes corresponding model sizes as reported by the java.instrumentation package using a dedicated javaagent to instrument the heap used explicitly by the application. i.e.\ so this doesn't include heap used for the test harness}
 \includegraphics[scale=0.50, trim=0 0 0 2, clip=true] {continuous_features_adult_earnings.png}
 \label{fig:indexes}
 \begin{tabular}{l*{6}{c}r}
@@ -573,19 +574,78 @@ Random & 0.500 & 0.498 & 1,771,168\footnote{This is the \it{at rest} model size 
 \end{figure}
 \clearpage
 \subsection{Space Shuttle}
-A regression Task
+The Shuttle Satlog test results are detailed as follows 
+\begin{figure}[h!]
+\centering
+\caption{ROC of different feature handlers using the shuttle data set. When one of the features is configured to use a continuous feature handler, all others are set to using discrete ones. This test uses 5 fold validation}
+\includegraphics[scale=0.55, trim=0 0 0 2, clip=true] {features_shuttle.png}
+\label{fig:indexes}
+\begin{tabular}{l*{6}{c}r}
+Test Type & AUC & Accuracy & Model Size (bytes)\\
+\hline
+Feature 1 Continuous Handler & 0.995 & 0.685 & 9,093,459\\
+Feature 2 Continuous Handler & 0.993 & 0.682 & 9,103,841\\
+Feature 3 Continuous Handler & 0.991 & 0.683 & 9,098,280\\
+Feature 4 Continuous Handler & 0.993 & 0.681 & 9,103,047\\
+Feature 5 Continuous Handler & 0.992 & 0.681 & 9,060,722\\
+Feature 6 Continuous Handler & 0.858 & 0.837 & \\
+Feature 7 Continuous Handler & 0.997 & 0.997 & 9,453,584\\
+Feature 8 Continuous Handler & 0.858 & 0.837 & \\
+Feature 9 Continuous Handler & 0.988 & 0.679 & \\
+All Features using Continuous Handlers & 0.858 & 0.900 & 5,511,391\\
+All Discrete Feature Handler & 0.858 & 0.837
+\end{tabular}
+\end{figure}
+\clearpage
+
 \section{Throughput Performance}
 LoadTest results. TCP vs UDP
 \chapter{Conclusions}
 \section{Results}
-Discussion on how the results presented in the performance section compare with other systems.
+\subsection{Synthetic Test}
+\subsection{Adult Wages}
+
+\begin{table}[h!]
+\rowcolors{2}{gray!5}{white}
+\begin{tabular}{l*{2}{c}r}
+Classifier & Accuracy (\%)\\
+\hline
+
+FSS Naive Bayes & 85.95 \\
+NBTree & 85.90 \\
+C4.5-auto & 85.54 \\
+IDTM (Decision table) & 85.54 \\
+HOODG & 85.18 \\
+C4.5 rules & 85.06 \\
+OC1 & 84.96 \\
+\rowcolor{red!25} RCE best & 84.90 \\
+C4.5 & 84.40 \\
+Voted ID3 (0.6) & 84.36 \\
+CN2 & 84.00 \\
+Naive-Bayes & 83.88 \\
+Voted ID3 (0.8) & 83.53 \\
+T2 & 83.16 \\
+1R & 80.46 \\
+Nearest-neighbor (3) & 79.65 \\
+Nearest-neighbor (1) & 78.58
+
+\end{tabular}
+\caption{Ranking of RCE performance of Adult Wages dataset in relation to published performance of known classifiers}
+\label{tab:classiferrank}
+\end{table}
+\subsection{Shuttle StatLog}
+
 \section{Limitations}
-No FeatureExtraction.
+The application is clearly successful within the scope of the original project to produce a highly accurate classifier, running at big data scale on a single multicore instance. However, this is not without it's limitations. Firstly the system is just a classifier that assumes labelled featured instances. Labelled event data can be provided to the system fairly easily for most applications by event data triggered by user interactions. In the case of a personalized trending now application, labelled event data can be sourced by users clicking on certain news articles that have been instrumented with named entities. Each user click is a labelled featured event where the user's projection in feature space is the features of the event whilst the named entity of the article they click on is the label. The problem is that this setting makes a huge assumption - that the features have already been precomputed. Such a task can be performed offline in a batch processing system and updated only when major changes occur to the users profile but it is worth mentioning that this system makes no attempt to perform feature extraction. In the case of a more complex application where features are latent properties of the click (such as time of day/week) then these features would need to be extracted by some upstream process. 
 \section{Future Work}
-Plugging in more classifiers. Spatial models such as RBF's etc
+With a project such as this there is obviously potential for a broad scope of extra requirements and features as well as additional analysis into performance. 
+\subsection{Additional Features}
+The system currently supports a single continuous feature handler. As as been shown, assuming normally distributed data is only going to be performant if the feature type exhibits such a structure. If not, real value data has to be discretized into integer bins which runs the risk of overfitting at the cost of a large memory footprint. To tackle this, other distributions could be introduced, such as log normal ones that can match the skewed shapes seen in the test datasets. To allow both non standard distributions or ones that represent mixture models due to poor feature engineering, a bucketed feature handler could be introduced that recursively bins different FeatureHandlers together based on some split criteria of the feature value\footnote{See \verb|BucketedFeatureHandler| for a rough and untested implementation}.\\
+The system also currently utilises a single naive bayes classifier but in theory this need not be the only one. Any classifier that's state can be implemented in a temporally sensitive maner can capitalise on the cache efficient nature of the system. Spatial models such as RBF's for example could be represented as centroid values in the accumulator where events iteratively move the centroid's location based on most frequently seen event features. Then in the accumulator layer, two centroids\footnote{One being the window centroid and the other being a new a interval centroid} can be combined to a new position based on an interpolated distance between the two according to frequency of the feature values.\\
+As the accumulators are essentially contiguous arrays, another potential addition to the system is to utilise GPU instructions which could further the computational throughput of the application.
+\subsection{Further Analysis}
+
 Static analysis should be conducted,
-Bucketed Continuous accumulator types
-using object pooling from protostuff rather than Schema.newMessage()
 
 \printbibliography
 

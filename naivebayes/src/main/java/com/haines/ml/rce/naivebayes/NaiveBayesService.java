@@ -52,9 +52,15 @@ public class NaiveBayesService implements ClassifierService {
 			
 			double logLikelihoodProbability = getLoggedLikelihoodProbability(probabilities, features, possibleClassification);
 			
-			// now add to the sorted map where sortedClassifications.values[0] is the maximum a posteriori
+			/* now add to the sorted map where sortedClassifications.values[0] is the maximum a posteriori. if we werent able to determine the likelihood probability,
+			 (ie we have no examples in the training set for this classification), then ignore this class as we simply dont have enough data to go on.
+			 
+			*/
 			
-			sortedClassifications.put(logLikelihoodProbability, possibleClassification);
+			if (!Double.isNaN(logLikelihoodProbability)){
+			
+				sortedClassifications.put(logLikelihoodProbability, possibleClassification);
+			}
 		}
 		
 		return Iterables.limit(Iterables.transform(sortedClassifications.entrySet(), PREDICTED_CLASSIFICATION_FUNCTION), numClassifications);

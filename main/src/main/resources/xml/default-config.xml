@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <config>
     <microBatchIntervalMs>2000</microBatchIntervalMs>
-    <disruptorRingSize>1024</disruptorRingSize>
+    <disruptorRingSize>2048</disruptorRingSize>
     <eventByteOrder>big</eventByteOrder>
     <globalIndexLimit>1000000</globalIndexLimit>
     <transport>
-        <protocol>UDP</protocol>
+        <protocol>TCP</protocol>
         <host>localhost</host>
         <port>8080</port>
     </transport>
@@ -15,7 +15,7 @@
         <finalLineBitDepth>16</finalLineBitDepth>
     </accumulator>
     <window> <!-- 8.3 minutes in total -->
-        <windowSizeMs>5000</windowSizeMs>
+        <windowSizeMs>1000</windowSizeMs>
         <numWindows>100</numWindows>
     </window>
 </config>

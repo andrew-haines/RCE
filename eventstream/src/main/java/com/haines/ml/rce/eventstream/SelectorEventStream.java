@@ -8,6 +8,7 @@ import java.nio.channels.ScatteringByteChannel;
 import java.nio.channels.SelectableChannel;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
+import java.nio.channels.SocketChannel;
 import java.nio.channels.spi.SelectorProvider;
 import java.util.Iterator;
 
@@ -34,6 +35,8 @@ public class SelectorEventStream<T extends SelectableChannel & NetworkChannel, E
 	public static final long DO_NOT_SEND_HEART_BEAT = 0;
 	
 	private static final Logger LOG = LoggerFactory.getLogger(SelectorEventStream.class);
+
+	private static final byte[] SUCCESS_PAYLOAD = new byte[]{127};
 	
 	private volatile boolean isAlive;
 	private final SelectorEventStreamConfig config;
@@ -66,6 +69,7 @@ public class SelectorEventStream<T extends SelectableChannel & NetworkChannel, E
 		try(ChannelDetails<T> channelDetails = initiateSelectorAndChannel()){
 		
 			ByteBuffer buffer = createBuffer();
+			ByteBuffer successBuffer = createSuccessBuffer();
 			isAlive = true;
 			
 			LOG.info(processor.getProtocolName()+" Server selector ("+channelDetails.getSelector().getClass().getName()+") started on address: "+config.getAddress().toString()); 		
@@ -73,8 +77,7 @@ public class SelectorEventStream<T extends SelectableChannel & NetworkChannel, E
 			
 			try(Selector selector = channelDetails.getSelector()){
 				while(isAlive){
-				
-					select(selector, buffer);
+					select(selector, buffer, successBuffer);
 					
 					if (executingThread.isInterrupted()){ // we have been interrupted so stop the stream
 						isAlive = false;
@@ -92,6 +95,13 @@ public class SelectorEventStream<T extends SelectableChannel & NetworkChannel, E
 		listener.streamStopped();
 	}
 	
+	private ByteBuffer createSuccessBuffer() {
+		ByteBuffer successBuffer = ByteBuffer.wrap(SUCCESS_PAYLOAD);
+		
+		successBuffer.mark();
+		return successBuffer;
+	}
+
 	private ChannelDetails<T> initiateSelectorAndChannel() throws EventStreamException {
 		try{
 			SelectorProvider provider = SelectorProvider.provider();
@@ -101,7 +111,7 @@ public class SelectorEventStream<T extends SelectableChannel & NetworkChannel, E
 			channel.configureBlocking(false);
 			
 			channel.register(socketSelector, processor.getRegisterOpCodes());
-			this.processor.connect(config.getAddress(), channel);
+			channel.bind(config.getAddress());
 			
 			this.channel = channel;
 			
@@ -112,7 +122,7 @@ public class SelectorEventStream<T extends SelectableChannel & NetworkChannel, E
 		}
 	}
 	
-	private void select(Selector selector, ByteBuffer buffer) throws IOException{
+	private void select(Selector selector, ByteBuffer buffer, ByteBuffer successBuffer) throws IOException{
 		
 		// select from the channel until the heart beat timeout. We check the selected keys and if there is no selected key and the thread
 		// is not interrupted, we send the heart beat.
@@ -141,34 +151,52 @@ public class SelectorEventStream<T extends SelectableChannel & NetworkChannel, E
 				@SuppressWarnings("unchecked")
 				T channel = (T)key.channel();
 				
-				if(key.isAcceptable()){
-					
-					processor.acceptChannel(selector, channel);
-				} else if (key.isReadable()){
-					buffer.clear();
-					
-					ScatteringByteChannel readerChannel = (ScatteringByteChannel)key.channel();
-				
-					int totalRead = 0;
-					int tmpBytesRead = 0;
-					boolean enoughBuffersReadToBuildEvent = false;
-					while(!enoughBuffersReadToBuildEvent && (tmpBytesRead = processor.readFromChannel(readerChannel, buffer)) > 0){
-						totalRead += tmpBytesRead;
-						buffer.flip();
+				try{
+					if(key.isAcceptable()){
+						LOG.debug("accepting connection");
+						processor.acceptChannel(selector, channel);
+					} else if (key.isReadable() && channel.isOpen()){
+						buffer.clear();
 						
-						enoughBuffersReadToBuildEvent = eventBuffer.marshal(buffer);
+						LOG.debug("reading connection");
 						
-						buffer.flip();
-					}
+						ScatteringByteChannel readerChannel = (ScatteringByteChannel)channel;
 					
-					// now close the connection
-					processor.closeAccept(readerChannel);					
-					
-					if (totalRead > 0){
-						E event = eventBuffer.buildEventAndResetBuffer();
+						int totalRead = 0;
+						int tmpBytesRead = 0;
+						boolean enoughBuffersReadToBuildEvent = false;
+						while(!enoughBuffersReadToBuildEvent && (tmpBytesRead = processor.readFromChannel(readerChannel, buffer)) > 0){
+							totalRead += tmpBytesRead;
+							buffer.flip();
+							
+							enoughBuffersReadToBuildEvent = eventBuffer.marshal(buffer);
+							
+							buffer.flip();
+						}				
 						
-						this.consume(event);
-					}
+						if (totalRead > 0){
+							E event = eventBuffer.buildEventAndResetBuffer();
+							
+							LOG.warn(System.currentTimeMillis()+" - recieved event");
+							this.consume(event);
+						}
+						
+						if (readerChannel instanceof SocketChannel){ // send successful packet back
+							SocketChannel socketChannel = (SocketChannel)readerChannel;
+							successBuffer.reset();
+							
+							LOG.debug("writing successbuffer");
+							if (socketChannel.write(successBuffer) != 1){
+								throw new IllegalStateException("unable to write success response");
+							}
+						} // unable to send response back
+					} else if (key.isWritable()){
+						throw new IllegalStateException("Writable keys are not permitted. This server should not respond to the client");
+					} 
+				}	catch (IOException e){
+					LOG.warn("A client has failed to close their connection properly: "+channel.getLocalAddress()+" - "+e.getMessage());
+					channel.close();
+					key.cancel();
 				}
 			}
 		}

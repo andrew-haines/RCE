@@ -13,6 +13,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Map;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
@@ -24,6 +25,8 @@ import net.grinder.common.GrinderException;
 import net.grinder.common.GrinderProperties;
 import net.grinder.console.ConsoleFoundation;
 import net.grinder.console.common.ResourcesImplementation;
+import net.grinder.console.communication.ProcessControl.Listener;
+import net.grinder.console.communication.ProcessControl.ProcessReports;
 import net.grinder.engine.agent.Agent;
 import net.grinder.engine.agent.AgentDaemon;
 import net.grinder.engine.agent.AgentImplementation;
@@ -84,10 +87,7 @@ public class SimpleLoadTest extends RCEApplicationStartupTest {
 	public void setUpGrinderAgent() throws GrinderException, InterruptedException, RCEApplicationException, JAXBException, IOException{
 		
 		this.startUpRCE(getFeatureHandlerRepositoryFactory());
-		agent = new AgentDaemon(
-				  LOG,
-		          100,
-		          new AgentImplementation(LOG, grinderPropertyFile.toFile(), false));
+		agent = new AgentImplementation(LOG, grinderPropertyFile.toFile(), true);
 		
 		executor = Executors.newFixedThreadPool(2, new ThreadFactory(){
 
@@ -138,7 +138,7 @@ public class SimpleLoadTest extends RCEApplicationStartupTest {
 	}
 	
 	@Override
-	protected FeatureHandlerRepositoryFactory getFeatureHandlerRepositoryFactory() {
+	public FeatureHandlerRepositoryFactory getFeatureHandlerRepositoryFactory() {
 		return new FeatureHandlerRepositoryFactory() {
 			
 			@Override
@@ -164,12 +164,16 @@ public class SimpleLoadTest extends RCEApplicationStartupTest {
 		Path tmpDirectory = Files.createTempDirectory("GrinderAnalyzer");
 		setUpAnalyzer(tmpDirectory);
 		
+		final CountDownLatch finished = new CountDownLatch(1);
 		executor.execute(new Runnable(){
 
 			@Override
 			public void run() {
 				try {
+					
 					agent.run();
+					LOG.info("grinder agent has finished");
+					finished.countDown();
 				} catch (GrinderException e) {
 					throw new RuntimeException("unable to start agents", e);
 				}
@@ -180,11 +184,7 @@ public class SimpleLoadTest extends RCEApplicationStartupTest {
 		
 		inspector.getProcessControl().startWorkerProcesses(new GrinderProperties());
 		
-		Thread.sleep(200000);
-		
-		inspector.getProcessControl().stopAgentAndWorkerProcesses();
-		
-		agent.shutdown();
+		finished.await();
 		
 		LOG.info("analysing results");
 		
@@ -201,7 +201,7 @@ public class SimpleLoadTest extends RCEApplicationStartupTest {
 			
 			pi.setErr(System.err);
 			pi.setOut(System.out);
-			pi.getSystemState().argv.add(Joiner.on(' ').join(getFiles(LOAD_TEST_DATA_FILE, true)));
+			pi.getSystemState().argv.add(Joiner.on(' ').join(getFiles(LOAD_TEST_DATA_FILE)));
 			pi.getSystemState().argv.add(Iterables.get(getFiles(LOAD_TEST_LOG_FILE), 0));
 			
 			

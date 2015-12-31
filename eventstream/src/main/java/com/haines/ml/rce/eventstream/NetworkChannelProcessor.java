@@ -1,7 +1,6 @@
 package com.haines.ml.rce.eventstream;
 
 import java.io.IOException;
-import java.net.SocketAddress;
 import java.net.StandardProtocolFamily;
 import java.nio.ByteBuffer;
 import java.nio.channels.Channel;
@@ -42,8 +41,6 @@ public interface NetworkChannelProcessor<T extends SelectableChannel & NetworkCh
 	
 	void acceptChannel(Selector selector, T channel) throws IOException;
 	
-	void connect(SocketAddress address, T channel) throws IOException;
-	
 	int readFromChannel(ScatteringByteChannel readerChannel, ByteBuffer buffer) throws IOException;
 	
 	void close(T channel) throws IOException;
@@ -82,11 +79,6 @@ public interface NetworkChannelProcessor<T extends SelectableChannel & NetworkCh
 			@Override
 			public void close(ServerSocketChannel channel) throws IOException {
 				channel.close();
-			}
-
-			@Override
-			public void connect(SocketAddress address, ServerSocketChannel channel) throws IOException {
-				channel.bind(address);
 			}
 
 			@Override
@@ -130,12 +122,6 @@ public interface NetworkChannelProcessor<T extends SelectableChannel & NetworkCh
 			public void close(DatagramChannel channel) throws IOException {
 				channel.disconnect();
 				channel.close();
-			}
-
-			@Override
-			public void connect(SocketAddress address, DatagramChannel channel) throws IOException {
-				
-				channel.bind(address);
 			}
 
 			@Override

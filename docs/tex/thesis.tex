@@ -511,14 +511,14 @@ To begin with, the synthetic test is used to evaluate a comparison of the discre
 \begin{figure}[h!]
 \centering
 \caption{ROC of continuous and discrete feature handlers using 11000 labelled instances and a 5 fold cross validation. The synthetic dataset consists of 3 classification types and 6 feature types with distributed mean and covariances for each classification value. A 30\% probability that a given feature will be picked from a uniform distribution is also included to include an element of noise in this artificial dataset}
-\includegraphics[scale=0.45, trim=0 0 0 0, clip=true] {10000-instance-training-1000-testing-synthetictest.png}
+\includegraphics[scale=0.45, trim=0 -25 0 0, clip=true] {10000-instance-training-1000-testing-synthetictest.png}
 \label{fig:indexes}
 \begin{tabular}{l*{60}{c}r}
-Test Type & AUC & Accuracy \\
+Test Type & AUC & Accuracy & Model Size (bytes)\\
 \hline
 
-Synthetic Continuous Feature Handlers & 0.90 & 0.808 \\
-Synthetic Discrete Feature Handlers & 0.904 & 0.81 \\
+Synthetic Continuous Feature Handlers & 0.869 & 0.812 & 4,972,574\\
+Synthetic Discrete Feature Handlers & 0.906 & 0.810 & 6,125,066\\
 
 \end{tabular}
 \end{figure}
@@ -529,13 +529,13 @@ As the discrete and continuous feature handler tests are fairly comparable, anot
 \begin{figure}[h!]
 \centering
 \caption{ROC of continuous and discrete feature handlers using 1100 synthentic instances and 5 fold cross validation}
-\includegraphics[scale=0.45, trim=0 0 0 0, clip=true] {1000-instance-training-100-testing-synthetictest.png}
+\includegraphics[scale=0.45, trim=0 -25 0 0, clip=true] {1000-instance-training-100-testing-synthetictest2.png}
 \label{fig:indexes}
 \begin{tabular}{l*{6}{c}r}
-Test Type & AUC & Accuracy \\
+Test Type & AUC & Accuracy & Model Size (bytes)\\
 \hline
-Synthetic Continuous Feature Handlers & 0.872 & 0.8 \\
-Synthetic Discrete Feature Handlers & 0.833 & 0.74 \\
+Synthetic Continuous Feature Handlers & 0.859 & 0.807 & 2,391,697\\
+Synthetic Discrete Feature Handlers & 0.872 & 0.784 & 2,755,575\\
 
 \end{tabular}
 \end{figure}
@@ -545,7 +545,7 @@ Next the adult wages dataset is considered to offer a comparison of the classifi
 \begin{figure}[h!]
 \centering
 \caption{ROC of all discrete feature handlers using adult wage test set. N-fold validation is not used in this test so that the provided training/test splits can be used to compare against the published results of different classifiers}
-\includegraphics[scale=0.45, trim=0 5 0 0, clip=true] {all_discrete_features_adult_earnings.png}
+\includegraphics[scale=0.45, trim=0 -20 0 0, clip=true] {all_discrete_features_adult_earnings.png}
 \label{fig:indexes}
 \begin{tabular}{l*{6}{c}r}
 Test Type & AUC & Accuracy \\
@@ -558,7 +558,7 @@ Next a comparison of the performance of the system is considered when the 4 nume
 \begin{figure}[h!]
 \centering
 \caption{ROC of using individual feature types configured as continuous features with the rest defined as discrete features. Also includes corresponding model sizes as reported by the java.instrumentation package using a dedicated javaagent to instrument the heap used explicitly by the application. i.e.\ so this doesn't include heap used for the test harness}
-\includegraphics[scale=0.50, trim=0 0 0 2, clip=true] {continuous_features_adult_earnings.png}
+\includegraphics[scale=0.50, trim=0 -25 0 2, clip=true] {continuous_features_adult_earnings.png}
 \label{fig:indexes}
 \begin{tabular}{l*{6}{c}r}
 Test Type & AUC & Accuracy & Model Size (bytes)\\
@@ -578,31 +578,48 @@ The Shuttle Satlog test results are detailed as follows
 \begin{figure}[h!]
 \centering
 \caption{ROC of different feature handlers using the shuttle data set. When one of the features is configured to use a continuous feature handler, all others are set to using discrete ones. This test uses 5 fold validation}
-\includegraphics[scale=0.55, trim=0 0 0 2, clip=true] {features_shuttle.png}
+\includegraphics[scale=0.55, trim=0 -25 0 2, clip=true] {features_shuttle.png}
 \label{fig:indexes}
 \begin{tabular}{l*{6}{c}r}
 Test Type & AUC & Accuracy & Model Size (bytes)\\
 \hline
-Feature 1 Continuous Handler & 0.995 & 0.685 & 9,093,459\\
-Feature 2 Continuous Handler & 0.993 & 0.682 & 9,103,841\\
-Feature 3 Continuous Handler & 0.991 & 0.683 & 9,098,280\\
-Feature 4 Continuous Handler & 0.993 & 0.681 & 9,103,047\\
-Feature 5 Continuous Handler & 0.992 & 0.681 & 9,060,722\\
-Feature 6 Continuous Handler & 0.858 & 0.837 & \\
+Feature 1 Continuous Handler & 0.998 & 0.997 & 9,501,811\\
+Feature 2 Continuous Handler & 0.997 & 0.994 & 9,472,540\\
+Feature 3 Continuous Handler & 0.995 & 0.996 & 9,502,359\\
+Feature 4 Continuous Handler & 0.998 & 0.997 & 9,487,710\\
+Feature 5 Continuous Handler & 0.996 & 0.993 & 9,470,904\\
+Feature 6 Continuous Handler & 0.997 & 0.996 & 9,327,275\\
 Feature 7 Continuous Handler & 0.997 & 0.997 & 9,453,584\\
-Feature 8 Continuous Handler & 0.858 & 0.837 & \\
-Feature 9 Continuous Handler & 0.988 & 0.679 & \\
-All Features using Continuous Handlers & 0.858 & 0.900 & 5,511,391\\
-All Discrete Feature Handler & 0.858 & 0.837
+Feature 8 Continuous Handler & 0.997 & 0.995 & 9,357,764\\
+Feature 9 Continuous Handler & 0.991 & 0.991 & 9,479,764\\
+All Features using Continuous Handlers & 0.955 & 0.900 & 5,511,391\\
+All Discrete Feature Handler & 0.997 & 0.997 & 11,695,553
 \end{tabular}
 \end{figure}
 \clearpage
 
 \section{Throughput Performance}
-LoadTest results. TCP vs UDP
+\subsection{UDP}
+The following shows the results of gradually ramping up UDP RPS of injectors onto a candidate instance of the RCE application.
+
+\begin{figure}[h!]
+\centering
+\caption{Throughput and latency over time as injectors are ramped up. Each injector process/thread waits for a uniformly random amount of time up to 100ms before making an additional request to ensure that request do not saturate the network bus. An additional injector thread/process is added to the injector pool every 800ms to gradually ramp up load on the candidate instance}
+\includegraphics[scale=0.6, trim=0 -25 0 2, clip=true] {UDP-throughput.png}
+\label{fig:udpthroughput}
+\begin{tabular}{l*{6}{c}r}
+Mean Response Time (ms) & Max Throughput(RPS) & error rate(\%)\\
+\hline
+0.19 & 21,510 & 0.0\footnote{As this is UDP, error packets do not exist. There is an assumption here that all packets made it to the system}
+\end{tabular}
+\end{figure}
+\clearpage
+
 \chapter{Conclusions}
 \section{Results}
+The following section provides commentary on the results already detailed in the previous chapter
 \subsection{Synthetic Test}
+This test showed how there was very little performance difference between the continuous and discrete feature handlers when running on large normally distributed datasets. The performance reaches an accuracy of around 0
 \subsection{Adult Wages}
 
 \begin{table}[h!]
@@ -634,7 +651,8 @@ Nearest-neighbor (1) & 78.58
 \label{tab:classiferrank}
 \end{table}
 \subsection{Shuttle StatLog}
-
+This test which 
+\subsection{Load Test}
 \section{Limitations}
 The application is clearly successful within the scope of the original project to produce a highly accurate classifier, running at big data scale on a single multicore instance. However, this is not without it's limitations. Firstly the system is just a classifier that assumes labelled featured instances. Labelled event data can be provided to the system fairly easily for most applications by event data triggered by user interactions. In the case of a personalized trending now application, labelled event data can be sourced by users clicking on certain news articles that have been instrumented with named entities. Each user click is a labelled featured event where the user's projection in feature space is the features of the event whilst the named entity of the article they click on is the label. The problem is that this setting makes a huge assumption - that the features have already been precomputed. Such a task can be performed offline in a batch processing system and updated only when major changes occur to the users profile but it is worth mentioning that this system makes no attempt to perform feature extraction. In the case of a more complex application where features are latent properties of the click (such as time of day/week) then these features would need to be extracted by some upstream process. 
 \section{Future Work}

@@ -28,7 +28,7 @@
 		    <type>test-jar</type>
 		    <scope>test</scope>
 		</dependency>
-		<dependency>
+		<dependency> <!-- annoyingly this doesnt appear to be in maven central ... https://github.com/afeinberg/sizeof -->
 			<groupId>net.sourceforge.sizeof</groupId>
     		<artifactId>sizeof</artifactId>
     		<version>0.3</version>

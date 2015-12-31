@@ -172,6 +172,8 @@ public interface RCEConfig {
 			
 			if (config != null){
 				config = new OverrideRCEConfig(defaultConfig, config);
+			} else{
+				config = defaultConfig;
 			}
 			
 			return config;

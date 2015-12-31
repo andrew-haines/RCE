@@ -1,0 +1,183 @@
+10000 Synthetic performance
+
+20:44:36.267 [main] INFO  c.h.m.r.t.ReportRenderer$SLF4JReportRenderer - 
+
+			----------------------------Report SyntheticData_dicrete completed-----------------------------
+			| classifier accuracy: 0.8103409090909091				|
+			| classifier fmeasure: 0.4475688963841299						|
+			| classifier auc: 0.906902394130743							|
+			| classifier model Size: 6125066					|
+			| Time in Millis to train: 6					|
+			| Time in Millis to test: 14					|
+			----------------------------Report completed-----------------------------
+
+
+20:44:36.267 [main] INFO  c.h.m.r.t.ReportRenderer$SLF4JReportRenderer - 
+
+			----------------------------Report SyntheticData_continuous completed-----------------------------
+			| classifier accuracy: 0.8115056818181818				|
+			| classifier fmeasure: 0.4519886496454869						|
+			| classifier auc: 0.8692681062558885							|
+			| classifier model Size: 4972574					|
+			| Time in Millis to train: 4					|
+			| Time in Millis to test: 12					|
+			----------------------------Report completed-----------------------------
+
+
+20:44:36.267 [main] INFO  c.h.m.r.t.ReportRenderer$SLF4JReportRenderer - 
+
+			----------------------------Report Random completed-----------------------------
+			| classifier accuracy: 0.338				|
+			| classifier fmeasure: 0.4393026375289294						|
+			| classifier auc: 0.51216199975488							|
+			| classifier model Size: 1983116					|
+			| Time in Millis to train: 2					|
+			| Time in Millis to test: 2					|
+			----------------------------Report completed-----------------------------
+
+
+Shuttle performance
+18:28:35.108 [main] INFO  c.h.m.r.t.ReportRenderer$SLF4JReportRenderer - 
+
+			----------------------------Report feature7 completed-----------------------------
+			| classifier accuracy: 0.9974245689655172				|
+			| classifier fmeasure: 0.1185356539590244						|
+			| classifier auc: 0.9969730761455783							|
+			| classifier model Size: 9453584					|
+			| Time in Millis to train: 35					|
+			| Time in Millis to test: 190					|
+			----------------------------Report completed-----------------------------
+
+
+18:28:35.108 [main] INFO  c.h.m.r.t.ReportRenderer$SLF4JReportRenderer - 
+
+			----------------------------Report allContinuous completed-----------------------------
+			| classifier accuracy: 0.8996282327586207				|
+			| classifier fmeasure: 0.11820642410445363						|
+			| classifier auc: 0.9548538500426715							|
+			| classifier model Size: 5511391					|
+			| Time in Millis to train: 27					|
+			| Time in Millis to test: 217					|
+			----------------------------Report completed-----------------------------
+
+
+18:28:35.108 [main] INFO  c.h.m.r.t.ReportRenderer$SLF4JReportRenderer - 
+
+			----------------------------Report feature4 completed-----------------------------
+			| classifier accuracy: 0.9973275862068967				|
+			| classifier fmeasure: 0.11802156309979164						|
+			| classifier auc: 0.9976072675500331							|
+			| classifier model Size: 9487710					|
+			| Time in Millis to train: 26					|
+			| Time in Millis to test: 196					|
+			----------------------------Report completed-----------------------------
+
+
+18:28:35.108 [main] INFO  c.h.m.r.t.ReportRenderer$SLF4JReportRenderer - 
+
+			----------------------------Report feature8 completed-----------------------------
+			| classifier accuracy: 0.9958351293103449				|
+			| classifier fmeasure: 0.11812687710905267						|
+			| classifier auc: 0.9967100364653481							|
+			| classifier model Size: 9357764					|
+			| Time in Millis to train: 26					|
+			| Time in Millis to test: 181					|
+			----------------------------Report completed-----------------------------
+
+
+18:28:35.108 [main] INFO  c.h.m.r.t.ReportRenderer$SLF4JReportRenderer - 
+
+			----------------------------Report feature1 completed-----------------------------
+			| classifier accuracy: 0.9974084051724137				|
+			| classifier fmeasure: 0.11827210380195946						|
+			| classifier auc: 0.997853737092149							|
+			| classifier model Size: 9501811					|
+			| Time in Millis to train: 30					|
+			| Time in Millis to test: 192					|
+			----------------------------Report completed-----------------------------
+
+
+18:28:35.108 [main] INFO  c.h.m.r.t.ReportRenderer$SLF4JReportRenderer - 
+
+			----------------------------Report feature5 completed-----------------------------
+			| classifier accuracy: 0.9933997844827587				|
+			| classifier fmeasure: 0.11823838286962839						|
+			| classifier auc: 0.9955213015304982							|
+			| classifier model Size: 9470904					|
+			| Time in Millis to train: 25					|
+			| Time in Millis to test: 199					|
+			----------------------------Report completed-----------------------------
+
+
+18:28:35.108 [main] INFO  c.h.m.r.t.ReportRenderer$SLF4JReportRenderer - 
+
+			----------------------------Report feature9 completed-----------------------------
+			| classifier accuracy: 0.9906034482758621				|
+			| classifier fmeasure: 0.1183719376824548						|
+			| classifier auc: 0.9908268599834478							|
+			| classifier model Size: 9479764					|
+			| Time in Millis to train: 28					|
+			| Time in Millis to test: 199					|
+			----------------------------Report completed-----------------------------
+
+
+18:28:35.108 [main] INFO  c.h.m.r.t.ReportRenderer$SLF4JReportRenderer - 
+
+			----------------------------Report feature2 completed-----------------------------
+			| classifier accuracy: 0.9942349137931035				|
+			| classifier fmeasure: 0.11811641494930711						|
+			| classifier auc: 0.996531068658769							|
+			| classifier model Size: 9472540					|
+			| Time in Millis to train: 27					|
+			| Time in Millis to test: 199					|
+			----------------------------Report completed-----------------------------
+
+
+18:28:35.108 [main] INFO  c.h.m.r.t.ReportRenderer$SLF4JReportRenderer - 
+
+			----------------------------Report feature6 completed-----------------------------
+			| classifier accuracy: 0.9964439655172415				|
+			| classifier fmeasure: 0.11807211683320878						|
+			| classifier auc: 0.9971947395605396							|
+			| classifier model Size: 9327275					|
+			| Time in Millis to train: 25					|
+			| Time in Millis to test: 197					|
+			----------------------------Report completed-----------------------------
+
+
+18:28:35.108 [main] INFO  c.h.m.r.t.ReportRenderer$SLF4JReportRenderer - 
+
+			----------------------------Report discrete completed-----------------------------
+			| classifier accuracy: 0.9973383620689655				|
+			| classifier fmeasure: 0.1181483676434488						|
+			| classifier auc: 0.9974519666776949							|
+			| classifier model Size: 11695553					|
+			| Time in Millis to train: 38					|
+			| Time in Millis to test: 226					|
+			----------------------------Report completed-----------------------------
+
+
+18:28:35.108 [main] INFO  c.h.m.r.t.ReportRenderer$SLF4JReportRenderer - 
+
+			----------------------------Report feature3 completed-----------------------------
+			| classifier accuracy: 0.9963846982758622				|
+			| classifier fmeasure: 0.11847389511709364						|
+			| classifier auc: 0.9950396132627375							|
+			| classifier model Size: 9502359					|
+			| Time in Millis to train: 32					|
+			| Time in Millis to test: 199					|
+			----------------------------Report completed-----------------------------
+
+
+18:28:35.108 [main] INFO  c.h.m.r.t.ReportRenderer$SLF4JReportRenderer - 
+
+			----------------------------Report Random completed-----------------------------
+			| classifier accuracy: 0.14420689655172414				|
+			| classifier fmeasure: 0.1184337646404255						|
+			| classifier auc: 0.4976457264763291							|
+			| classifier model Size: 2092672					|
+			| Time in Millis to train: 5					|
+			| Time in Millis to test: 25					|
+			----------------------------Report completed-----------------------------
+
+

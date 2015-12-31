@@ -64,7 +64,7 @@ public class WindowManager implements NaiveBayesProbabilitiesProvider{
 		long currentTime = clock.getCurrentTime();
 		
 		if (LOG.isDebugEnabled()){
-			LOG.debug("Recieved: {}", provider);
+			//LOG.debug("Recieved: {}", provider);
 		}
 		
 		int currentMaxIdx = this.currentMaxIdx; // cache friendly version. NOTE that this is not needed anymore as these variables are no longer volatile
@@ -92,7 +92,7 @@ public class WindowManager implements NaiveBayesProbabilitiesProvider{
 				this.currentMinIdx = getNextIdxInBuffer(currentMinIdx);
 			}
 			
-			LOG.debug("New Window created at: {}", currentMaxIdx);
+			//LOG.debug("New Window created at: {}", currentMaxIdx);
 			
 			currentMaxIdx = getNextIdxInBuffer(currentMaxIdx);
 			this.currentMaxIdx = currentMaxIdx;
@@ -127,7 +127,7 @@ public class WindowManager implements NaiveBayesProbabilitiesProvider{
 			
 			cyclicWindowBuffer[currentMaxIdx] = newAggregatedWindow;
 			
-			LOG.debug("Window {} updated ", currentMaxIdx);
+			//LOG.debug("Window {} updated ", currentMaxIdx);
 			
 			windowProbabilities.processWindows(newAggregatedWindow.getProvider(), currentWindow.getProvider());
 		}

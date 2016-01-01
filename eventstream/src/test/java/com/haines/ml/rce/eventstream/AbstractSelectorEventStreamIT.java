@@ -15,6 +15,7 @@ import java.util.Collections;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import org.junit.After;
 import org.junit.Before;
@@ -23,6 +24,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.Iterables;
+import com.haines.ml.rce.client.IOSender;
 import com.haines.ml.rce.dispatcher.Dispatcher;
 import com.haines.ml.rce.dispatcher.DispatcherConsumer;
 import com.haines.ml.rce.eventstream.SelectorEventStreamConfig.BufferType;
@@ -123,9 +125,11 @@ public abstract class AbstractSelectorEventStreamIT<T extends SelectableChannel 
 		//await startup to complete
 		startupLatch.await();
 		
+		IOSender sender = getIOSender(config.getAddress());
+		
 		// sendmessage
 		
-		sendEventToServer(new TestEvent(TEST_EVENT_MESSAGE, TEST_EVENT_ID));
+		sendEventToServer(new TestEvent(TEST_EVENT_MESSAGE, TEST_EVENT_ID), sender);
 		
 		dispatcher.waitForEvents();
 		// now verify that the dispatcher recieved the event
@@ -148,15 +152,19 @@ public abstract class AbstractSelectorEventStreamIT<T extends SelectableChannel 
 		//await startup to complete
 		startupLatch.await();
 		
+		IOSender sender = getIOSender(config.getAddress());
+		
 		// sendmessages
 		
 		long startTime = System.currentTimeMillis();
 		for (int i = 0; i < getNumberOfEvents(); i++){
-			sendEventToServer(new TestEvent(TEST_EVENT_MESSAGE, i));
+			sendEventToServer(new TestEvent(TEST_EVENT_MESSAGE, i), sender);
 		}
 		
 		dispatcher.waitForEvents();
 		// now verify that the dispatcher recieved the event
+		
+		LOG.debug("Finished Recieving events");
 		
 		long timeSpent = System.currentTimeMillis() - startTime;
 		LOG.debug("Sent "+getNumberOfEvents()+" in "+(timeSpent)+"ms - "+calculateRPS(timeSpent, getNumberOfEvents())+" rps");
@@ -176,9 +184,8 @@ public abstract class AbstractSelectorEventStreamIT<T extends SelectableChannel 
 		
 		return 1000 / ((double)timeSpent / numberEventsToSend);
 	}
-	private void sendEventToServer(TestEvent event) throws IOException, InterruptedException{
+	private void sendEventToServer(TestEvent event, IOSender sender) throws IOException, InterruptedException{
 
-		C channel = getClientChannel(config.getAddress());
 		//LOG.debug("Sending event: "+event.testString1+"("+Integer.toBinaryString(event.testInt1)+"##"+event.testInt1+")");
 		// dont need to worry about efficiency in test case...
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
@@ -193,16 +200,15 @@ public abstract class AbstractSelectorEventStreamIT<T extends SelectableChannel 
 		out.flush();
 		out.close();
 		
-		sendBytes(channel, ByteBuffer.wrap(out.toByteArray()), config.getAddress());
+		sendBytes(sender, ByteBuffer.wrap(out.toByteArray()));
+	}
+	
+	protected void sendBytes(IOSender sender, ByteBuffer buffer) throws IOException{
 		
-		channel.close();
+		sender.write(buffer);
 	}
 	
-	protected void sendBytes(C channel, ByteBuffer buffer, SocketAddress address) throws IOException{
-		channel.write(buffer);
-	}
-	
-	protected abstract C getClientChannel(SocketAddress address) throws IOException, InterruptedException;
+	protected abstract IOSender getIOSender(SocketAddress address) throws IOException, InterruptedException;
 	
 	private static Runnable getStarter(final SelectorEventStream<?, TestEvent> candidate){
 		return new Runnable(){
@@ -236,7 +242,7 @@ public abstract class AbstractSelectorEventStreamIT<T extends SelectableChannel 
 			TEST_INT_1
 		}
 		private StringBuilder testString1 = new StringBuilder();
-		private ByteBuffer testInt1 = ByteBuffer.allocate(4);
+		private ByteBuffer testInt1 = ByteBuffer.allocate(5);
 		private byte lastRead;
 		private int testIntIdx = 0;
 		
@@ -244,7 +250,9 @@ public abstract class AbstractSelectorEventStreamIT<T extends SelectableChannel 
 		
 		@Override
 		public boolean marshal(ByteBuffer content) {
-			while(content.hasRemaining()){
+			
+			while(content.hasRemaining() && testIntIdx != 4){
+				
 				byte nextByte = content.get();
 	
 				if (currentProperty == TestEventProperty.TEST_STRING1 && lastRead == Character.CONTROL){ // 2 byte delimiter. Used as an example for when we might need look back
@@ -295,17 +303,17 @@ public abstract class AbstractSelectorEventStreamIT<T extends SelectableChannel 
 		
 		private TestDispatcher(int numberEventsExpected){
 			super(Collections.<DispatcherConsumer<TestEvent>>emptyList());
+			LOG.debug("expecting {} events", numberEventsExpected);
 			this.latch = new CountDownLatch(numberEventsExpected);
 		}
 		
 		@Override
 		public void dispatchEvent(TestEvent event) {
 			
-			//LOG.debug("recieved event: "+event.testString1+"("+Integer.toBinaryString(event.testInt1)+"##"+event.testInt1+")");
 			this.events.add(event);
 			
 			latch.countDown();
-
+			//LOG.debug("recieved event: "+event.testString1+"("+Integer.toBinaryString(event.testInt1)+"##"+event.testInt1+")");
 		}
 
 		public void waitForEvents() throws InterruptedException {

@@ -153,12 +153,12 @@ public class SelectorEventStream<T extends SelectableChannel & NetworkChannel, E
 				
 				try{
 					if(key.isAcceptable()){
-						LOG.debug("accepting connection");
+						//LOG.debug("accepting connection");
 						processor.acceptChannel(selector, channel);
 					} else if (key.isReadable() && channel.isOpen()){
 						buffer.clear();
 						
-						LOG.debug("reading connection");
+						//LOG.debug("reading connection");
 						
 						ScatteringByteChannel readerChannel = (ScatteringByteChannel)channel;
 					
@@ -172,12 +172,12 @@ public class SelectorEventStream<T extends SelectableChannel & NetworkChannel, E
 							enoughBuffersReadToBuildEvent = eventBuffer.marshal(buffer);
 							
 							buffer.flip();
-						}				
+						}
 						
 						if (totalRead > 0){
 							E event = eventBuffer.buildEventAndResetBuffer();
 							
-							LOG.warn(System.currentTimeMillis()+" - recieved event");
+							//LOG.info(System.currentTimeMillis()+" - recieved event");
 							this.consume(event);
 						}
 						
@@ -185,7 +185,7 @@ public class SelectorEventStream<T extends SelectableChannel & NetworkChannel, E
 							SocketChannel socketChannel = (SocketChannel)readerChannel;
 							successBuffer.reset();
 							
-							LOG.debug("writing successbuffer");
+							//LOG.debug("writing successbuffer");
 							if (socketChannel.write(successBuffer) != 1){
 								throw new IllegalStateException("unable to write success response");
 							}

@@ -87,7 +87,12 @@ public abstract class AbstractPerformanceTest extends RCEApplicationStartupTest 
 	}
 	
 	@Override
-	public void givenCandidateAndTCPClient_whenCallingStartAndSendingEventsViaSelector_thenApplicationStartsUpCorrectly(){
+	public void givenCandidateAndPersistentTCPClient_whenCallingStartAndSendingEventsViaSelector_thenApplicationStartsUpCorrectly(){
+		// overload to disable inheriting test
+	}
+	
+	@Override
+	public void givenCandidateAndResettingTCPClient_whenCallingStartAndSendingEventsViaSelector_thenApplicationStartsUpCorrectly(){
 		// overload to disable inheriting test
 	}
 	

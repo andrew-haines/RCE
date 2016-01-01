@@ -109,9 +109,7 @@ public class Aggregator implements NaiveBayesCountsProvider{
 			if (!subtract){
 				currentCounts = counts.toMutable();
 				countMap.put(key, currentCounts.copy());
-			} else{
-				throw new IllegalArgumentException("subtraction cannot occur unless there is already a record to subtract from");
-			}
+			} 
 		} else{
 			if (subtract){
 				currentCounts.sub(counts);

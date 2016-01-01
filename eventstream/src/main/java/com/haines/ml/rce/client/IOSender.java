@@ -142,36 +142,36 @@ public interface IOSender {
 					connectedChannel.write(data);
 					//LOG.info("sent event");
 	
-					if (selector.select() == 0){
-						throw new IllegalStateException("Should have recieved a response message");
-					}; // specificly wait for the completed packet to come back
+					selector.select();
 					
-					Iterator<SelectionKey> keys = selector.selectedKeys().iterator();
-					
-					while (keys.hasNext()){
-						SelectionKey key = keys.next();
-						keys.remove();
+					synchronized(selector){
+						Iterator<SelectionKey> keys = selector.selectedKeys().iterator();
 						
-						//LOG.debug("Recieved Key for: readable("+key.isReadable()+"), writable("+key.isWritable()+"), connectable("+key.isConnectable()+"), acceptable("+key.isAcceptable()+")");
-						SocketChannel socketChannel = (SocketChannel) key.channel();
-						
-						if (key.isReadable()){
-							readBuffer.clear();
-							socketChannel.read(readBuffer);
+						while (keys.hasNext()){
+							SelectionKey key = keys.next();
+							keys.remove();
 							
-							readBuffer.flip();
-							if (readBuffer.get() != 127 || readBuffer.position() != 1){ // success byte
-								throw new IllegalStateException("response was not a success message: "+Arrays.toString(readBuffer.array()));
-							}
+							//LOG.debug("Recieved Key for: readable("+key.isReadable()+"), writable("+key.isWritable()+"), connectable("+key.isConnectable()+"), acceptable("+key.isAcceptable()+")");
+							SocketChannel socketChannel = (SocketChannel) key.channel();
 							
-							// now wait for the response from the server
-							
-							if (closeAfterEachInvocation){
-								LOG.info("closing connection to server");
-								socketChannel.close();
-								serverChannel.close();
-							}
-						} 
+							if (key.isReadable()){
+								readBuffer.clear();
+								socketChannel.read(readBuffer);
+								
+								readBuffer.flip();
+								if (readBuffer.hasRemaining() && (readBuffer.get() != 127 || readBuffer.position() != 1)){ // success byte
+									throw new IllegalStateException("response was not a success message: "+Arrays.toString(readBuffer.array()));
+								}
+								
+								// now wait for the response from the server
+								
+								if (closeAfterEachInvocation){
+									LOG.info("closing connection to server");
+									socketChannel.close();
+									serverChannel.close();
+								}
+							} 
+						}
 					}
 				}
 				

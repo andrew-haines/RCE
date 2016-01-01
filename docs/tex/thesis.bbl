@@ -171,6 +171,40 @@
       \field{title}{Design Patterns - Elements of Reusable Object-Oriented Software}
       \field{year}{1994}
     \endentry
+    \entry{roc-analysis}{report}{}
+      \name{author}{1}{}{%
+        {{hash=9c15aa0b2a7683cefeaa12c991d0b1c2}{Fawcett}{F\bibinitperiod}{Tom}{T\bibinitperiod}{}{}{}{}}%
+      }
+      \list{institution}{1}{%
+        {Elsevier}%
+      }
+      \strng{namehash}{9c15aa0b2a7683cefeaa12c991d0b1c2}
+      \strng{fullhash}{9c15aa0b2a7683cefeaa12c991d0b1c2}
+      \field{sortinit}{F}
+      \field{sortinithash}{c6a7d9913bbd7b20ea954441c0460b78}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{annotation}{https://ccrma.stanford.edu/workshops/mir2009/references/ROCintro.pdf}
+      \field{title}{An introduction to ROC analysis}
+      \field{type}{techreport}
+      \field{year}{2005}
+    \endentry
+    \entry{flach}{book}{}
+      \name{author}{1}{}{%
+        {{hash=715b97044ba694410083d16b5c29b92c}{Flach}{F\bibinitperiod}{Peter}{P\bibinitperiod}{}{}{}{}}%
+      }
+      \list{publisher}{1}{%
+        {Cambridge Press}%
+      }
+      \strng{namehash}{715b97044ba694410083d16b5c29b92c}
+      \strng{fullhash}{715b97044ba694410083d16b5c29b92c}
+      \field{sortinit}{F}
+      \field{sortinithash}{c6a7d9913bbd7b20ea954441c0460b78}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{title}{Machine Learning: The Art and Science of Algorithms that Make Sense of Data}
+      \field{year}{2012}
+    \endentry
     \entry{knuth-aop}{book}{}
       \name{author}{1}{}{%
         {{hash=1dd533466eb3313074d496394d319407}{Knuth}{K\bibinitperiod}{Donald}{D\bibinitperiod}{}{}{}{}}%

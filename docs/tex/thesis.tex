@@ -37,6 +37,10 @@
 
 \DeclareMathOperator*{\argmax}{\arg\!\max}
 
+\makeatletter
+\newcommand\footnoteref[1]{\protected@xdef\@thefnmark{\ref{#1}}\@footnotemark}
+\makeatother
+
 \addtokomafont{chapterprefix}{\raggedleft}
 \renewcommand*{\chapterformat}{%
 \mbox{\chapappifchapterprefix{\nobreakspace}%
@@ -190,7 +194,7 @@ The system proposed is one that places a synergy between the hardware and softwa
 To understand how these components can be specialised, it is important to discuss how they work and what their role is in the overarching design of the system 
 \subsection{Hardware components}
 \subsubsection{I/O bus}
-Like all internal system buses, the I/O bus is responsible for moving data from an auxiliary part of the computer to the CPU. I/O buses normally exclude main memory access and focus on components such as keyboard input, audio or, in the case interested in this project, network communication. Any data bound server instance like the one in question in this project requires extensive use of the networking interface, so much so that network is the primary bottleneck in such systems as IP packets are marshaled,copied and de-marshalled around the system using the I/O bus as its main \textit{highway} to all components. To ensure that this part of the system is as uncontended as possible, focus needs to be applied to reduce the overhead. In particular, the system keeps all marshalling and demarshalling as conservative as possible and uses the I/O bus to keep, as much as possible, this data away from main memory detours and interfaced directly with the CPU cores.
+Like all internal system buses, the I/O bus is responsible for moving data from an auxiliary part of the computer to the CPU. I/O buses normally exclude main memory access and focus on components such as keyboard input, audio or, in the case interested in this project, network communication. Any data bound server instance like the one in question in this project requires extensive use of the networking interface, so much so that network is the primary bottleneck in such systems as IP packets are marshaled,copied and de-marshalled around the system using the I/O bus as its main \textit{highway} to all components. To ensure that this part of the system is as uncontended as possible, focus needs to be applied to reduce the overhead. In particular, the system keeps all marshalling and demarshalling as conservative as possible and uses the I/O bus to keep, as much as possible, this data away from main memory detours and interfaced directly with the CPU cores. Further to this, connectionless protocols like UDP could help to improve throughput whilst even using TCP, a single connection can be established to an event feeder that can forward events through a dedicated connection without having to reconnect on each event. This means that something like HTTP would not be an appropriate protocol and a more bespoke form would yield better results.
 \subsubsection{CPU Cores}
 In recent times we have seen Moores Law\footnote{A law describing the linear trend of core clock cycles/die-size over time} being upheld by the fact that, although clock speeds on single dies are plateauing due to physical constraints of heating and fixed atomic size, the number of clock cycles in a given CPU is still increasing due the addition of multiple cores on the same physical die. The Intel i7 CPU for example is fitted with up to 8 cores on a single die. Moreover, modern servers can be found with multiple CPU's means that upward of 24 cores can be found in modern systems.
 
@@ -313,12 +317,12 @@ The classifier needs to also handle the scenario where certain events may not ha
 \section{IO}
 In order for events to enter the system, a sensible IO strategy is needed not just to transport the bytes but also to deserialize them into a format that can be made sense of. This deserialising is a major bottleneck in any IO heavy system so care needs to be taken to ensure it is as efficient as possible
 \subsection{Selectors}
-As previously mentioned, the IO bus on modern architectures relies on interrupts that occur when data is available on the IO bus. In order to mimic this as much as possible, the system utilises the selector mechanism of *nix operating systems that approximates a 1-1 mapping between these interrupts and a kernal event from the OS. Java's NIO module provides an interface to this system. Furthermore, normally memory is indexed in java using a specialised heap that the GC can maintain. Traditionally, all data accessed within the JVM needs to be present in this heap but for networking, this means that data on the IO bus needs to first be copied into main memory prior to being processed. For the stream based methodology that this system utilises, this unnecessary detour not only adds extra transfer time as data is proxied through the heap but also puts extra burden on the garbage collector.
-To limited this, advantage is taken of the off heap byte buffers of the NIO package. These abstractions ensure that data is taken directly from the network interface into the CPU for serialising, and thus avoids commuting to the heap.
+As previously mentioned, the IO bus on modern architectures relies on interrupts that occur when data is available on the IO bus. In order to mimic this as much as possible, the system utilises the selector mechanism of *nix operating systems that approximates a 1-1 mapping between these interrupts and a kernal event from the OS. Java's NIO module provides an interface to this system. Furthermore, normally memory is indexed in java using a specialised heap that the GC can maintain. Traditionally, all data accessed within the JVM needs to be present in this heap but for networking, this means that data on the IO bus needs to first be copied into main memory prior to being processed. For the stream based methodology that this system utilises, this unnecessary detour not only adds extra transfer time as data is proxied through the heap but also puts extra burden on the garbage collector.\\
+To limit this, advantage is taken of the off heap byte buffers of the NIO package. These abstractions ensure that data is taken directly from the network interface into the CPU for serialising, and thus avoids commuting to the heap.
 \subsection{Protostuff}
 Serialisation that governs data interchange needs to be defined so that a contract of how events can be passed from up stream producers into the system. As deserialising is one of the main overheads of any high throughput system, one that focuses on both flexibility and speed is paramount. Consequently, Google's protobuf\cite{googleprotobuf} format is provided using the protostuff extension as a default implementation\footnote{The application is capable of supporting any demarshalling technology via the generic \texttt{EventMarshalBuffer} interface}. This was chosen because of it's external schema design, variable length encoding and sequential byte stream support that aids in good cache utilisation. Unfortunately, protostuff does not support proper off heap byte buffers so an extension was specifically created to exploit this\footnote{Now contributed back into the protostuff project}.
 \subsection{Transport}
-There are two main IP protocols in wide use namely TCP and UDP. TCP allows data to sent into packets or windows of data where each packet needs to receive a checksum response to ensure that each packet has been received correctly. This provides delivery guarantees at the expense of extra communication and checksumming. UDP on the other hand transfers as a large stream of data which may or may not reach the target destination. Unlike TCP, although no guarantees can be made on whether data corruptness has occurred, UDP is free of the extra overhead and so, in theory, is faster. The system supports both mechanisms as, if corruption does occur with UDP, as this is a high throughput system running under big data load, such random permutations will not affect the underlying distributions too much\footnote{Assuming the environment is stable (such as within a datacenter) error rates should be relatively low}.
+There are two main IP protocols in wide use namely TCP and UDP. TCP allows data to sent into packets or windows of data where each packet needs to receive a checksum response to ensure that each packet has been received correctly. This provides delivery guarantees at the expense of extra communication and checksumming. UDP on the other hand transfers as a large stream of data in a connectionless manner which may or may not reach the target destination. Unlike TCP, although no guarantees can be made on whether data corruptness has occurred, UDP is free of the extra overhead and so, in theory, is faster. The system supports both mechanisms as, if corruption does occur with UDP, as this is a high throughput system running under big data load, such random permutations will not affect the underlying distributions too much\footnote{Assuming the environment is stable (such as within a datacenter) error rates should be relatively low}. TCP however can be configured to establish a single connection to a remote machine of which multiple events can be sent down avoiding unnecessary handshaking between the machines whilst setting up connections.
 \section{WindowManager}
 \floatsetup[figure]{capposition=bottom,capbesideposition={top,right}}
 \begin{figure}[h!]
@@ -481,7 +485,7 @@ This suite of tests verifies that multiple instances of units of functionality w
 \subsection{Integration Tests}
 This suite of tests verifies that various configurations of the entire system operate correctly. They are blanket tests that test the entire system is performing correctly at a broad level. In the system the \verb|RCEApplicationStartupTest| is such a test that verifies two configurations (UDP and TCP) start up and process a number of events without error. At this stage, no effort is made to ensure that the performance of the classifier is acceptable
 \subsection{Performance Tests}
-This test suite is responsible for ensuring that the performance of the system is acceptable. The basis of these tests is to use known labelled datasets (input with expected output) and partition them into two disjoint subsets each using a fixed ratio. The larger of the subsets is deemed the training set and is used to train the classifier by pushing events into the main input of the system. The remaining set, known as the test set, is then used to see how well the learned classifier does at predicting these remaining labelled instances. To further the accuracy of the test, the test is repeated a total of \(n\) times with different partitions of the training and test sets known as n-fold cross validation whilst multi-class performance is evaluated using a 1 vs rest scheme. A small framework has been built in \verb|rce-performance-test| that defines the these datasets, performs this type of testing and produces reporting (precision, recall, accuracy, fmeasure, model size, time to train/test and AUC metrics) along with ROC\cite{roc-analysis} plots\footnote{see \verb|AbstractPerformanceTest| and the \verb|ReportGenerator| and \verb|ReportRenderer| class for details}. As precision/recall only gives an indication of how well the system performs with predicting correct positive or negative labels and does not consider how many false positives there where, particular focus is placed on AUC measures which reports TPR / FPR ratios. The 3 data sets are:
+This test suite is responsible for ensuring that the performance of the system is acceptable. The basis of these tests is to use known labelled datasets (input with expected output) and partition them into two disjoint subsets each using a fixed ratio. The larger of the subsets is deemed the training set and is used to train the classifier by pushing events into the main input of the system. The remaining set, known as the test set, is then used to see how well the learned classifier does at predicting these remaining labelled instances. To further the accuracy of the test, the test is repeated a total of \(n\) times with different partitions of the training and test sets known as n-fold cross validation whilst multi-class performance is evaluated using a 1 vs rest scheme\cite{flach}. A small framework has been built in \verb|rce-performance-test| that defines the these datasets, performs this type of testing and produces reporting (precision, recall, accuracy, fmeasure, model size, time to train/test and AUC metrics) along with ROC\cite{roc-analysis} plots\footnote{see \verb|AbstractPerformanceTest| and the \verb|ReportGenerator| and \verb|ReportRenderer| class for details}. As precision/recall only gives an indication of how well the system performs with predicting correct positive or negative labels and does not consider how many false positives there where, particular focus is placed on AUC measures which reports TPR / FPR ratios. The 3 data sets are:
 
 \subsubsection{Synthetic Dataset}
 This test set (implemented in \verb|SyntheticTestDataset|) is synthetic in that a mixture model of defined fixed parameter normal distributions are used to generate feature values and their corresponding classification labels. In addition to the distributions, a uniform random process is added to simulate noise and ensure that the model generalises. The task of the classifier is to learn the underlying distributions so that when unseen samples from the mixture model are taken, the system can predict the class.\\ This test is used to also observe how the system reacts to missing values (at a 10\% chance of a feature value to be obmitted), provides a good setting for continuous feature type tests and, as it is a generator, the number of instances can be increased to a level required for the load tests, mentioned later on.
@@ -496,7 +500,7 @@ This test set (implemented in \verb|SyntheticTestDataset|) is synthetic in that 
 Taken from the 1994 Census database and hosted on the UCI repository, this dataset represents a real life 50k instance dataset used to predict income levels of adults. This data set is used to see how the system performs in a real world setting but also provides a comparison against other system. The dataset primarily contains discrete features used to predict a binary classification label in the presence of some missing features.
 
 \subsubsection{Shuttle Statlog}
-This data set, again taken from the UCI repository represents statlog information taken over time. The data contains purely continuous features so gives a foundation for verifying accuracy of the continuous features of the system. Furthermore, the dataset provides a multi class label set to test the performance of the multi-class functionality of the classifier with a far larger 
+This data set, again taken from the UCI repository represents statlog information taken over time. The data contains purely continuous features so gives a foundation for verifying accuracy of the continuous features of the system. Furthermore, the dataset provides a multi class label set to test the performance of the multi-class functionality of the classifier with a far larger. 
 
 \subsection{Load Tests}
 As the intension of the system is to not just provide a powerful classifier but also to do so under extreme load within a stream based setting. Consequently a load testing framework called grinder\cite{grinder} is used to apply a distributed load from multiple injector instances onto a single deployment of the RCE system to determine the total amount of throughput it can handle including information on latency and error rates. The implementation is provided in the \verb|performance-test| module.
@@ -604,13 +608,31 @@ The following shows the results of gradually ramping up UDP RPS of injectors ont
 
 \begin{figure}[h!]
 \centering
-\caption{Throughput and latency over time as injectors are ramped up. Each injector process/thread waits for a uniformly random amount of time up to 100ms before making an additional request to ensure that request do not saturate the network bus. An additional injector thread/process is added to the injector pool every 800ms to gradually ramp up load on the candidate instance}
-\includegraphics[scale=0.6, trim=0 -25 0 2, clip=true] {UDP-throughput.png}
+\caption{Throughput and latency over time as injectors are ramped up. Each injector process/thread waits for a uniformly random amount of time up to 100ms before making an additional request to ensure that request do not saturate the network bus. An additional injector thread/process is added to the injector pool every 800ms to gradually ramp up load on the candidate instance. There are 30 processes each feeding 100 threads (3000 total event feeder workers running for 390 requests each)}
+\includegraphics[scale=0.6, trim=0 -25 0 2, clip=true] {UDP_throughput.png}
 \label{fig:udpthroughput}
 \begin{tabular}{l*{6}{c}r}
 Mean Response Time (ms) & Max Throughput(RPS) & error rate(\%)\\
 \hline
-0.19 & 21,510 & 0.0\footnote{As this is UDP, error packets do not exist. There is an assumption here that all packets made it to the system}
+18\footnote{\label{UDP_errors}With UDP, as there is no response packet, errors and timing are not possible to accurately track} & 13,824 & 0.0\footnoteref{UDP_errors}
+\end{tabular}
+\end{figure}
+\clearpage
+
+\subsection{TCP}
+
+\iffalse
+mean response time between 40 and 120 is 41.389\fi
+The following shows the results of gradually ramping up TCP RPS of injectors using a persistent connection on each injector thread onto a candidate instance of the RCE application.
+\begin{figure}[h!]
+\centering
+\caption{Throughput and latency over time as injectors are ramped up. Each injector process/thread waits for a uniformly random amount of time up to 100ms before making an additional request to ensure that request do not saturate the network bus. An additional injector thread/process is added to the injector pool every 800ms to gradually ramp up load on the candidate instance. There are 30 processes each feeding 100 threads (3000 total event feeder workers running for 390 requests each}
+\includegraphics[scale=0.6, trim=0 -25 0 2, clip=true] {TCP_throughput.png}
+\label{fig:udpthroughput}
+\begin{tabular}{l*{6}{c}r}
+Mean Response Time (ms) & Max Throughput(RPS) & error rate(\%)\\
+\hline
+93.63 & 20,814 & 0.01539
 \end{tabular}
 \end{figure}
 \clearpage
@@ -619,8 +641,18 @@ Mean Response Time (ms) & Max Throughput(RPS) & error rate(\%)\\
 \section{Results}
 The following section provides commentary on the results already detailed in the previous chapter
 \subsection{Synthetic Test}
-This test showed how there was very little performance difference between the continuous and discrete feature handlers when running on large normally distributed datasets. The performance reaches an accuracy of around 0
+This test showed how there is very little performance difference in accuracy between the continuous and discrete feature handlers when running on large normally distributed datasets. The performance reaches an accuracy of around 81\% for both configurations. This represents the fact that ~80\% of the time, the correct classification in the test set is predicted. This measure however doesn't consider how many false positives the system makes - that is to say when the classifier says that an event belongs to a positive category when in fact it belongs to the negative one. The AUC of the ROC curve provides an evaluation that also considers this. Here it can be seen that the discrete feature values slightly beats the continuous configuration. As the accumulator just assigns a new slot for each integer value for the posterior and prior probabilities, the model is expected to occupy a larger memory footprint. This is verified in this test with the discrete feature configuration requiring 36\%\footnote{Note that the model sizes are subtracted from the at rest model size(ie just the empty datastructure setup) of 1,771,168 bytes} more memory as it require new accumulator lines as the tree grows with the requirement for more slots.
+\\
+When considering a dataset of 10\% the size, the results are comparable with the continuous setup offering slightly better accuracy. This is probably due to the distributions in the feature handlers converging to the real distribution parameters in light of the reduced sample points whilst the discrete feature handler will end up with a lot missing posterior values when testing an unknown event and, for that particular feature/classification pairing, having to use the nominal probability in the likelihood calculation. 
 \subsection{Adult Wages}
+
+\floatsetup[figure]{capposition=bottom,capbesideposition={top,right}}
+\begin{figure}[h!]
+\centering
+\caption{Distribution analysis of numerical features in Adult Wage dataset}
+\includegraphics[scale=0.37, trim=0 0 0 0, clip=true] {AdultWageFeatureDistributions.png}
+\label{fig:indexes}
+\end{figure}
 
 \begin{table}[h!]
 \rowcolors{2}{gray!5}{white}
@@ -646,10 +678,14 @@ T2 & 83.16 \\
 Nearest-neighbor (3) & 79.65 \\
 Nearest-neighbor (1) & 78.58
 
+\iffalse
+maximum accuracy when missing value rows are removed is 0.843\fi
+
 \end{tabular}
 \caption{Ranking of RCE performance of Adult Wages dataset in relation to published performance of known classifiers}
 \label{tab:classiferrank}
 \end{table}
+\clearpage
 \subsection{Shuttle StatLog}
 This test which 
 \subsection{Load Test}

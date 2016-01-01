@@ -13,6 +13,7 @@ import org.apache.commons.csv.CSVRecord;
 
 import com.dyuproject.protostuff.Message;
 import com.google.common.base.Function;
+import com.google.common.base.Predicates;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.haines.ml.rce.main.RCEApplication;
@@ -109,7 +110,7 @@ public interface PerformanceTest {
 																					.withHeader(headers
 																		).withDelimiter(delimiter))){
 			
-				return Lists.newArrayList(Iterables.transform(parser, csvRecordConverter)); // load it all into memory so that we can close the underlying resource
+				return Lists.newArrayList(Iterables.filter(Iterables.transform(parser, csvRecordConverter), Predicates.notNull())); // load it all into memory so that we can close the underlying resource
 			}
 		}
 		

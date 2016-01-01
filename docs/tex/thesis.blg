@@ -1,17 +1,17 @@
 [0] Config.pm:324> INFO - This is Biber 2.1
 [0] Config.pm:327> INFO - Logfile is 'thesis.blg'
-[48] biber-darwin:276> INFO - === Mon Dec 28, 2015, 18:36:17
-[48] Biber.pm:333> INFO - Reading 'thesis.bcf'
-[144] Biber.pm:645> INFO - Found 24 citekeys in bib section 0
-[168] Biber.pm:2977> INFO - Processing section 0
-[186] Biber.pm:3115> INFO - Looking for bibtex format file 'references.bib' for section 0
-[188] bibtex.pm:1021> INFO - Decoding LaTeX character macros into UTF-8
-[190] bibtex.pm:895> INFO - Found BibTeX data source 'references.bib'
-[407] UCollate.pm:66> INFO - Overriding locale 'en-US' defaults 'variable = shifted' with 'variable = non-ignorable'
-[407] UCollate.pm:66> INFO - Overriding locale 'en-US' defaults 'normalization = NFD' with 'normalization = prenormalized'
-[407] Biber.pm:2854> INFO - Sorting list 'nty' of type 'entry' with scheme 'nty' and locale 'en-US'
-[407] Biber.pm:2858> INFO - No sort tailoring available for locale 'en-US'
-[450] bbl.pm:505> INFO - Writing 'thesis.bbl' with encoding 'ascii'
-[454] Utils.pm:146> WARN - The entry 'bigdata' has characters which cannot be encoded in 'ascii'. Recoding problematic characters into macros.
-[454] bbl.pm:596> INFO - Output to thesis.bbl
-[454] Biber.pm:106> INFO - WARNINGS: 1
+[33] biber-darwin:276> INFO - === Fri Jan  1, 2016, 22:56:05
+[33] Biber.pm:333> INFO - Reading 'thesis.bcf'
+[116] Biber.pm:645> INFO - Found 26 citekeys in bib section 0
+[135] Biber.pm:2977> INFO - Processing section 0
+[149] Biber.pm:3115> INFO - Looking for bibtex format file 'references.bib' for section 0
+[152] bibtex.pm:1021> INFO - Decoding LaTeX character macros into UTF-8
+[155] bibtex.pm:895> INFO - Found BibTeX data source 'references.bib'
+[353] UCollate.pm:66> INFO - Overriding locale 'en-US' defaults 'variable = shifted' with 'variable = non-ignorable'
+[353] UCollate.pm:66> INFO - Overriding locale 'en-US' defaults 'normalization = NFD' with 'normalization = prenormalized'
+[353] Biber.pm:2854> INFO - Sorting list 'nty' of type 'entry' with scheme 'nty' and locale 'en-US'
+[353] Biber.pm:2858> INFO - No sort tailoring available for locale 'en-US'
+[395] bbl.pm:505> INFO - Writing 'thesis.bbl' with encoding 'ascii'
+[400] Utils.pm:146> WARN - The entry 'bigdata' has characters which cannot be encoded in 'ascii'. Recoding problematic characters into macros.
+[400] bbl.pm:596> INFO - Output to thesis.bbl
+[400] Biber.pm:106> INFO - WARNINGS: 1

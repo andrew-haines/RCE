@@ -8,6 +8,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import org.apache.commons.csv.CSVRecord;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.dyuproject.protostuff.Message;
 import com.google.common.base.Function;
@@ -30,14 +32,17 @@ public interface CsvDataSet extends DataSet{
 	
 	public static class DataSetConvertor<F extends Feature> implements Function<CSVRecord, Message<?>>{
 
+		private static final Logger LOG = LoggerFactory.getLogger(DataSetConvertor.class);
 		private static final String CLASSIFICATION_COLUMN_NAME = "classification";
 		
 		private final DataConvertor<F> converter;
 		private final Map<String, Integer> featureColumnNames;
+		private final boolean skipMissingValues; // setting this true will exclude rows that are missing from the returned dataset
 		
-		private DataSetConvertor(DataConvertor<F> converter, Map<String, Integer> featureColumnNames){
+		private DataSetConvertor(DataConvertor<F> converter, Map<String, Integer> featureColumnNames, boolean skipMissingValues){
 			this.converter = converter;
 			this.featureColumnNames = featureColumnNames;
+			this.skipMissingValues = skipMissingValues;
 		}
 		
 		@Override
@@ -46,7 +51,17 @@ public interface CsvDataSet extends DataSet{
 			List<F> features = new ArrayList<F>();
 			
 			for (Entry<String, Integer> featureColumnName: featureColumnNames.entrySet()){
-				features.add(converter.getFeature(record.get(featureColumnName.getKey()), featureColumnName.getValue()));
+				
+				String value = record.get(featureColumnName.getKey()).trim();
+				
+				if (!skipMissingValues || !"?".equals(value)){
+				
+					features.add(converter.getFeature(value, featureColumnName.getValue()));
+				} else{
+					LOG.debug("Skipping row:"+record);
+					
+					return null;
+				}
 			}
 			
 			return converter.createEvent(features, Arrays.asList(getClassification(record.get(CLASSIFICATION_COLUMN_NAME).trim())));
@@ -175,7 +190,7 @@ public interface CsvDataSet extends DataSet{
 				.put(NATIVE_COUNTRY_COLUMN_NAME, 14)
 				.build();
 		
-		private static final DataSetConvertor<com.haines.ml.rce.transport.Event.Feature> DISCRETE_EARNINGS_CONVERTER = new DataSetConvertor<com.haines.ml.rce.transport.Event.Feature>(new DataConvertor.DiscreteDataConvertor(), FEATURES);
+		private static final DataSetConvertor<com.haines.ml.rce.transport.Event.Feature> DISCRETE_EARNINGS_CONVERTER = new DataSetConvertor<com.haines.ml.rce.transport.Event.Feature>(new DataConvertor.DiscreteDataConvertor(), FEATURES, false);
 		
 		private static final Iterable<String> CSV_HEADERS = Lists.newArrayList(
 				AGE_COLUMN_NAME,
@@ -210,7 +225,7 @@ public interface CsvDataSet extends DataSet{
 			if (Iterables.isEmpty(continuousFeatureTypes)){
 				return DISCRETE_EARNINGS_CONVERTER;
 			} else{
-				return new DataSetConvertor<ContinuousTestEvent.DynamicFeature<?>>(new DataConvertor.ContinuousDataConvertor(continuousFeatureTypes), FEATURES);
+				return new DataSetConvertor<ContinuousTestEvent.DynamicFeature<?>>(new DataConvertor.ContinuousDataConvertor(continuousFeatureTypes), FEATURES, false);
 			}
 		}
 
@@ -257,7 +272,7 @@ public interface CsvDataSet extends DataSet{
 				FEATURE9, 
 				DataSetConvertor.CLASSIFICATION_COLUMN_NAME);
 		
-		private static final DataSetConvertor<com.haines.ml.rce.transport.Event.Feature> DISCRETE_EARNINGS_CONVERTER = new DataSetConvertor<com.haines.ml.rce.transport.Event.Feature>(new DataConvertor.DiscreteDataConvertor(), FEATURES);
+		private static final DataSetConvertor<com.haines.ml.rce.transport.Event.Feature> DISCRETE_SHUTTLE_DATA_CONVERTER = new DataSetConvertor<com.haines.ml.rce.transport.Event.Feature>(new DataConvertor.DiscreteDataConvertor(), FEATURES, false);
 		
 		private Collection<Integer> continuousFeatureTypes;
 		
@@ -279,9 +294,9 @@ public interface CsvDataSet extends DataSet{
 		@Override
 		public Function<CSVRecord, Message<?>> getCSVConverterFunction() {
 			if (Iterables.isEmpty(continuousFeatureTypes)){
-				return DISCRETE_EARNINGS_CONVERTER;
+				return DISCRETE_SHUTTLE_DATA_CONVERTER;
 			} else{
-				return new DataSetConvertor<ContinuousTestEvent.DynamicFeature<?>>(new DataConvertor.ContinuousDataConvertor(continuousFeatureTypes), FEATURES);
+				return new DataSetConvertor<ContinuousTestEvent.DynamicFeature<?>>(new DataConvertor.ContinuousDataConvertor(continuousFeatureTypes), FEATURES, false);
 			}
 		}
 

@@ -23,8 +23,8 @@ public class DistributionParameters {
 		this.numSamples = numSamples;
 		this.mean = mean;
 		
-		assert(numSamples > 0);
-		assert((!Double.isNaN(variance) || !Double.isInfinite(variance)) || numSamples == 1) : "variance="+variance+", numSamples="+numSamples+", mean="+mean; // only have NaN if we have 1 sample as this is the only case that the variance is undefined for this use case 
+		//assert(numSamples > 0);
+		assert((!Double.isNaN(variance) || !Double.isInfinite(variance)) || numSamples < 2) : "variance="+variance+", numSamples="+numSamples+", mean="+mean; // only have NaN if we have 1 sample as this is the only case that the variance is undefined for this use case 
 		
 		this.variance = variance;
 		this.twoVariance = 2 * variance;
@@ -142,7 +142,7 @@ public class DistributionParameters {
 			variance = variance - numSamples * (FastMath.pow(mean - dist1.mean, 2));
 			variance = variance / (numSamples - 1);
 			
-			if (numSamples == 1){
+			if (numSamples < 2){
 				variance = Double.NaN;
 			}
 			

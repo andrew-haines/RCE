@@ -5,7 +5,7 @@
     <eventByteOrder>big</eventByteOrder>
     <globalIndexLimit>1000000</globalIndexLimit>
     <transport>
-        <protocol>TCP</protocol>
+        <protocol>UDP</protocol>
         <host>localhost</host>
         <port>8080</port>
     </transport>

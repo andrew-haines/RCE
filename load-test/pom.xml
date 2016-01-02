@@ -9,7 +9,7 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <artifactId>rce-loadtest</artifactId>
-    <packaging>jar</packaging>
+    <packaging>war</packaging> <!-- for testing tomcat -->
     <name>Realtime Classification Engine - Load Test</name>
     <dependencies>
     	<dependency>
@@ -83,6 +83,44 @@
                     </execution>
                 </executions>
             </plugin>
+            <plugin>            
+			  <groupId>org.apache.maven.plugins</groupId>
+			  <artifactId>maven-war-plugin</artifactId>
+			  <configuration>
+			    <webXml>src\main\resources\WEB-INF\web.xml</webXml>        
+			  </configuration>
+			</plugin>
+	        <plugin>
+	          <groupId>org.apache.tomcat.maven</groupId>
+	          <artifactId>tomcat7-maven-plugin</artifactId>
+	          <version>2.2</version>
+	          <executions>
+		          <execution>
+		            <id>tomcat-run</id>
+		            <goals>
+		              <goal>exec-war-only</goal>
+		            </goals>
+		            <phase>package</phase>
+		            <configuration>
+		              <!-- optional only if you want to use a preconfigured server.xml file -->
+		              <!--
+		              <serverXml>src/main/tomcatconf/server.xml</serverXml>
+		              -->
+		              <warRunDependencies>
+		                <warRunDependency>
+		                  <dependency>
+		                    <groupId>${project.groupId}</groupId>
+		                    <artifactId>${project.artifactId}</artifactId>
+		                    <version>${project.version}</version>
+		                    <type>war</type>
+		                  </dependency>
+		                  <contextPath>/</contextPath>
+		                </warRunDependency>
+		              </warRunDependencies>
+		              </configuration>
+		              </execution>
+		              </executions>
+	        </plugin>
     	</plugins>
     </build>
 </project>

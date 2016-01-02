@@ -608,7 +608,7 @@ The following shows the results of gradually ramping up UDP RPS of injectors ont
 
 \begin{figure}[h!]
 \centering
-\caption{Throughput and latency over time as injectors are ramped up. Each injector process/thread waits for a uniformly random amount of time up to 100ms before making an additional request to ensure that request do not saturate the network bus. An additional injector thread/process is added to the injector pool every 800ms to gradually ramp up load on the candidate instance. There are 30 processes each feeding 100 threads (3000 total event feeder workers running for 390 requests each)}
+\caption{Throughput and latency over time as injectors are ramped up. Each injector process/thread waits for a uniformly random amount of time up to 100ms before making an additional request to ensure that request do not saturate the network bus. An additional injector thread/process is added to the injector pool every 800ms to gradually ramp up load on the candidate instance. There are 30 processes each feeding 100 threads (3000 total event feeder workers running for 390 repeats of the event dataset)}
 \includegraphics[scale=0.6, trim=0 -25 0 2, clip=true] {UDP_throughput.png}
 \label{fig:udpthroughput}
 \begin{tabular}{l*{6}{c}r}
@@ -626,7 +626,7 @@ mean response time between 40 and 120 is 41.389\fi
 The following shows the results of gradually ramping up TCP RPS of injectors using a persistent connection on each injector thread onto a candidate instance of the RCE application.
 \begin{figure}[h!]
 \centering
-\caption{Throughput and latency over time as injectors are ramped up. Each injector process/thread waits for a uniformly random amount of time up to 100ms before making an additional request to ensure that request do not saturate the network bus. An additional injector thread/process is added to the injector pool every 800ms to gradually ramp up load on the candidate instance. There are 30 processes each feeding 100 threads (3000 total event feeder workers running for 390 requests each}
+\caption{Throughput and latency over time as injectors are ramped up. Each injector process/thread waits for a uniformly random amount of time up to 100ms before making an additional request to ensure that request do not saturate the network bus. An additional injector thread/process is added to the injector pool every 800ms to gradually ramp up load on the candidate instance. There are 30 processes each feeding 100 threads (3000 total event feeder workers running for 390 repeats of the event dataset}
 \includegraphics[scale=0.6, trim=0 -25 0 2, clip=true] {TCP_throughput.png}
 \label{fig:udpthroughput}
 \begin{tabular}{l*{6}{c}r}

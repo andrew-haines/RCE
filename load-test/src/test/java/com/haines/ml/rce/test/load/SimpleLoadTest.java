@@ -25,10 +25,7 @@ import net.grinder.common.GrinderException;
 import net.grinder.common.GrinderProperties;
 import net.grinder.console.ConsoleFoundation;
 import net.grinder.console.common.ResourcesImplementation;
-import net.grinder.console.communication.ProcessControl.Listener;
-import net.grinder.console.communication.ProcessControl.ProcessReports;
 import net.grinder.engine.agent.Agent;
-import net.grinder.engine.agent.AgentDaemon;
 import net.grinder.engine.agent.AgentImplementation;
 
 import org.apache.commons.io.IOUtils;

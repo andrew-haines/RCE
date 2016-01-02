@@ -399,8 +399,12 @@ public class RCEApplicationStartupTest {
 	}
 
 	public static <T extends Message<T>> void sendViaSelector(T testEvent, RCEConfig rceConfig, IOSender sender) throws IOException, InterruptedException {
-		//LOG.debug("Sending event: "+event.testString1+"("+Integer.toBinaryString(event.testInt1)+"##"+event.testInt1+")");
-		// dont need to worry about efficiency in test case...
+		byte[] data = getBytesOfProtostuffMessage(testEvent);
+		
+		sender.write(ByteBuffer.wrap(data));
+	}
+	
+	public static <T extends Message<T>> byte[] getBytesOfProtostuffMessage(T testEvent) throws IOException{
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
 		
 		ProtostuffIOUtil.writeTo(out, testEvent, testEvent.cachedSchema(), LinkedBuffer.allocate(LinkedBuffer.DEFAULT_BUFFER_SIZE));
@@ -408,7 +412,7 @@ public class RCEApplicationStartupTest {
 		out.flush();
 		out.close();
 		
-		sender.write(ByteBuffer.wrap(out.toByteArray()));
+		return out.toByteArray();
 	}
 	
 	protected <T extends Message<T>> void sendViaSelector(T testEvent, IOSender sender) throws IOException, InterruptedException {

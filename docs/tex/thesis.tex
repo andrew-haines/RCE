@@ -462,6 +462,7 @@ For more parameter based configuration such as window sizes, accumulator bit dep
 \section{Testing}
 There are 5 different test types that this project uses to verify semantic and performant correctness of the system. For all test types the Junit framework coordinates the test execution and integrates the results as part of the maven build configurations. Furthermore, the Cobertura code coverage tool can be invoked as part of the maven build using the \verb|site| target. This will produce reports detailing line-by-line coverage of tests. A summary is provided in Table \ref{tab:coverage}
 \begin{table}[h!]
+\rowcolors{2}{gray!5}{white}
 \begin{tabular}{l*{6}{c}r}
 Module              & No. Classes & No. Lines & Line Coverage & Branch Coverage & Complexity\footnote{Complexity an indication of how complex (no branch conditions) a module is. It uses the McCabe's cyclomatic code complexity routine\cite{mccabecc}} \\
 \hline
@@ -518,6 +519,7 @@ To begin with, the synthetic test is used to evaluate a comparison of the discre
 \caption{ROC of continuous and discrete feature handlers using 11000 labelled instances and a 5 fold cross validation. The synthetic dataset consists of 3 classification types and 6 feature types with distributed mean and covariances for each classification value. A 30\% probability that a given feature will be picked from a uniform distribution is also included to include an element of noise}
 \includegraphics[scale=0.45, trim=0 -25 0 0, clip=true] {10000-instance-training-1000-testing-synthetictest.png}
 \label{fig:indexes}
+\rowcolors{2}{gray!5}{white}
 \begin{tabular}{l*{60}{c}r}
 Test Type & AUC & Accuracy & Model Size (bytes)\\
 \hline
@@ -536,6 +538,7 @@ As the discrete and continuous feature handler tests are fairly comparable, anot
 \caption{ROC of continuous and discrete feature handlers using 1100 synthentic instances and 5 fold cross validation}
 \includegraphics[scale=0.45, trim=0 -25 0 0, clip=true] {1000-instance-training-100-testing-synthetictest2.png}
 \label{fig:indexes}
+\rowcolors{2}{gray!5}{white}
 \begin{tabular}{l*{6}{c}r}
 Test Type & AUC & Accuracy & Model Size (bytes)\\
 \hline
@@ -565,6 +568,7 @@ Next a comparison of the performance of the system is considered when the 4 nume
 \caption{ROC of using individual feature types configured as continuous features with the rest defined as discrete features. Also includes corresponding model sizes as reported by the java.instrumentation package using a dedicated javaagent to instrument the heap used explicitly by the application. i.e.\ so this doesn't include heap used for the test harness}
 \includegraphics[scale=0.50, trim=0 -25 0 2, clip=true] {continuous_features_adult_earnings.png}
 \label{fig:indexes}
+\rowcolors{2}{gray!5}{white}
 \begin{tabular}{l*{6}{c}r}
 Test Type & AUC & Accuracy & Model Size (bytes)\\
 \hline
@@ -585,6 +589,7 @@ The Shuttle Satlog test results are detailed as follows
 \caption{ROC of different feature handlers using the shuttle data set. When one of the features is configured to use a continuous feature handler, all others are set to using discrete ones. This test uses 5 fold validation}
 \includegraphics[scale=0.55, trim=0 -25 0 2, clip=true] {features_shuttle.png}
 \label{fig:indexes}
+\rowcolors{2}{gray!5}{white}
 \begin{tabular}{l*{6}{c}r}
 Test Type & AUC & Accuracy & Model Size (bytes)\\
 \hline

@@ -34,7 +34,140 @@
 			| Time in Millis to train: 2					|
 			| Time in Millis to test: 2					|
 			----------------------------Report completed-----------------------------
+1000 Synthetic performance
 
+17:41:49.004 [main] INFO  c.h.m.r.t.ReportRenderer$SLF4JReportRenderer 
+			----------------------------Report SyntheticData_dicrete completed-----------------------------
+			| classifier accuracy: 0.8197443181818183				|
+			| classifier fmeasure: 0.4543072236121888						|
+			| classifier auc: 0.8810913944761684							|
+			| classifier model Size: 2920970					|
+			| Time in Millis to train: 0					|
+			| Time in Millis to test: 1					|
+			----------------------------Report completed-----------------------------
+
+
+17:41:49.004 [main] INFO  c.h.m.r.t.ReportRenderer$SLF4JReportRenderer - 
+
+			----------------------------Report SyntheticData_continuous completed-----------------------------
+			| classifier accuracy: 0.8022727272727272				|
+			| classifier fmeasure: 0.4356421243597129						|
+			| classifier auc: 0.8608825357829709							|
+			| classifier model Size: 2562790					|
+			| Time in Millis to train: 0					|
+			| Time in Millis to test: 1					|
+			----------------------------Report completed-----------------------------
+
+
+Adult Wages (Discrete)
+
+
+			----------------------------Report discrete completed-----------------------------
+			| classifier accuracy: 0.837847798046803				|
+			| classifier fmeasure: 0.6241204488148813						|
+			| classifier auc: 0.8584213204933251							|
+			| classifier model Size: 93651006					|
+			| Time in Millis to train: 77					|
+			| Time in Millis to test: 195					|
+			----------------------------Report completed-----------------------------
+
+
+14:10:19.972 [main] INFO  c.h.m.r.t.ReportRenderer$SLF4JReportRenderer - 
+
+			----------------------------Report Random completed-----------------------------
+			| classifier accuracy: 0.5047908605122535				|
+			| classifier fmeasure: 0.6241204488148813						|
+			| classifier auc: 0.49812055345813655							|
+			| classifier model Size: 87356016					|
+			| Time in Millis to train: 3					|
+			| Time in Millis to test: 13					|
+			----------------------------Report completed-----------------------------
+
+
+
+
+Adult Wages (Continuous)
+
+			----------------------------Report capGainC completed-----------------------------
+			| classifier accuracy: 0.8493335790184878				|
+			| classifier fmeasure: 0.6241204488148813						|
+			| classifier auc: 0.8007665417443371							|
+			| classifier model Size: 29677330					|
+			| Time in Millis to train: 77					|
+			| Time in Millis to test: 167					|
+			----------------------------Report completed-----------------------------
+
+
+13:57:53.092 [main] INFO  c.h.m.r.t.ReportRenderer$SLF4JReportRenderer - 
+
+			----------------------------Report ageC completed-----------------------------
+			| classifier accuracy: 0.8409802837663534				|
+			| classifier fmeasure: 0.6241204488148813						|
+			| classifier auc: 0.8567002103221284							|
+			| classifier model Size: 29709696					|
+			| Time in Millis to train: 29					|
+			| Time in Millis to test: 145					|
+			----------------------------Report completed-----------------------------
+
+
+13:57:53.092 [main] INFO  c.h.m.r.t.ReportRenderer$SLF4JReportRenderer - 
+
+			----------------------------Report hrPerWkC completed-----------------------------
+			| classifier accuracy: 0.8388305386647011				|
+			| classifier fmeasure: 0.6241204488148813						|
+			| classifier auc: 0.8583287622005934							|
+			| classifier model Size: 29846898					|
+			| Time in Millis to train: 20					|
+			| Time in Millis to test: 147					|
+			----------------------------Report completed-----------------------------
+
+
+13:57:53.092 [main] INFO  c.h.m.r.t.ReportRenderer$SLF4JReportRenderer - 
+
+			----------------------------Report discrete completed-----------------------------
+			| classifier accuracy: 0.837847798046803				|
+			| classifier fmeasure: 0.6241204488148813						|
+			| classifier auc: 0.8584213204933251							|
+			| classifier model Size: 35705574					|
+			| Time in Millis to train: 64					|
+			| Time in Millis to test: 161					|
+			----------------------------Report completed-----------------------------
+
+
+13:57:53.092 [main] INFO  c.h.m.r.t.ReportRenderer$SLF4JReportRenderer - 
+
+			----------------------------Report capLossC completed-----------------------------
+			| classifier accuracy: 0.8338093483201277				|
+			| classifier fmeasure: 0.6241204488148813						|
+			| classifier auc: 0.8370930403822058							|
+			| classifier model Size: 30142622					|
+			| Time in Millis to train: 36					|
+			| Time in Millis to test: 134					|
+			----------------------------Report completed-----------------------------
+
+
+13:57:53.092 [main] INFO  c.h.m.r.t.ReportRenderer$SLF4JReportRenderer - 
+
+			----------------------------Report allContinuous completed-----------------------------
+			| classifier accuracy: 0.8318899330507954				|
+			| classifier fmeasure: 0.6241204488148813						|
+			| classifier auc: 0.7734441445784626							|
+			| classifier model Size: 27239244					|
+			| Time in Millis to train: 40					|
+			| Time in Millis to test: 150					|
+			----------------------------Report completed-----------------------------
+
+
+13:57:53.092 [main] INFO  c.h.m.r.t.ReportRenderer$SLF4JReportRenderer - 
+
+			----------------------------Report Random completed-----------------------------
+			| classifier accuracy: 0.49984644677845347				|
+			| classifier fmeasure: 0.6241204488148813						|
+			| classifier auc: 0.49623154409320314							|
+			| classifier model Size: 2253304					|
+			| Time in Millis to train: 4					|
+			| Time in Millis to test: 18					|
+			----------------------------Report completed-----------------------------
 
 Shuttle performance
 18:28:35.108 [main] INFO  c.h.m.r.t.ReportRenderer$SLF4JReportRenderer - 

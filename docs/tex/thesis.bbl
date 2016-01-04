@@ -205,6 +205,23 @@
       \field{title}{Machine Learning: The Art and Science of Algorithms that Make Sense of Data}
       \field{year}{2012}
     \endentry
+    \entry{tcp-rfc}{report}{}
+      \name{author}{1}{}{%
+        {{hash=5107d424d9d934298a30bf6da27d56f3}{Institute}{I\bibinitperiod}{Information\bibnamedelima Sciences}{I\bibinitperiod\bibinitdelim S\bibinitperiod}{}{}{}{}}%
+      }
+      \list{institution}{1}{%
+        {RFC-793}%
+      }
+      \strng{namehash}{5107d424d9d934298a30bf6da27d56f3}
+      \strng{fullhash}{5107d424d9d934298a30bf6da27d56f3}
+      \field{sortinit}{I}
+      \field{sortinithash}{25e99d37ba90f7c4fb20baf4e310faf3}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{title}{Transmission Control Protocol (TCP)}
+      \field{type}{techreport}
+      \field{year}{1981}
+    \endentry
     \entry{knuth-aop}{book}{}
       \name{author}{1}{}{%
         {{hash=1dd533466eb3313074d496394d319407}{Knuth}{K\bibinitperiod}{Donald}{D\bibinitperiod}{}{}{}{}}%
@@ -220,6 +237,21 @@
       \field{labeltitlesource}{title}
       \field{title}{The Art of Computer Programming}
       \field{year}{1998}
+    \endentry
+    \entry{mvc}{periodical}{}
+      \name{author}{2}{}{%
+        {{hash=9147d94059ff82c3780ebeffe2c448e4}{Krasner}{K\bibinitperiod}{Glenn}{G\bibinitperiod}{}{}{}{}}%
+        {{hash=7f41c2aedc080c39fa1db49ad94f4b61}{Pope}{P\bibinitperiod}{Stephen}{S\bibinitperiod}{}{}{}{}}%
+      }
+      \strng{namehash}{e5fa8b45ceb0497e4015ba03f3738a99}
+      \strng{fullhash}{e5fa8b45ceb0497e4015ba03f3738a99}
+      \field{sortinit}{K}
+      \field{sortinithash}{a7d5b3aec5a0890aae7baf85a209abfc}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{JOOP}
+      \field{title}{A Cookbook for Using the Model-View-Controller User Interface Paradigm in Smalltalk -80}
+      \field{year}{1988}
     \endentry
     \entry{dryad}{article}{}
       \name{author}{1}{}{%
@@ -281,6 +313,23 @@
       \field{annotation}{http://www.eecs.berkeley.edu/Pubs/TechRpts/2012/EECS-2012-259.pdf}
       \field{title}{Discretized Streams: A Fault-Tolerant Model for Scalable Stream Processing}
     \endentry
+    \entry{udp-rfc}{report}{}
+      \name{author}{1}{}{%
+        {{hash=88dbbe3e4d39db7b8c935a7fc792eb10}{Postel}{P\bibinitperiod}{J.}{J\bibinitperiod}{}{}{}{}}%
+      }
+      \list{institution}{1}{%
+        {RFC 768}%
+      }
+      \strng{namehash}{88dbbe3e4d39db7b8c935a7fc792eb10}
+      \strng{fullhash}{88dbbe3e4d39db7b8c935a7fc792eb10}
+      \field{sortinit}{P}
+      \field{sortinithash}{c0a4896d0e424f9ca4d7f14f2b3428e7}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{title}{User Datagram Protocol (UDP)}
+      \field{type}{techreport}
+      \field{year}{1980}
+    \endentry
     \entry{processor-affinity}{report}{}
       \name{author}{1}{}{%
         {{hash=c63591ec5605878abedfca721915e1d6}{Technologies}{T\bibinitperiod}{TMurgent}{T\bibinitperiod}{}{}{}{}}%
@@ -297,19 +346,6 @@
       \field{title}{Processor Affinity - Multiple CPU Scheduling (White Paper)}
       \field{type}{techreport}
       \field{year}{2003}
-    \endentry
-    \entry{tdigest}{unpublished}{}
-      \name{author}{1}{}{%
-        {{hash=057b25b20c944ea902ffed7b813deab9}{Ted\bibnamedelima Dunning}{T\bibinitperiod\bibinitdelim D\bibinitperiod}{Otmar\bibnamedelima Ertl}{O\bibinitperiod\bibinitdelim E\bibinitperiod}{}{}{}{}}%
-      }
-      \strng{namehash}{057b25b20c944ea902ffed7b813deab9}
-      \strng{fullhash}{057b25b20c944ea902ffed7b813deab9}
-      \field{sortinit}{T}
-      \field{sortinithash}{423d138a005a533b47e6475e39378bf2}
-      \field{labelnamesource}{author}
-      \field{labeltitlesource}{title}
-      \field{note}{https://github.com/tdunning/t-digest/blob/master/docs/t-digest-paper/histo.pdf}
-      \field{title}{Computing Extremely Accurate Quantiles Using t-Digests}
     \endentry
     \entry{bigdata}{book}{}
       \name{author}{1}{}{%

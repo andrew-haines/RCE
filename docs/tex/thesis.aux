@@ -17,6 +17,13 @@
 \gdef\HyperFirstAtBeginDocument#1{#1}
 \providecommand\HyField@AuxAddToFields[1]{}
 \providecommand\HyField@AuxAddToCoFields[2]{}
+\providecommand\@newglossary[4]{}
+\@newglossary{main}{glg}{gls}{glo}
+\@newglossary{acronym}{alg}{acr}{acn}
+\providecommand\@glsorder[1]{}
+\providecommand\@istfilename[1]{}
+\@istfilename{thesis.ist}
+\@glsorder{word}
 \@writefile{toc}{\boolfalse {citerequest}\boolfalse {citetracker}\boolfalse {pagetracker}\boolfalse {backtracker}\relax }
 \@writefile{lof}{\boolfalse {citerequest}\boolfalse {citetracker}\boolfalse {pagetracker}\boolfalse {backtracker}\relax }
 \@writefile{lot}{\boolfalse {citerequest}\boolfalse {citetracker}\boolfalse {pagetracker}\boolfalse {backtracker}\relax }
@@ -42,7 +49,7 @@
 \@writefile{toc}{\defcounter {refsection}{0}\relax }\@writefile{toc}{\contentsline {subsection}{\numberline {2.1.1}Batch Processing}{6}{subsection.2.1.1}}
 \abx@aux@cite{mapreduce}
 \abx@aux@cite{hadoopMR}
-\@writefile{toc}{\defcounter {refsection}{0}\relax }\@writefile{toc}{\contentsline {subsubsection}{\nonumberline Map Reduce}{7}{section*.2}}
+\@writefile{toc}{\defcounter {refsection}{0}\relax }\@writefile{toc}{\contentsline {subsubsection}{\nonumberline Map Reduce (\acrshort {mr})}{7}{section*.2}}
 \@writefile{lof}{\defcounter {refsection}{0}\relax }\@writefile{lof}{\contentsline {figure}{\numberline {2.1}{\ignorespaces MapReduce Trending Now Example. For Brevity only output from 2 mappers are shown. The inputs to the process are the raw content data and the mappers determine which named entities are present. These are then keyed on the textual representation of the entity and all entities of the same name are sent to a single reducer. The output is then a frequency count of all named entities\relax }}{8}{figure.caption.3}}
 \providecommand*\caption@xref[2]{\@setref\relax\@undefined{#1}}
 \newlabel{fig:MapReduceEx}{{2.1}{8}{MapReduce Trending Now Example. For Brevity only output from 2 mappers are shown. The inputs to the process are the raw content data and the mappers determine which named entities are present. These are then keyed on the textual representation of the entity and all entities of the same name are sent to a single reducer. The output is then a frequency count of all named entities\relax }{figure.caption.3}{}}
@@ -50,11 +57,11 @@
 \abx@aux@cite{spark-paper}
 \abx@aux@cite{tez-site}
 \abx@aux@cite{spark-site}
-\@writefile{toc}{\defcounter {refsection}{0}\relax }\@writefile{toc}{\contentsline {subsubsection}{\nonumberline DAG}{9}{section*.4}}
-\@writefile{lof}{\defcounter {refsection}{0}\relax }\@writefile{lof}{\contentsline {figure}{\numberline {2.2}{\ignorespaces DAG Trending Now Example. In this example the entire application is shown, not just the histogram building. Data flows through the graph along the edges to the nodes. In this example, the DAG framework is able to determine that both the content fetcher and the name entity extractor need never move any data around and so the computation actually happens on the same nodes without ever having to write to disk\relax }}{9}{figure.caption.5}}
-\newlabel{fig:DAGEx}{{2.2}{9}{DAG Trending Now Example. In this example the entire application is shown, not just the histogram building. Data flows through the graph along the edges to the nodes. In this example, the DAG framework is able to determine that both the content fetcher and the name entity extractor need never move any data around and so the computation actually happens on the same nodes without ever having to write to disk\relax }{figure.caption.5}{}}
-\abx@aux@cite{storm-site}
+\@writefile{toc}{\defcounter {refsection}{0}\relax }\@writefile{toc}{\contentsline {subsubsection}{\nonumberline \acrshort {dag}}{9}{section*.4}}
+\@writefile{lof}{\defcounter {refsection}{0}\relax }\@writefile{lof}{\contentsline {figure}{\numberline {2.2}{\ignorespaces \acrshort {dag} Trending Now Example. In this example the entire application is shown, not just the histogram building. Data flows through the graph along the edges to the nodes. In this example, the \acrshort {dag} framework is able to determine that both the content fetcher and the name entity extractor need never move any data around and so the computation actually happens on the same nodes without ever having to write to disk.\relax }}{9}{figure.caption.5}}
+\newlabel{fig:DAGEx}{{2.2}{9}{\acrshort {dag} Trending Now Example. In this example the entire application is shown, not just the histogram building. Data flows through the graph along the edges to the nodes. In this example, the \acrshort {dag} framework is able to determine that both the content fetcher and the name entity extractor need never move any data around and so the computation actually happens on the same nodes without ever having to write to disk.\relax }{figure.caption.5}{}}
 \abx@aux@cite{storm-twitter}
+\abx@aux@cite{storm-site}
 \abx@aux@cite{spark-streaming-paper}
 \@writefile{toc}{\defcounter {refsection}{0}\relax }\@writefile{toc}{\contentsline {subsection}{\numberline {2.1.2}Stream processing}{10}{subsection.2.1.2}}
 \abx@aux@cite{bidmach}
@@ -62,11 +69,11 @@
 \abx@aux@cite{disruptor-paper}
 \abx@aux@cite{processor-affinity}
 \@writefile{toc}{\defcounter {refsection}{0}\relax }\@writefile{toc}{\contentsline {subsection}{\numberline {2.1.3}Vertically Scaled Systems}{11}{subsection.2.1.3}}
-\@writefile{lof}{\defcounter {refsection}{0}\relax }\@writefile{lof}{\contentsline {figure}{\numberline {2.3}{\ignorespaces An example of a 2 core event driven data flow using disruptors to coordinate the transfer of events\relax }}{11}{figure.caption.6}}
-\newlabel{fig:disruptor-ex}{{2.3}{11}{An example of a 2 core event driven data flow using disruptors to coordinate the transfer of events\relax }{figure.caption.6}{}}
+\@writefile{lof}{\defcounter {refsection}{0}\relax }\@writefile{lof}{\contentsline {figure}{\numberline {2.3}{\ignorespaces An example of a 2 core event driven data flow using disruptors to coordinate the transfer of events.\relax }}{11}{figure.caption.6}}
+\newlabel{fig:disruptor-ex}{{2.3}{11}{An example of a 2 core event driven data flow using disruptors to coordinate the transfer of events.\relax }{figure.caption.6}{}}
 \abx@aux@cite{mahout-site}
-\@writefile{lof}{\defcounter {refsection}{0}\relax }\@writefile{lof}{\contentsline {figure}{\numberline {2.4}{\ignorespaces The ring buffer at the heart of the disruptor design. For clarity the writer and reader positions are illustrated as if they are concerns of the Producer and EventProcessor respectively - however this is not the case in implementation as the ring buffer owns the pointers in order to ensure \(writerPos < readerPos\)\relax }}{12}{figure.caption.7}}
-\newlabel{fig:ringbuffer}{{2.4}{12}{The ring buffer at the heart of the disruptor design. For clarity the writer and reader positions are illustrated as if they are concerns of the Producer and EventProcessor respectively - however this is not the case in implementation as the ring buffer owns the pointers in order to ensure \(writerPos < readerPos\)\relax }{figure.caption.7}{}}
+\@writefile{lof}{\defcounter {refsection}{0}\relax }\@writefile{lof}{\contentsline {figure}{\numberline {2.4}{\ignorespaces The ring buffer at the heart of the disruptor design. For clarity the writer and reader positions are illustrated as if they are concerns of the Producer and EventProcessor respectively - however this is not the case in implementation as the ring buffer owns the pointers in order to ensure \(writerPos < readerPos\).\relax }}{12}{figure.caption.7}}
+\newlabel{fig:ringbuffer}{{2.4}{12}{The ring buffer at the heart of the disruptor design. For clarity the writer and reader positions are illustrated as if they are concerns of the Producer and EventProcessor respectively - however this is not the case in implementation as the ring buffer owns the pointers in order to ensure \(writerPos < readerPos\).\relax }{figure.caption.7}{}}
 \@writefile{toc}{\defcounter {refsection}{0}\relax }\@writefile{toc}{\contentsline {section}{\numberline {2.2}Machine Learning Applications at scale}{13}{section.2.2}}
 \@writefile{toc}{\defcounter {refsection}{0}\relax }\@writefile{toc}{\contentsline {chapter}{\numberline {3}Motivation \& Scope}{14}{chapter.3}}
 \@writefile{lof}{\defcounter {refsection}{0}\relax }\@writefile{lof}{\addvspace {10\p@ }}
@@ -76,6 +83,8 @@
 \@writefile{los}{\defcounter {refsection}{0}\relax }\@writefile{los}{\addvspace {10\p@ }}
 \@writefile{lof}{\defcounter {refsection}{0}\relax }\@writefile{lof}{\contentsline {figure}{\numberline {3.1}{\ignorespaces Given a trivial example of 2 features of age and geolocation, users can be positioned in a feature space to predict the entities they are interested in. In the case of the red user, a prediction can be made that it is similar to the named entities clicked on by the users around it.\relax }}{16}{figure.caption.8}}
 \newlabel{fig:featurespace}{{3.1}{16}{Given a trivial example of 2 features of age and geolocation, users can be positioned in a feature space to predict the entities they are interested in. In the case of the red user, a prediction can be made that it is similar to the named entities clicked on by the users around it.\relax }{figure.caption.8}{}}
+\abx@aux@cite{udp-rfc}
+\abx@aux@cite{tcp-rfc}
 \@writefile{toc}{\defcounter {refsection}{0}\relax }\@writefile{toc}{\contentsline {chapter}{\numberline {4}Design}{17}{chapter.4}}
 \@writefile{lof}{\defcounter {refsection}{0}\relax }\@writefile{lof}{\addvspace {10\p@ }}
 \@writefile{lot}{\defcounter {refsection}{0}\relax }\@writefile{lot}{\addvspace {10\p@ }}
@@ -85,46 +94,46 @@
 \@writefile{toc}{\defcounter {refsection}{0}\relax }\@writefile{toc}{\contentsline {section}{\numberline {4.1}Overview}{17}{section.4.1}}
 \@writefile{toc}{\defcounter {refsection}{0}\relax }\@writefile{toc}{\contentsline {subsection}{\numberline {4.1.1}Hardware components}{17}{subsection.4.1.1}}
 \@writefile{toc}{\defcounter {refsection}{0}\relax }\@writefile{toc}{\contentsline {subsubsection}{\nonumberline I/O bus}{17}{section*.9}}
-\@writefile{toc}{\defcounter {refsection}{0}\relax }\@writefile{toc}{\contentsline {subsubsection}{\nonumberline CPU Cores}{18}{section*.10}}
+\@writefile{toc}{\defcounter {refsection}{0}\relax }\@writefile{toc}{\contentsline {subsubsection}{\nonumberline \acrshort {cpu} Cores}{18}{section*.10}}
 \@writefile{toc}{\defcounter {refsection}{0}\relax }\@writefile{toc}{\contentsline {subsubsection}{\nonumberline Main Memory and Caching}{18}{section*.11}}
-\@writefile{lof}{\defcounter {refsection}{0}\relax }\@writefile{lof}{\contentsline {figure}{\numberline {4.1}{\ignorespaces Illustration of the different cache visibilities based on a 2 CPU, 4 core setup. Visibility flows downward\relax }}{18}{figure.caption.12}}
-\newlabel{fig:corecachedesign}{{4.1}{18}{Illustration of the different cache visibilities based on a 2 CPU, 4 core setup. Visibility flows downward\relax }{figure.caption.12}{}}
+\@writefile{lof}{\defcounter {refsection}{0}\relax }\@writefile{lof}{\contentsline {figure}{\numberline {4.1}{\ignorespaces Illustration of the different cache visibilities based on a 2 \acrshort {cpu}, 4 core setup. Visibility flows downward.\relax }}{18}{figure.caption.12}}
+\newlabel{fig:corecachedesign}{{4.1}{18}{Illustration of the different cache visibilities based on a 2 \acrshort {cpu}, 4 core setup. Visibility flows downward.\relax }{figure.caption.12}{}}
 \@writefile{lof}{\defcounter {refsection}{0}\relax }\@writefile{lof}{\contentsline {figure}{\numberline {4.2}{\ignorespaces Although there are multiple cache lines present in modern designs, as observed here the real speed benefit is avoiding main memory and as such this is the focus in this project.\relax }}{19}{figure.caption.13}}
 \newlabel{fig:cachelinespeeds}{{4.2}{19}{Although there are multiple cache lines present in modern designs, as observed here the real speed benefit is avoiding main memory and as such this is the focus in this project.\relax }{figure.caption.13}{}}
 \@writefile{toc}{\defcounter {refsection}{0}\relax }\@writefile{toc}{\contentsline {subsection}{\numberline {4.1.2}Software Architecture}{20}{subsection.4.1.2}}
-\@writefile{lof}{\defcounter {refsection}{0}\relax }\@writefile{lof}{\contentsline {figure}{\numberline {4.3}{\ignorespaces The main modules and data flows of the system\relax }}{20}{figure.caption.14}}
-\newlabel{fig:architectureoverview}{{4.3}{20}{The main modules and data flows of the system\relax }{figure.caption.14}{}}
+\@writefile{lof}{\defcounter {refsection}{0}\relax }\@writefile{lof}{\contentsline {figure}{\numberline {4.3}{\ignorespaces The main modules and data flows of the system.\relax }}{20}{figure.caption.14}}
+\newlabel{fig:architectureoverview}{{4.3}{20}{The main modules and data flows of the system.\relax }{figure.caption.14}{}}
 \@writefile{toc}{\defcounter {refsection}{0}\relax }\@writefile{toc}{\contentsline {subsection}{\numberline {4.1.3}Execution Modes}{21}{subsection.4.1.3}}
 \@writefile{toc}{\defcounter {refsection}{0}\relax }\@writefile{toc}{\contentsline {subsubsection}{\nonumberline Async}{21}{section*.15}}
 \newlabel{fig:asyncmode.t}{{4.4a}{22}{\(t\)\relax }{figure.caption.16}{}}
 \newlabel{sub@fig:asyncmode.t}{{a}{22}{\(t\)\relax }{figure.caption.16}{}}
 \newlabel{fig:asyncmode.tplus1}{{4.4b}{22}{\(t+1\)\relax }{figure.caption.16}{}}
 \newlabel{sub@fig:asyncmode.tplus1}{{b}{22}{\(t+1\)\relax }{figure.caption.16}{}}
-\@writefile{lof}{\defcounter {refsection}{0}\relax }\@writefile{lof}{\contentsline {figure}{\numberline {4.4}{\ignorespaces How ownership of the accumulators change during the end of an interval\relax }}{22}{figure.caption.16}}
+\@writefile{lof}{\defcounter {refsection}{0}\relax }\@writefile{lof}{\contentsline {figure}{\numberline {4.4}{\ignorespaces How ownership of the accumulators change during the end of an interval.\relax }}{22}{figure.caption.16}}
 \@writefile{toc}{\defcounter {refsection}{0}\relax }\@writefile{toc}{\contentsline {subsubsection}{\nonumberline Sync}{22}{section*.17}}
 \@writefile{toc}{\defcounter {refsection}{0}\relax }\@writefile{toc}{\contentsline {section}{\numberline {4.2}Naive Bayes}{23}{section.4.2}}
 \abx@aux@cite{knuth-aop}
-\@writefile{toc}{\defcounter {refsection}{0}\relax }\@writefile{toc}{\contentsline {section}{\numberline {4.3}IO}{24}{section.4.3}}
+\@writefile{toc}{\defcounter {refsection}{0}\relax }\@writefile{toc}{\contentsline {section}{\numberline {4.3}\acrshort {io}}{24}{section.4.3}}
 \abx@aux@cite{googleprotobuf}
 \@writefile{toc}{\defcounter {refsection}{0}\relax }\@writefile{toc}{\contentsline {subsection}{\numberline {4.3.1}Selectors}{25}{subsection.4.3.1}}
 \@writefile{toc}{\defcounter {refsection}{0}\relax }\@writefile{toc}{\contentsline {subsection}{\numberline {4.3.2}Protostuff}{25}{subsection.4.3.2}}
 \@writefile{toc}{\defcounter {refsection}{0}\relax }\@writefile{toc}{\contentsline {subsection}{\numberline {4.3.3}Transport}{25}{subsection.4.3.3}}
 \@writefile{toc}{\defcounter {refsection}{0}\relax }\@writefile{toc}{\contentsline {section}{\numberline {4.4}WindowManager}{26}{section.4.4}}
-\@writefile{lof}{\defcounter {refsection}{0}\relax }\@writefile{lof}{\contentsline {figure}{\numberline {4.8}{\ignorespaces Illustration of how a new window interval arriving into the Window Manager will push out an older interval\relax }}{26}{figure.caption.21}}
-\newlabel{fig:rollingwindow}{{4.8}{26}{Illustration of how a new window interval arriving into the Window Manager will push out an older interval\relax }{figure.caption.21}{}}
-\newlabel{eq:combiningparamsadd}{{\caption@xref {eq:combiningparamsadd}{ on input line 346}}{27}{WindowManager}{equation.4.4.2}{}}
-\@writefile{los}{\defcounter {refsection}{0}\relax }\@writefile{los}{\contentsline {myequations}{\numberline {4.4.1}{\ignorespaces Addition of normal distribution parameters for each windows/intervals\relax }}{27}{myequations.caption.22}}
-\newlabel{eq:combiningparamssub}{{\caption@xref {eq:combiningparamssub}{ on input line 357}}{27}{WindowManager}{equation.4.4.4}{}}
-\@writefile{los}{\defcounter {refsection}{0}\relax }\@writefile{los}{\contentsline {myequations}{\numberline {4.4.2}{\ignorespaces Subtraction of normal distribution parameters for each windows/intervals\relax }}{27}{myequations.caption.23}}
+\@writefile{lof}{\defcounter {refsection}{0}\relax }\@writefile{lof}{\contentsline {figure}{\numberline {4.8}{\ignorespaces Illustration of how a new window interval arriving into the Window Manager will push out an older interval.\relax }}{26}{figure.caption.21}}
+\newlabel{fig:rollingwindow}{{4.8}{26}{Illustration of how a new window interval arriving into the Window Manager will push out an older interval.\relax }{figure.caption.21}{}}
+\newlabel{eq:combiningparamsadd}{{\caption@xref {eq:combiningparamsadd}{ on input line 373}}{27}{WindowManager}{equation.4.4.2}{}}
+\@writefile{los}{\defcounter {refsection}{0}\relax }\@writefile{los}{\contentsline {myequations}{\numberline {4.4.1}{\ignorespaces Addition of normal distribution parameters for each windows/intervals.\relax }}{27}{myequations.caption.22}}
+\newlabel{eq:combiningparamssub}{{\caption@xref {eq:combiningparamssub}{ on input line 384}}{27}{WindowManager}{equation.4.4.4}{}}
+\@writefile{los}{\defcounter {refsection}{0}\relax }\@writefile{los}{\contentsline {myequations}{\numberline {4.4.2}{\ignorespaces Subtraction of normal distribution parameters for each windows/intervals.\relax }}{27}{myequations.caption.23}}
 \@writefile{toc}{\defcounter {refsection}{0}\relax }\@writefile{toc}{\contentsline {section}{\numberline {4.5}Accumulators}{27}{section.4.5}}
-\@writefile{lof}{\defcounter {refsection}{0}\relax }\@writefile{lof}{\contentsline {figure}{\numberline {4.9}{\ignorespaces shows a trival example of indexing slot 10. Note that the left most outer leaf is not assigned demonstrating the expanding and space saving design\relax }}{28}{figure.caption.24}}
-\newlabel{fig:accumulator-lookup}{{4.9}{28}{shows a trival example of indexing slot 10. Note that the left most outer leaf is not assigned demonstrating the expanding and space saving design\relax }{figure.caption.24}{}}
+\@writefile{lof}{\defcounter {refsection}{0}\relax }\@writefile{lof}{\contentsline {figure}{\numberline {4.9}{\ignorespaces shows a trival example of indexing slot 10. Note that the left most outer leaf is not assigned demonstrating the expanding and space saving design.\relax }}{28}{figure.caption.24}}
+\newlabel{fig:accumulator-lookup}{{4.9}{28}{shows a trival example of indexing slot 10. Note that the left most outer leaf is not assigned demonstrating the expanding and space saving design.\relax }{figure.caption.24}{}}
 \@writefile{toc}{\defcounter {refsection}{0}\relax }\@writefile{toc}{\contentsline {subsection}{\numberline {4.5.1}Index Instances}{28}{subsection.4.5.1}}
 \@writefile{toc}{\defcounter {refsection}{0}\relax }\@writefile{toc}{\contentsline {subsubsection}{\nonumberline Local Instance}{28}{section*.25}}
 \@writefile{toc}{\defcounter {refsection}{0}\relax }\@writefile{toc}{\contentsline {subsubsection}{\nonumberline Global Instance}{28}{section*.26}}
-\@writefile{lof}{\defcounter {refsection}{0}\relax }\@writefile{lof}{\contentsline {figure}{\numberline {4.10}{\ignorespaces Show's the data flow between the global and local indexes and the local accumulators and window manager. Blackened arrows represent data pushes whereas grey arrows represent data fetches\relax }}{29}{figure.caption.27}}
-\newlabel{fig:indexes}{{4.10}{29}{Show's the data flow between the global and local indexes and the local accumulators and window manager. Blackened arrows represent data pushes whereas grey arrows represent data fetches\relax }{figure.caption.27}{}}
-\abx@aux@cite{design-patterns}
+\@writefile{lof}{\defcounter {refsection}{0}\relax }\@writefile{lof}{\contentsline {figure}{\numberline {4.10}{\ignorespaces Show's the data flow between the global and local indexes and the local accumulators and window manager. Blackened arrows represent data pushes whereas grey arrows represent data fetches.\relax }}{29}{figure.caption.27}}
+\newlabel{fig:indexes}{{4.10}{29}{Show's the data flow between the global and local indexes and the local accumulators and window manager. Blackened arrows represent data pushes whereas grey arrows represent data fetches.\relax }{figure.caption.27}{}}
+\abx@aux@cite{mvc}
 \@writefile{toc}{\defcounter {refsection}{0}\relax }\@writefile{toc}{\contentsline {chapter}{\numberline {5}Implementation}{30}{chapter.5}}
 \@writefile{lof}{\defcounter {refsection}{0}\relax }\@writefile{lof}{\addvspace {10\p@ }}
 \@writefile{lot}{\defcounter {refsection}{0}\relax }\@writefile{lot}{\addvspace {10\p@ }}
@@ -133,6 +142,7 @@
 \@writefile{los}{\defcounter {refsection}{0}\relax }\@writefile{los}{\addvspace {10\p@ }}
 \@writefile{toc}{\defcounter {refsection}{0}\relax }\@writefile{toc}{\contentsline {section}{\numberline {5.1}Overview}{30}{section.5.1}}
 \@writefile{toc}{\defcounter {refsection}{0}\relax }\@writefile{toc}{\contentsline {subsection}{\numberline {5.1.1}Data}{30}{subsection.5.1.1}}
+\abx@aux@cite{design-patterns}
 \abx@aux@cite{ioc}
 \abx@aux@cite{guice}
 \@writefile{toc}{\defcounter {refsection}{0}\relax }\@writefile{toc}{\contentsline {subsection}{\numberline {5.1.2}Logic}{31}{subsection.5.1.2}}
@@ -140,8 +150,8 @@
 \@writefile{toc}{\defcounter {refsection}{0}\relax }\@writefile{toc}{\contentsline {subsection}{\numberline {5.1.4}DataStructures}{31}{subsection.5.1.4}}
 \abx@aux@cite{maven}
 \@writefile{toc}{\defcounter {refsection}{0}\relax }\@writefile{toc}{\contentsline {section}{\numberline {5.2}Maven Modules}{32}{section.5.2}}
-\@writefile{lof}{\defcounter {refsection}{0}\relax }\@writefile{lof}{\contentsline {figure}{\numberline {5.1}{\ignorespaces The main component structure of the RCE application\relax }}{32}{figure.caption.28}}
-\newlabel{fig:indexes}{{5.1}{32}{The main component structure of the RCE application\relax }{figure.caption.28}{}}
+\@writefile{lof}{\defcounter {refsection}{0}\relax }\@writefile{lof}{\contentsline {figure}{\numberline {5.1}{\ignorespaces The main component structure of the RCE application.\relax }}{32}{figure.caption.28}}
+\newlabel{fig:indexes}{{5.1}{32}{The main component structure of the RCE application.\relax }{figure.caption.28}{}}
 \@writefile{toc}{\defcounter {refsection}{0}\relax }\@writefile{toc}{\contentsline {subsection}{\numberline {5.2.1}The Components}{33}{subsection.5.2.1}}
 \@writefile{toc}{\defcounter {refsection}{0}\relax }\@writefile{toc}{\contentsline {subsubsection}{\nonumberline rce-model}{33}{section*.29}}
 \@writefile{toc}{\defcounter {refsection}{0}\relax }\@writefile{toc}{\contentsline {subsubsection}{\nonumberline rce-dispatcher}{33}{section*.30}}
@@ -166,58 +176,70 @@
 \@writefile{toc}{\defcounter {refsection}{0}\relax }\@writefile{toc}{\contentsline {subsection}{\numberline {5.4.3}Integration Tests}{36}{subsection.5.4.3}}
 \@writefile{toc}{\defcounter {refsection}{0}\relax }\@writefile{toc}{\contentsline {subsection}{\numberline {5.4.4}Performance Tests}{36}{subsection.5.4.4}}
 \@writefile{toc}{\defcounter {refsection}{0}\relax }\@writefile{toc}{\contentsline {subsubsection}{\nonumberline Synthetic Dataset}{37}{section*.41}}
-\@writefile{lof}{\defcounter {refsection}{0}\relax }\@writefile{lof}{\contentsline {figure}{\numberline {5.2}{\ignorespaces An example of a 1 feature, 3 class mixture distribution model where probability densities are shown according to the class (colour). When adding more features, the distribution mixtures fan out into more dimensions according to their hyper parameters\relax }}{37}{figure.caption.42}}
-\newlabel{fig:indexes}{{5.2}{37}{An example of a 1 feature, 3 class mixture distribution model where probability densities are shown according to the class (colour). When adding more features, the distribution mixtures fan out into more dimensions according to their hyper parameters\relax }{figure.caption.42}{}}
+\@writefile{lof}{\defcounter {refsection}{0}\relax }\@writefile{lof}{\contentsline {figure}{\numberline {5.2}{\ignorespaces An example of a 1 feature, 3 class mixture distribution model where probability densities are shown according to the class (colour). When adding more features, the distribution mixtures fan out into more dimensions according to their hyper parameters.\relax }}{37}{figure.caption.42}}
+\newlabel{fig:indexes}{{5.2}{37}{An example of a 1 feature, 3 class mixture distribution model where probability densities are shown according to the class (colour). When adding more features, the distribution mixtures fan out into more dimensions according to their hyper parameters.\relax }{figure.caption.42}{}}
 \abx@aux@cite{grinder}
 \@writefile{toc}{\defcounter {refsection}{0}\relax }\@writefile{toc}{\contentsline {subsubsection}{\nonumberline Adults Earnings}{38}{section*.43}}
 \@writefile{toc}{\defcounter {refsection}{0}\relax }\@writefile{toc}{\contentsline {subsubsection}{\nonumberline Shuttle Statlog}{38}{section*.44}}
 \@writefile{toc}{\defcounter {refsection}{0}\relax }\@writefile{toc}{\contentsline {subsection}{\numberline {5.4.5}Load Tests}{38}{subsection.5.4.5}}
-\@writefile{toc}{\defcounter {refsection}{0}\relax }\@writefile{toc}{\contentsline {chapter}{\numberline {6}Performance}{39}{chapter.6}}
+\@writefile{toc}{\defcounter {refsection}{0}\relax }\@writefile{toc}{\contentsline {chapter}{\numberline {6}Evaluation}{39}{chapter.6}}
 \@writefile{lof}{\defcounter {refsection}{0}\relax }\@writefile{lof}{\addvspace {10\p@ }}
 \@writefile{lot}{\defcounter {refsection}{0}\relax }\@writefile{lot}{\addvspace {10\p@ }}
 \@writefile{los}{\defcounter {refsection}{0}\relax }\@writefile{los}{\addvspace {10\p@ }}
 \@writefile{lol}{\defcounter {refsection}{0}\relax }\@writefile{lol}{\addvspace {10\p@ }}
 \@writefile{los}{\defcounter {refsection}{0}\relax }\@writefile{los}{\addvspace {10\p@ }}
 \@writefile{toc}{\defcounter {refsection}{0}\relax }\@writefile{toc}{\contentsline {section}{\numberline {6.1}Classification Performance}{39}{section.6.1}}
-\@writefile{toc}{\defcounter {refsection}{0}\relax }\@writefile{toc}{\contentsline {subsection}{\numberline {6.1.1}Synthetic Test}{40}{subsection.6.1.1}}
-\@writefile{lof}{\defcounter {refsection}{0}\relax }\@writefile{lof}{\contentsline {figure}{\numberline {6.1}{\ignorespaces ROC of continuous and discrete feature handlers using 11000 labelled instances and a 5 fold cross validation. The synthetic dataset consists of 3 classification types and 6 feature types with distributed mean and covariances for each classification value. A 30\% probability that a given feature will be picked from a uniform distribution is also included to include an element of noise\relax }}{40}{figure.caption.45}}
-\newlabel{fig:indexes}{{6.1}{40}{ROC of continuous and discrete feature handlers using 11000 labelled instances and a 5 fold cross validation. The synthetic dataset consists of 3 classification types and 6 feature types with distributed mean and covariances for each classification value. A 30\% probability that a given feature will be picked from a uniform distribution is also included to include an element of noise\relax }{figure.caption.45}{}}
-\@writefile{lof}{\defcounter {refsection}{0}\relax }\@writefile{lof}{\contentsline {figure}{\numberline {6.2}{\ignorespaces ROC of continuous and discrete feature handlers using 1100 synthentic instances and 5 fold cross validation\relax }}{41}{figure.caption.46}}
-\newlabel{fig:indexes}{{6.2}{41}{ROC of continuous and discrete feature handlers using 1100 synthentic instances and 5 fold cross validation\relax }{figure.caption.46}{}}
+\@writefile{toc}{\defcounter {refsection}{0}\relax }\@writefile{toc}{\contentsline {subsection}{\numberline {6.1.1}Synthetic Test}{39}{subsection.6.1.1}}
+\@writefile{lof}{\defcounter {refsection}{0}\relax }\@writefile{lof}{\contentsline {figure}{\numberline {6.1}{\ignorespaces \acrshort {roc} of continuous and discrete feature handlers using 11000 labelled instances and a 5 fold cross validation. The synthetic dataset consists of 3 classification types and 6 feature types with distributed mean and covariances for each classification value. A 30\% probability that a given feature will be picked from a uniform distribution is also included to include an element of noise.\relax }}{40}{figure.caption.45}}
+\newlabel{fig:syntheticresults1}{{6.1}{40}{\acrshort {roc} of continuous and discrete feature handlers using 11000 labelled instances and a 5 fold cross validation. The synthetic dataset consists of 3 classification types and 6 feature types with distributed mean and covariances for each classification value. A 30\% probability that a given feature will be picked from a uniform distribution is also included to include an element of noise.\relax }{figure.caption.45}{}}
+\@writefile{lof}{\defcounter {refsection}{0}\relax }\@writefile{lof}{\contentsline {figure}{\numberline {6.2}{\ignorespaces \acrshort {roc} of continuous and discrete feature handlers using 1100 synthentic instances and 5 fold cross validation.\relax }}{41}{figure.caption.46}}
+\newlabel{fig:syntheticresults2}{{6.2}{41}{\acrshort {roc} of continuous and discrete feature handlers using 1100 synthentic instances and 5 fold cross validation.\relax }{figure.caption.46}{}}
+\@writefile{toc}{\defcounter {refsection}{0}\relax }\@writefile{toc}{\contentsline {subsubsection}{\nonumberline Analysis}{41}{section*.47}}
 \@writefile{toc}{\defcounter {refsection}{0}\relax }\@writefile{toc}{\contentsline {subsection}{\numberline {6.1.2}Adult Wages}{42}{subsection.6.1.2}}
-\@writefile{lof}{\defcounter {refsection}{0}\relax }\@writefile{lof}{\contentsline {figure}{\numberline {6.3}{\ignorespaces ROC of all discrete feature handlers using adult wage test set. N-fold validation is not used in this test so that the provided training/test splits can be used to compare against the published results of different classifiers\relax }}{42}{figure.caption.47}}
-\newlabel{fig:indexes}{{6.3}{42}{ROC of all discrete feature handlers using adult wage test set. N-fold validation is not used in this test so that the provided training/test splits can be used to compare against the published results of different classifiers\relax }{figure.caption.47}{}}
-\@writefile{lof}{\defcounter {refsection}{0}\relax }\@writefile{lof}{\contentsline {figure}{\numberline {6.4}{\ignorespaces ROC of using individual feature types configured as continuous features with the rest defined as discrete features. Also includes corresponding model sizes as reported by the java.instrumentation package using a dedicated javaagent to instrument the heap used explicitly by the application. i.e.\ so this doesn't include heap used for the test harness\relax }}{43}{figure.caption.48}}
-\newlabel{fig:indexes}{{6.4}{43}{ROC of using individual feature types configured as continuous features with the rest defined as discrete features. Also includes corresponding model sizes as reported by the java.instrumentation package using a dedicated javaagent to instrument the heap used explicitly by the application. i.e.\ so this doesn't include heap used for the test harness\relax }{figure.caption.48}{}}
-\@writefile{toc}{\defcounter {refsection}{0}\relax }\@writefile{toc}{\contentsline {subsection}{\numberline {6.1.3}Space Shuttle}{44}{subsection.6.1.3}}
-\@writefile{lof}{\defcounter {refsection}{0}\relax }\@writefile{lof}{\contentsline {figure}{\numberline {6.5}{\ignorespaces ROC of different feature handlers using the shuttle data set. When one of the features is configured to use a continuous feature handler, all others are set to using discrete ones. This test uses 5 fold validation\relax }}{44}{figure.caption.49}}
-\newlabel{fig:indexes}{{6.5}{44}{ROC of different feature handlers using the shuttle data set. When one of the features is configured to use a continuous feature handler, all others are set to using discrete ones. This test uses 5 fold validation\relax }{figure.caption.49}{}}
-\@writefile{toc}{\defcounter {refsection}{0}\relax }\@writefile{toc}{\contentsline {section}{\numberline {6.2}Throughput Performance}{45}{section.6.2}}
-\@writefile{toc}{\defcounter {refsection}{0}\relax }\@writefile{toc}{\contentsline {subsection}{\numberline {6.2.1}UDP}{45}{subsection.6.2.1}}
-\@writefile{lof}{\defcounter {refsection}{0}\relax }\@writefile{lof}{\contentsline {figure}{\numberline {6.6}{\ignorespaces Throughput and latency over time as injectors are ramped up. Each injector process/thread waits for a uniformly random amount of time up to 100ms before making an additional request to ensure that request do not saturate the network bus. An additional injector thread/process is added to the injector pool every 800ms to gradually ramp up load on the candidate instance. There are 30 processes each feeding 100 threads (3000 total event feeder workers running for 390 repeats of the event dataset)\relax }}{45}{figure.caption.50}}
-\newlabel{fig:udpthroughput}{{6.6}{45}{Throughput and latency over time as injectors are ramped up. Each injector process/thread waits for a uniformly random amount of time up to 100ms before making an additional request to ensure that request do not saturate the network bus. An additional injector thread/process is added to the injector pool every 800ms to gradually ramp up load on the candidate instance. There are 30 processes each feeding 100 threads (3000 total event feeder workers running for 390 repeats of the event dataset)\relax }{figure.caption.50}{}}
-\newlabel{UDP_errors}{{{\itshape  a}}{45}{Throughput and latency over time as injectors are ramped up. Each injector process/thread waits for a uniformly random amount of time up to 100ms before making an additional request to ensure that request do not saturate the network bus. An additional injector thread/process is added to the injector pool every 800ms to gradually ramp up load on the candidate instance. There are 30 processes each feeding 100 threads (3000 total event feeder workers running for 390 repeats of the event dataset)\relax }{figure.caption.50}{}}
-\@writefile{toc}{\defcounter {refsection}{0}\relax }\@writefile{toc}{\contentsline {subsection}{\numberline {6.2.2}TCP}{46}{subsection.6.2.2}}
-\@writefile{lof}{\defcounter {refsection}{0}\relax }\@writefile{lof}{\contentsline {figure}{\numberline {6.7}{\ignorespaces Throughput and latency over time as injectors are ramped up. Each injector process/thread waits for a uniformly random amount of time up to 100ms before making an additional request to ensure that request do not saturate the network bus. An additional injector thread/process is added to the injector pool every 800ms to gradually ramp up load on the candidate instance. There are 30 processes each feeding 100 threads (3000 total event feeder workers running for 390 repeats of the event dataset\relax }}{46}{figure.caption.51}}
-\newlabel{fig:udpthroughput}{{6.7}{46}{Throughput and latency over time as injectors are ramped up. Each injector process/thread waits for a uniformly random amount of time up to 100ms before making an additional request to ensure that request do not saturate the network bus. An additional injector thread/process is added to the injector pool every 800ms to gradually ramp up load on the candidate instance. There are 30 processes each feeding 100 threads (3000 total event feeder workers running for 390 repeats of the event dataset\relax }{figure.caption.51}{}}
-\@writefile{toc}{\defcounter {refsection}{0}\relax }\@writefile{toc}{\contentsline {chapter}{\numberline {7}Conclusions}{47}{chapter.7}}
+\@writefile{lof}{\defcounter {refsection}{0}\relax }\@writefile{lof}{\contentsline {figure}{\numberline {6.3}{\ignorespaces \acrshort {roc} curve of all discrete feature handlers using adult wage test set. N-fold validation is not used in this test so that the provided training/test splits can be used to compare against the published results of different classifiers.\relax }}{42}{figure.caption.48}}
+\newlabel{fig:adultwagesresults1}{{6.3}{42}{\acrshort {roc} curve of all discrete feature handlers using adult wage test set. N-fold validation is not used in this test so that the provided training/test splits can be used to compare against the published results of different classifiers.\relax }{figure.caption.48}{}}
+\@writefile{lof}{\defcounter {refsection}{0}\relax }\@writefile{lof}{\contentsline {figure}{\numberline {6.4}{\ignorespaces \acrshort {roc} curve of using individual feature types configured as continuous features with the rest defined as discrete features. Also includes corresponding model sizes as reported by the java.instrumentation package using a dedicated javaagent to instrument the heap used explicitly by the application. i.e.\ so this doesn't include heap used for the test harness.\relax }}{43}{figure.caption.49}}
+\newlabel{fig:adultwagesresults2}{{6.4}{43}{\acrshort {roc} curve of using individual feature types configured as continuous features with the rest defined as discrete features. Also includes corresponding model sizes as reported by the java.instrumentation package using a dedicated javaagent to instrument the heap used explicitly by the application. i.e.\ so this doesn't include heap used for the test harness.\relax }{figure.caption.49}{}}
+\@writefile{toc}{\defcounter {refsection}{0}\relax }\@writefile{toc}{\contentsline {subsubsection}{\nonumberline Analysis}{43}{section*.50}}
+\@writefile{lof}{\defcounter {refsection}{0}\relax }\@writefile{lof}{\contentsline {figure}{\numberline {6.5}{\ignorespaces Distribution analysis of numerical features in Adult Wage dataset.\relax }}{44}{figure.caption.51}}
+\newlabel{fig:adultwagefeaturedist}{{6.5}{44}{Distribution analysis of numerical features in Adult Wage dataset.\relax }{figure.caption.51}{}}
+\@writefile{lot}{\defcounter {refsection}{0}\relax }\@writefile{lot}{\contentsline {table}{\numberline {6.1}{\ignorespaces Ranking of RCE performance of Adult Wages dataset in relation to published performance of known classifiers.\relax }}{45}{table.caption.52}}
+\newlabel{tab:classiferrank}{{6.1}{45}{Ranking of RCE performance of Adult Wages dataset in relation to published performance of known classifiers.\relax }{table.caption.52}{}}
+\@writefile{toc}{\defcounter {refsection}{0}\relax }\@writefile{toc}{\contentsline {subsection}{\numberline {6.1.3}Space Shuttle}{46}{subsection.6.1.3}}
+\@writefile{lof}{\defcounter {refsection}{0}\relax }\@writefile{lof}{\contentsline {figure}{\numberline {6.6}{\ignorespaces ROC of different feature handlers using the shuttle data set. When one of the features is configured to use a continuous feature handler, all others are set to using discrete ones. This test uses 5 fold validation.\relax }}{46}{figure.caption.53}}
+\newlabel{fig:spaceshuttleresults}{{6.6}{46}{ROC of different feature handlers using the shuttle data set. When one of the features is configured to use a continuous feature handler, all others are set to using discrete ones. This test uses 5 fold validation.\relax }{figure.caption.53}{}}
+\@writefile{toc}{\defcounter {refsection}{0}\relax }\@writefile{toc}{\contentsline {subsubsection}{\nonumberline Analysis}{47}{section*.54}}
+\@writefile{toc}{\defcounter {refsection}{0}\relax }\@writefile{toc}{\contentsline {section}{\numberline {6.2}Throughput Performance}{48}{section.6.2}}
+\@writefile{toc}{\defcounter {refsection}{0}\relax }\@writefile{toc}{\contentsline {subsection}{\numberline {6.2.1}\acrshort {udp}}{48}{subsection.6.2.1}}
+\@writefile{lof}{\defcounter {refsection}{0}\relax }\@writefile{lof}{\contentsline {figure}{\numberline {6.7}{\ignorespaces Throughput and latency over time as injectors are ramped up. Each injector process/thread waits for a uniformly random amount of time up to 100ms before making an additional request to ensure that request do not saturate the network bus. An additional injector thread/process is added to the injector pool every 800ms to gradually ramp up load on the candidate instance. There are 30 processes each feeding 100 threads (3000 total event feeder workers running for 390 repeats of the event dataset).\relax }}{48}{figure.caption.55}}
+\newlabel{fig:udpthroughput}{{6.7}{48}{Throughput and latency over time as injectors are ramped up. Each injector process/thread waits for a uniformly random amount of time up to 100ms before making an additional request to ensure that request do not saturate the network bus. An additional injector thread/process is added to the injector pool every 800ms to gradually ramp up load on the candidate instance. There are 30 processes each feeding 100 threads (3000 total event feeder workers running for 390 repeats of the event dataset).\relax }{figure.caption.55}{}}
+\newlabel{UDP_errors}{{{\itshape  a}}{48}{Throughput and latency over time as injectors are ramped up. Each injector process/thread waits for a uniformly random amount of time up to 100ms before making an additional request to ensure that request do not saturate the network bus. An additional injector thread/process is added to the injector pool every 800ms to gradually ramp up load on the candidate instance. There are 30 processes each feeding 100 threads (3000 total event feeder workers running for 390 repeats of the event dataset).\relax }{figure.caption.55}{}}
+\@writefile{toc}{\defcounter {refsection}{0}\relax }\@writefile{toc}{\contentsline {subsection}{\numberline {6.2.2}\acrshort {tcp}}{49}{subsection.6.2.2}}
+\@writefile{lof}{\defcounter {refsection}{0}\relax }\@writefile{lof}{\contentsline {figure}{\numberline {6.8}{\ignorespaces Throughput and latency over time as injectors are ramped up. Each injector process/thread waits for a uniformly random amount of time up to 100ms before making an additional request to ensure that request do not saturate the network bus. An additional injector thread/process is added to the injector pool every 800ms to gradually ramp up load on the candidate instance. There are 30 processes each feeding 100 threads (3000 total event feeder workers running for 390 repeats of the event dataset.\relax }}{49}{figure.caption.56}}
+\newlabel{fig:udpthroughput}{{6.8}{49}{Throughput and latency over time as injectors are ramped up. Each injector process/thread waits for a uniformly random amount of time up to 100ms before making an additional request to ensure that request do not saturate the network bus. An additional injector thread/process is added to the injector pool every 800ms to gradually ramp up load on the candidate instance. There are 30 processes each feeding 100 threads (3000 total event feeder workers running for 390 repeats of the event dataset.\relax }{figure.caption.56}{}}
+\@writefile{toc}{\defcounter {refsection}{0}\relax }\@writefile{toc}{\contentsline {subsubsection}{\nonumberline Analysis}{49}{section*.57}}
+\@writefile{lof}{\defcounter {refsection}{0}\relax }\@writefile{lof}{\contentsline {figure}{\numberline {6.9}{\ignorespaces Throughput and latency of a simple Tomcat web container that serialises and deserialises the protostuff event payloads using same injector settings as previous UDP and TCP tests.\relax }}{50}{figure.caption.58}}
+\newlabel{fig:tomcatthroughput}{{6.9}{50}{Throughput and latency of a simple Tomcat web container that serialises and deserialises the protostuff event payloads using same injector settings as previous UDP and TCP tests.\relax }{figure.caption.58}{}}
+\@writefile{toc}{\defcounter {refsection}{0}\relax }\@writefile{toc}{\contentsline {chapter}{\numberline {7}Conclusions}{52}{chapter.7}}
 \@writefile{lof}{\defcounter {refsection}{0}\relax }\@writefile{lof}{\addvspace {10\p@ }}
 \@writefile{lot}{\defcounter {refsection}{0}\relax }\@writefile{lot}{\addvspace {10\p@ }}
 \@writefile{los}{\defcounter {refsection}{0}\relax }\@writefile{los}{\addvspace {10\p@ }}
 \@writefile{lol}{\defcounter {refsection}{0}\relax }\@writefile{lol}{\addvspace {10\p@ }}
 \@writefile{los}{\defcounter {refsection}{0}\relax }\@writefile{los}{\addvspace {10\p@ }}
-\@writefile{toc}{\defcounter {refsection}{0}\relax }\@writefile{toc}{\contentsline {section}{\numberline {7.1}Results}{47}{section.7.1}}
-\@writefile{toc}{\defcounter {refsection}{0}\relax }\@writefile{toc}{\contentsline {subsection}{\numberline {7.1.1}Synthetic Test}{47}{subsection.7.1.1}}
-\@writefile{toc}{\defcounter {refsection}{0}\relax }\@writefile{toc}{\contentsline {subsection}{\numberline {7.1.2}Adult Wages}{47}{subsection.7.1.2}}
-\@writefile{lof}{\defcounter {refsection}{0}\relax }\@writefile{lof}{\contentsline {figure}{\numberline {7.1}{\ignorespaces Distribution analysis of numerical features in Adult Wage dataset\relax }}{48}{figure.caption.52}}
-\newlabel{fig:adultwagefeaturedist}{{7.1}{48}{Distribution analysis of numerical features in Adult Wage dataset\relax }{figure.caption.52}{}}
-\@writefile{lot}{\defcounter {refsection}{0}\relax }\@writefile{lot}{\contentsline {table}{\numberline {7.1}{\ignorespaces Ranking of RCE performance of Adult Wages dataset in relation to published performance of known classifiers\relax }}{49}{table.caption.53}}
-\newlabel{tab:classiferrank}{{7.1}{49}{Ranking of RCE performance of Adult Wages dataset in relation to published performance of known classifiers\relax }{table.caption.53}{}}
-\@writefile{toc}{\defcounter {refsection}{0}\relax }\@writefile{toc}{\contentsline {subsection}{\numberline {7.1.3}Shuttle StatLog}{50}{subsection.7.1.3}}
-\@writefile{toc}{\defcounter {refsection}{0}\relax }\@writefile{toc}{\contentsline {subsection}{\numberline {7.1.4}Load Test}{50}{subsection.7.1.4}}
-\@writefile{lof}{\defcounter {refsection}{0}\relax }\@writefile{lof}{\contentsline {figure}{\numberline {7.2}{\ignorespaces Throughput and latency of a simple Tomcat web container that serialises and deserialises the protostuff event payloads using same injector settings as previous UDP and TCP tests\relax }}{51}{figure.caption.54}}
-\newlabel{fig:tomcatthroughput}{{7.2}{51}{Throughput and latency of a simple Tomcat web container that serialises and deserialises the protostuff event payloads using same injector settings as previous UDP and TCP tests\relax }{figure.caption.54}{}}
+\@writefile{toc}{\defcounter {refsection}{0}\relax }\@writefile{toc}{\contentsline {section}{\numberline {7.1}Summary}{52}{section.7.1}}
 \@writefile{toc}{\defcounter {refsection}{0}\relax }\@writefile{toc}{\contentsline {section}{\numberline {7.2}Limitations}{52}{section.7.2}}
 \@writefile{toc}{\defcounter {refsection}{0}\relax }\@writefile{toc}{\contentsline {section}{\numberline {7.3}Future Work}{52}{section.7.3}}
-\@writefile{toc}{\defcounter {refsection}{0}\relax }\@writefile{toc}{\contentsline {subsection}{\numberline {7.3.1}Additional Features}{52}{subsection.7.3.1}}
+\@writefile{toc}{\defcounter {refsection}{0}\relax }\@writefile{toc}{\contentsline {subsection}{\numberline {7.3.1}Additional Features}{53}{subsection.7.3.1}}
 \@writefile{toc}{\defcounter {refsection}{0}\relax }\@writefile{toc}{\contentsline {subsection}{\numberline {7.3.2}Further Analysis}{53}{subsection.7.3.2}}
+\@writefile{toc}{\defcounter {refsection}{0}\relax }\@writefile{toc}{\contentsline {chapter}{\numberline {8}Appendix}{56}{chapter.8}}
+\@writefile{lof}{\defcounter {refsection}{0}\relax }\@writefile{lof}{\addvspace {10\p@ }}
+\@writefile{lot}{\defcounter {refsection}{0}\relax }\@writefile{lot}{\addvspace {10\p@ }}
+\@writefile{los}{\defcounter {refsection}{0}\relax }\@writefile{los}{\addvspace {10\p@ }}
+\@writefile{lol}{\defcounter {refsection}{0}\relax }\@writefile{lol}{\addvspace {10\p@ }}
+\@writefile{los}{\defcounter {refsection}{0}\relax }\@writefile{los}{\addvspace {10\p@ }}
+\@writefile{toc}{\defcounter {refsection}{0}\relax }\@writefile{toc}{\contentsline {chapter}{Abreviations}{57}{section*.60}}
+\@writefile{toc}{\defcounter {refsection}{0}\relax }\@writefile{toc}{\contentsline {section}{\numberline {8.1}Test Run Reports}{58}{section.8.1}}
+\@writefile{toc}{\defcounter {refsection}{0}\relax }\@writefile{toc}{\contentsline {subsection}{\numberline {8.1.1}10000 Synthetic Test Results}{58}{subsection.8.1.1}}
+\@writefile{toc}{\defcounter {refsection}{0}\relax }\@writefile{toc}{\contentsline {subsection}{\numberline {8.1.2}1000 Synthetic Test Results}{58}{subsection.8.1.2}}
+\@writefile{toc}{\defcounter {refsection}{0}\relax }\@writefile{toc}{\contentsline {subsection}{\numberline {8.1.3}Adult Wages Test Results}{58}{subsection.8.1.3}}
+\@writefile{toc}{\defcounter {refsection}{0}\relax }\@writefile{toc}{\contentsline {subsection}{\numberline {8.1.4}Shuttle Test Results}{60}{subsection.8.1.4}}

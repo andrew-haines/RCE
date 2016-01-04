@@ -24,9 +24,10 @@
 \usepackage{float}
 \usepackage[backend=biber]{biblatex}
 \addbibresource{references.bib}
+\usepackage{hyperref}
+\usepackage[acronym,toc]{glossaries}
 \usepackage{epstopdf}
 \usepackage{fancyvrb}
-\usepackage{hyperref}
 \usepackage{listings}
 \usepackage{color}
 \newcommand{\HRule}{\rule{\linewidth}{0.5mm}}
@@ -35,6 +36,32 @@
 \definecolor{mauve}{rgb}{0.58,0,0.82}
 \usepackage{amssymb,amsmath}
 \usepackage{abstract}
+
+\makeglossaries
+\newacronym{cpu}{CPU}{Central Processing Unit}
+\newacronym{gpu}{GPU}{Graphics Processing Unit}
+\newacronym{cf}{CF}{Collaborative Filtering}
+\newacronym{mr}{MR}{Map Reduce}
+\newacronym{dag}{DAG}{Directed Acyclic Graph}
+\newacronym{uuid}{UUID}{Universally unique identifier}
+\newacronym{io}{IO}{Input/Output}
+\newacronym{nio}{NIO}{Input/Output}
+\newacronym{os}{OS}{Operating System}
+\newacronym{gc}{GC}{Garbage Collector}
+\newacronym{jvm}{JVM}{Java Virtual Machine}
+\newacronym{auc}{AUC}{Area Under the Curve}
+\newacronym{roc}{ROC}{Receiver Operating Characteristic}
+\newacronym{ioc}{IOC}{Inversion of Control}
+\newacronym{api}{API}{Application Program Interface}
+\newacronym{mvc}{MVC}{Model View Controller}
+\newacronym{jdk}{JDK}{Java Development Kit}
+\newacronym{udp}{UDP}{User Datagram Protocol}
+\newacronym{tcp}{TCP}{Transmission Control Protocol}
+\newacronym{rps}{RPS}{Requests Per Second}
+\newacronym{rph}{RPH}{Requests Per Hour}
+\newacronym{uci}{UCI}{University of California, Irvine}
+\newacronym{dr}{DR}{Disaster Recovery}
+
 
 \DeclareMathOperator*{\argmax}{\arg\!\max}
 
@@ -72,7 +99,7 @@
 \maketitle
 
 \begin{abstract}
-With the invent of processing platforms that allow for cheap, commodity hardware to run horizontally distributed applications at unprecedented scale, never before have we seen such an explosion of data collection and processing. Because of this abundance of processing power and ever cheaper storage costs, there is a growing trend to capture and collect events, limited only by what can be instrumented and regardless of an immediate requirement. These persisted events sit dormant in data centers waiting for their vast coffers to be harvested for valuable insights and application. Many of the algorithms and developments that have arisen out of this have relied on the fact that even though such sporadically collected data is noisy, with enough of it, the law of large numbers suggests that signals can still emerge and be fed into a new breed of intelligent systems\cite{bigdata}. The problem with this approach is that, although tractable to large institutions and organizations, smaller, more modest individuals will not have the infrastructure or financing to support such systems even though their reach is enough to warrant its need. Tech startups in particular face this problem with a careful balancing of the business insights and user requirements they can provide at a trade off of vast equity deals in seeding rounds.\\
+With the invent of processing platforms that allow for cheap, commodity hardware to run horizontally distributed applications at unprecedented scale, never before have we seen such an explosion of data collection and processing. Because of this abundance of processing power and ever cheaper storage costs, there is a growing trend to capture and collect events, limited only by what can be instrumented and regardless of an immediate requirement. These persisted events sit dormant in data centers waiting for their vast coffers to be harvested for valuable insights and application. Many of the algorithms and developments that have arisen out of this have relied on the fact that even though such sporadically collected data is noisy, with enough of it, the law of large numbers suggests that signals can still emerge and be fed into a new breed of intelligent systems~\cite{bigdata}. The problem with this approach is that, although tractable to large institutions and organizations, smaller, more modest individuals will not have the infrastructure or financing to support such systems even though their reach is enough to warrant its need. Tech startups in particular face this problem with a careful balancing of the business insights and user requirements they can provide at a trade off of vast equity deals in seeding rounds.\\
 
 In this project a closed domain application is proposed, designed and implemented to investigate how much data can be processed through a single piece of commodity hardware. The closed domain nature of the application is one of a classifier that, given an entity or event expressed in a feature space, it recommends suggested classes based on a continuous stream of online data input. The ideas and concepts that semantically define this recommender are nothing new but its implementation and structure is novel, excelling previous standards by making extensive use of modern computer architecture to process events far quicker than traditional techniques.
 
@@ -81,9 +108,9 @@ In this project a closed domain application is proposed, designed and implemente
 \tableofcontents
 
 \chapter{Introduction}
-More and more large institutions these days rely on the analysis of vast quantities of data to inform business decisions and provide performance feedback. From tracking the performance of advertising campaigns, constructing web analytics, and powering recommendation engines, Big Data processing is rapidly becoming the cornerstone of the online technology industry. Large companies such as Google and IBM spend hundreds of millions of pounds in capex to construct and maintain the processing platforms required to mine this data. These systems are typically generic constructions developed across many thousands of machines and delivered company-wide to cater for all business units in the organization. Resources such as storage and compute time are shared across all applications of the company. To accommodate this either a fully distributed \textit{grid} of machines or complex multi processing core workhouse instances are used to execute such data hungry applications. There are many different paradigms and approaches for powering these systems but they all share one common drawback - these infrastructures come at the cost of an astronomical financial footprint, costing several hundreds of thousands of dollars for comparatively modest setups to multi million dollar investments for corporate scale facilities.
+More and more large institutions these days rely on the analysis of vast quantities of data to inform business decisions and provide performance feedback. From tracking the performance of advertising campaigns, constructing web analytics, and powering recommendation engines, Big Data processing is rapidly becoming the cornerstone of the online technology industry. Large companies such as Google and IBM spend hundreds of millions of pounds in capital expenditure to construct and maintain the processing platforms required to mine this data. These systems are typically generic constructions developed across many thousands of machines and delivered company-wide to cater for all business units in the organization. Resources such as storage and compute time are shared across all applications of the company. To accommodate this either a fully distributed \textit{grid} of machines or complex multi processing core workhouse instances are used to execute such data hungry applications. There are many different paradigms and approaches for powering these systems but they all share one common drawback - these infrastructures come at the cost of an astronomical financial footprint, costing several hundreds of thousands of dollars for comparatively modest setups to multi million dollar investments for corporate scale facilities.
 
-The focus of this project is whether the existing designs and ideologies of these approaches can be borrowed, blended and re-devised to create a system with a real life intelligent application that runs at big data scale but with a fraction of the monetary expenditure. If such a system is possible, the value to individuals where existing big data solutions are out of reach could be unprescended.
+The focus of this project is whether the existing designs and ideologies of these approaches can be borrowed, blended and re-devised to create a system with a real life intelligent application that runs at big data scale but with a fraction of the monetary expenditure. If such a system is possible, the value to individuals where existing big data solutions are out of reach would be unprecedented.
 
 \chapter{Background}
 \section{Big Data Processing Paradigms}
@@ -91,14 +118,14 @@ The current state of the art in big data computation falls primarily into three 
 \subsection{Batch Processing}
 The first archetypical model is one that follows a batch processing methodology. The concept is that data is persisted onto a distributed file system in near raw form. Processing then operates on the data either as a one off task or during periodic intervals that transforms data for downstream processes. To illustrate this, consider a possible implementation of a 'trending now' feature on a large web property's home page - used to inform users of what is currently popular on the domain at that time. 
 
-To determine this, the web property instruments all interactions with various content on its systems. This could be tweets sent from a mobile device app or news articles clicked on via a user's web browser - all events are logged to a central analytics system with a pre defined payload. This payload could contain information about the user\footnote{gender, age, personal preferences, etc}, the local time the event occurred at, information about the device, the content UUID interacted with... the tuple of data that could be chosen is endless. The analytics servers then typically place the event, via a messaging system onto the distributed file system\footnote{This file system is distributed in the sense that the data actually sits on multiple machines possibly in geo graphically diverse data centers but appear as if it is one contiguous structure of files.} in a '\texttt{rawevents-YYYYMMDDHH-xxxx}' series of files. A scheduled task then runs at say every hour and consumes these latest files, extracts named entities from them and contructs a histogram of their occurrences. The named entities are then ranked according to the histogram's frequency and the top x results are persisted into a '\texttt{trending-now-YYYYMMDDHH}' timestamped file. This comparatively tiny file is then sent to all the client facing webservers and powers the last hour's 'trending now' list.
+To determine this, the web property instruments all interactions with various content on its systems. This could be tweets sent from a mobile device app or news articles clicked on via a user's web browser - all events are logged to a central analytics system with a pre defined payload. This payload could contain information about the user\footnote{Gender, age, personal preferences, etc.}, the local time the event occurred at, information about the device, the content \acrshort{uuid} interacted with... the tuple of data that could be chosen is endless. The analytics servers then typically place the event, via a messaging system onto the distributed file system\footnote{This file system is distributed in the sense that the data actually sits on multiple machines possibly in geo graphically diverse data centers but appear as if it is one contiguous structure of files.} in a '\texttt{rawevents-YYYYMMDDHH-xxxx}' series of files. A scheduled task then runs at say every hour and consumes these latest files, extracts named entities from them and contructs a histogram of their occurrences. The named entities are then ranked according to the histogram's frequency and the top x results are persisted into a '\texttt{trending-now-YYYYMMDDHH}' timestamped file. This comparatively tiny file is then sent to all the client facing webservers and powers the last hour's 'trending now' list.
 
-Using the batch approach enables the data to be processed 'offline' in the sense that data is processed some time after the events have occurred.  This has a number of advantages over the cost of not being real time. Firstly, the programming concepts can be far easy to implement. Consider the calculation of a median value of a vast list of numerical objects. Using batch you would simply sort the list and pick the middle one as you have all the data for that given hour available. Indeed, if you choose to not remove the intermediate '\texttt{'rawevents'} files then larger periods can be scaled up by simply increased the file ranges. Handling in the event of error is also far easier as processing can easily be rerun. The downside is that the demand on storage capacity is huge.\\
+Using the batch approach enables the data to be processed 'offline' in the sense that data is processed some time after the events have occurred.  This has a number of advantages over the cost of not being real time. Firstly, the programming concepts can be far easier to implement. Consider the calculation of a median value of a vast list of numerical objects. Using batch you would simply sort the list and pick the middle one as you have all the data for that given hour available. Indeed, if you choose to not remove the intermediate '\texttt{'rawevents'} files then larger periods can be scaled up by simply increasing the file ranges. Handling in the event of error is also far easier as processing can easily be rerun. The downside is that the demand on storage capacity is huge.\\
 
 There are 2 main concepts within batch processing that allow it to structure the control flow of the application.
 
-\subsubsection{Map Reduce}
-This technique is an adaptation of an old functional programming paradigm whereby two phases of computation are established - the map phase and the reduce phase. Google took this paradigm and ported it to a distributed setting in 2004\cite{mapreduce}. The general idea is that during the map task, execution is moved to where the data resides rather then data being moved to whether the executable code lies. The reason in the big data setting should be obvious as the IO costs involved in transporting vast quantities of data to executor machines is fair costlier and time consuming then moving a small executable to each of the machines that store the event files. Such machines are referred to as data nodes. Execution in the map phase then runs on the data nodes and is used to filter, transform and assign special keys to each record that this data node holds. The output, typically alot smaller, is \textit{shuffled} to reducer nodes which may or may not be on different machines before finally being sorted by the special keys assigned during mapping. This allows all items assigned to a particular key to be available on a single reducer. In the case of the trending now example, this would equate to each instance of a named entity being sent to a single reducer so that it's component of the histogram - its particular count - can be computed (see Figure \ref{fig:MapReduceEx}). In 2011 Yahoo open sourced the HadoopMR\autocite{hadoopMR} module that forms part of the hadoop operating system.\\
+\subsubsection{Map Reduce (\acrshort{mr})}
+This technique is an adaptation of an old functional programming paradigm whereby two phases of computation are established - the map phase and the reduce phase. Google took this paradigm and ported it to a distributed setting in 2004~\cite{mapreduce}. The general idea is that during the map task, execution is moved to where the data resides rather then data being moved to whether the executable code lies. The reason in the big data setting should be obvious as the \acrshort{io} costs involved in transporting vast quantities of data to executor machines is fair costlier and time consuming then moving a small executable to each of the machines that store the event files. Such machines are referred to as data nodes. Execution in the map phase then runs on the data nodes and is used to filter, transform and assign special keys to each record that this data node holds. The output, typically alot smaller, is \textit{shuffled} to reducer nodes which may or may not be on different machines before finally being sorted by the special keys assigned during mapping. This allows all items assigned to a particular key to be available on a single reducer. In the case of the trending now example, this would equate to each instance of a named entity being sent to a single reducer so that it's component of the histogram - its particular count - can be computed (see Figure \ref{fig:MapReduceEx}). In 2011 Yahoo open sourced the HadoopMR\autocite{hadoopMR} module that forms part of the hadoop operating system.\\
 
 \begin{figure}[h]
 \centering
@@ -107,46 +134,46 @@ This technique is an adaptation of an old functional programming paradigm whereb
 \label{fig:MapReduceEx}
 \end{figure}
 
-The problem with this approach is that, although it scales well when the distribution of the keys is uniform, in the face of skew in the key set, this bias is propaged down to the reducer load and can mean that a small number of machines can do the majority of the work. Also, as we have seen from the trending now example, the calculation of the distribution of terms is only one part of the entire process. It was assumed here that the entities of all the content that was interacted with had been previously computed. To do this using Map Reduce we would need another set of MR tasks that extract the content from the raw events, prior to the task described. As the output is also just the raw counts, we would need a further step to then sort the entities by their counts and only persist the top x. This illustrates what typically happens with complicated MR applications whereby a number of sub tasks of mapping and reducing have to occur with intermediate temporary files coordinating the data flow between them. This can be both limiting in how an application is structured and also inefficient due to unnecessary persistence of these temporary files. To solve this the DAG approach was devised:
+The problem with this approach is that, although it scales well when the distribution of the keys is uniform, in the face of skew in the key set, this bias is propagated down to the reducer load and can mean that a small number of machines can do the majority of the work. Also, as we have seen from the trending now example, the calculation of the distribution of terms is only one part of the entire process. It was assumed here that the entities of all the content that was interacted with had been previously computed. To do this using Map Reduce we would need another set of \acrshort{mr} tasks that extract the content from the raw events, prior to the task described. As the output is also just the raw counts, we would need a further step to then sort the entities by their counts and only persist the top x. This illustrates what typically happens with complicated \acrshort{mr} applications whereby a number of sub tasks of mapping and reducing have to occur with intermediate temporary files coordinating the data flow between them. This can be both limiting in how an application is structured and also inefficient due to unnecessary persistence of these temporary files. To solve this the \acrshort{dag} approach was devised:
 
-\subsubsection{DAG}
+\subsubsection{\acrshort{dag}}
 
 \begin{figure}[H]
 \centering
 \includegraphics[scale=0.65] {DAG.pdf}
-\caption{DAG Trending Now Example. In this example the entire application is shown, not just the histogram building. Data flows through the graph along the edges to the nodes. In this example, the DAG framework is able to determine that both the content fetcher and the name entity extractor need never move any data around and so the computation actually happens on the same nodes without ever having to write to disk}
+\caption{\acrshort{dag} Trending Now Example. In this example the entire application is shown, not just the histogram building. Data flows through the graph along the edges to the nodes. In this example, the \acrshort{dag} framework is able to determine that both the content fetcher and the name entity extractor need never move any data around and so the computation actually happens on the same nodes without ever having to write to disk.}
 \label{fig:DAGEx}
 \end{figure}
 
-The Directed Acyclic Graph\cite{dryad, spark-paper} approach tackles the deficiencies of MR by defining a graph of tasks that execute concurrently. Nodes in the graph are sub tasks that need to be performed and the edges are data flows between them. Like MR, each node's computation is moved to the data for processing but there exists far more flexibility in how an execution flow can be maintained and structured. In the trending now example, a more natural processing pipeline can be defined like that illustrated in Figure \ref{fig:DAGEx}. Libraries such as tez\cite{tez-site} and spark\cite{spark-site} are two popular frameworks currently gaining traction in the industry.
+The Directed Acyclic Graph~\cite{dryad, spark-paper} approach tackles the deficiencies of \acrshort{mr} by defining a graph of tasks that execute concurrently. Nodes in the graph are sub tasks that need to be performed and the edges are data flows between them. Like \acrshort{mr}, each node's computation is moved to the data for processing but there exists far more flexibility in how an execution flow can be maintained and structured. In the trending now example, a more natural processing pipeline can be defined like that illustrated in Figure \ref{fig:DAGEx}. Libraries such as Tez~\cite{tez-site} and Spark~\cite{spark-site} are two popular frameworks currently gaining traction in the industry.
 
 \subsection{Stream processing}
-One of the big problems with batch processing is that it is not real time. For most applications this isn't too much of a draw back but imagine budget caps on an advertiser spend. Waiting for the next hour's processing window to cut off an advertisers supply could be extremely costly. Assuming that processing never overruns\footnote{There is overhead with starting up distributed tasks that can easily make stall resource allocation and cause SLA's to be missed}, near realtime updates could be possible by reducing the processing window of the batch to a few minutes to help mitigate this issue but this isn't going to help a nuclear cooling processor from reacting to a sudden over heating. Stream processing provides a solution to this by processing events in a distributed stream of events across a cluster of nodes. This means that events are processed, for the most part, without ever needing to be persisted to disk. Processing is structured as a topology using concepts such as spouts and bolts to represent the data flow and processing respectively. In the trending now example, processing occurs in a very similar manner to that of the DAG approach. The difference being that at no point does a node get to see anything other than the current event. For all but the most simple applications, this can be problematic. \\
+One of the big problems with batch processing is that it is not real time. For most applications this isn't too much of a drawback but imagine budget caps on an advertiser spend. Waiting for the next hour's processing window to cut off an advertisers supply could be extremely costly. Assuming that processing never overruns\footnote{There is overhead with starting up distributed tasks that can easily make stall resource allocation and cause SLA's to be missed.}, near realtime updates could be possible by reducing the processing window of the batch to a few minutes to help mitigate this issue but this isn't going to help a nuclear cooling processor from reacting to a sudden over heating. Stream processing provides a solution to this by processing events in a distributed stream of events across a cluster of nodes. This means that events are processed, for the most part, without ever needing to be persisted to disk. Processing is structured as a topology using concepts such as spouts and bolts to represent the data flow and processing respectively. In the trending now example, processing occurs in a very similar manner to that of the \acrshort{dag} approach. The difference being that at no point does a node get to see anything other than the current event. For all but the most simple applications, this can be problematic. \\
 
 Choices have to be made in streaming about concepts regarding aggregated state. For example consider the ranking stage in our trending now example. This requires a histogram of the named entities encountered but we cannot keep updating the histogram for all time as this will not reflect the trending \textbf{\textit{\underline{now}}} nature as it never resets. Naively one option would be to reset every hour to assume the behavior of the batch processing methodology but this would not be the same. A few seconds after the reset there may not be enough data observed in the histogram to make accurate predictions as the law of large numbers will not hold. Another approach would be a rolling window but this means that all events for each window need to be stored at the cost of extra memory. Furthermore, not only is stream based programming a lot harder but they are also extremely sensitive to the system's throughput and what can actually be processed. If a cluster is not large enough to process the influx of events coming into the system, then events are either dropped or buffered hoping that processing can catch up later.\\
 
-The upside of the stream approach, other than it's realtime operating behavior, is that as IO is reduced to a bare minimum, it can operate at very efficiently. Apache Storm\cite{storm-site}\footnote{a commonly used distributed stream processing framework open sourced from Twitter\cite{storm-twitter}} claims to be able to process 1M events a second using just a 10 node cluster\footnote{It is worth mentioning that the author's experience of such throughput requires slightly more nodes in a real setting}. Apache Spark also offers a streaming mode although this is really a micro batch implementation to approximate real time\cite{spark-streaming-paper} processing. Furthermore this approach can allow big data processing to function without the need for a distributed file system. 
+The upside of the stream approach, other than it's realtime operating behavior, is that as \acrshort{io} is reduced to a bare minimum, it can operate at very efficiently. Apache Storm\footnote{A commonly used distributed stream processing framework open sourced from Twitter~\cite{storm-twitter}.} ~\cite{storm-site} claims to be able to process 1M events a second using just a 10 node cluster\footnote{It is worth mentioning that the author's experience of such throughput requires slightly more nodes in a real setting.}. Apache Spark also offers a streaming mode although this is really a micro batch implementation to approximate real time~\cite{spark-streaming-paper} processing. Furthermore this approach can allow big data processing to function without the need for a distributed file system. 
 
 \subsection{Vertically Scaled Systems}
-On the other side of the technology spectrum, high throughput processing used in real time exchanges such as those within financial and scientific industries, are able to process huge streams of data but instead of scaling horizontally by adding more machines into a cluster, a single workhouse instance is used with multiple CPUs, huge memory addresses and dedicated transport buses that coordinate the data between. These are concurrent systems that are considered to scale vertically because obtaining more processing power and memory involves the reconfiguration of the instance itself by adding better CPU's or memory modules. These bespoke systems execute code that is specifically tailored to the underlying hardware which makes them incredibly efficient and able to outperform similar speced Hadoop or Storm clusters. Although typically favoring CPU bound tasks, these so called 'supercomputers' can still process vast amounts of data.\\
+On the other side of the technology spectrum, high throughput processing used in real time exchanges such as those within financial and scientific industries, are able to process huge streams of data but instead of scaling horizontally by adding more machines into a cluster, a single workhouse instance is used with multiple \acrshort{cpu}s, huge memory addresses and dedicated transport buses that coordinate the data between. These are concurrent systems that are considered to scale vertically because obtaining more processing power and memory involves the reconfiguration of the instance itself by adding better \acrshort{cpu}'s or memory modules. These bespoke systems execute code that is specifically tailored to the underlying hardware which makes them incredibly efficient and able to outperform similar speced Hadoop or Storm clusters. Although typically favoring \acrshort{cpu} bound tasks, these so called 'supercomputers' can still process vast amounts of data.\\
 
-Certain applications that utilise processing of large matrix operations can be performed on GPU processors that have dedicated instruction sets customised for graphic processing. Spatial models such as KMeans and CF algorithms can be structured to make use of these chipsets and perform the computational aspects of learning and prediction in a fraction of the time it would take on a traditional CPU. BidMach\cite{bidmach} is a GPU directed machine learning library that is quoted as being able to cluster the MNIST image dataset into digit clusters on a single Titan-X GPU equipped system in only twice the time of a 128 core cluster\cite{bidmachbench}. Although impressive, this library is only really applicable to certain applications that can be formed using matrix representations where there is a large compute bound overhead. It still suffers from the plight of processing large volumes of data if the application is IO bound.
+Certain applications that utilise processing of large matrix operations can be performed on \acrshort{gpu} processors that have dedicated instruction sets customised for graphic processing. Spatial models such as KMeans and \acrshort{cf} algorithms can be structured to make use of these chipsets and perform the computational aspects of learning and prediction in a fraction of the time it would take on a traditional \acrshort{cpu}. BidMach~\cite{bidmach} is a \acrshort{gpu} directed machine learning library that is quoted as being able to cluster the MNIST image dataset into digit clusters on a single Titan-X \acrshort{gpu} equipped system in only twice the time of a 128 core cluster~\cite{bidmachbench}. Although impressive, this library is only really applicable to certain applications that can be formed using matrix representations where there is a large compute bound overhead. It still suffers from the plight of processing large volumes of data if the application is \acrshort{io} bound.
 
 \begin{figure}[h!]
 
 \centering
-\caption{An example of a 2 core event driven data flow using disruptors to coordinate the transfer of events}
+\caption{An example of a 2 core event driven data flow using disruptors to coordinate the transfer of events.}
 \includegraphics[scale=0.65] {disruptor-ex.pdf}
 \label{fig:disruptor-ex}
 \end{figure}
 
-Further to this, the LMAX exchange in 2011 released a high throughput processing toolkit that borrowed from similar principles of software and hardware cooperation. Using techniques borrowed from synergising hardware and software, this toolkit is capable of supporting 25M events a second on a single commodity instance\cite{disruptor-paper}. This is not actual computational work mind, just moving events from one conceptual area of a program to another under concurrently safe conditions. None-the-less, achieving such high rates of transfer in a thread safe manner is still highly impressive. It accomplishes this by using lock-less queues known as \textit{disruptors} that exploit a perfect \textit{mechanical sympathy} between high level programming paradigms and the under lying hardware infrastructure. The basic idea is that disruptors can act as brokers for events, passing them to different areas of code that may or may not be on different threads. This enables event driven design where threads are only used to pin execution to a particular CPU core\cite{processor-affinity}. These long running threads then can operate on the events from the disruptor using the single writer paradigm which ensures that write contention is no longer a concern and only care about visibility to other reader threads need be considered(see \ref{fig:disruptor-ex}). The worker threads can then pass events through the system without costly synchronisation.
+Further to this, the LMAX exchange in 2011 released a high throughput processing toolkit that borrowed from similar principles of software and hardware cooperation. Using techniques borrowed from synergising hardware and software, this toolkit is capable of supporting 25M events a second on a single commodity instance~\cite{disruptor-paper}. This is not actual computational work mind, just moving events from one conceptual area of a program to another under concurrently safe conditions. None-the-less, achieving such high rates of transfer in a thread safe manner is still highly impressive. It accomplishes this by using lock-less queues known as \textit{disruptors} that exploit a perfect \textit{mechanical sympathy} between high level programming paradigms and the underlying hardware infrastructure. The basic idea is that disruptors can act as brokers for events, passing them to different areas of code that may or may not be on different threads. This enables event driven design where threads are only used to pin execution to a particular \acrshort{cpu} core~\cite{processor-affinity}. These long running threads then can operate on the events from the disruptor using the single writer paradigm which ensures that write contention is no longer a concern and only care about visibility to other reader threads need be considered(see \ref{fig:disruptor-ex}). The worker threads can then pass events through the system without costly synchronisation.
 
-Disruptors obtain their ultra fast design by utilising cache line structures and memory barriers present on modern cpus. They are essentially queues implemented in ring buffers where the majority of access is completely unsynchronised - care only be taken to ensure that threads have visibility of events on the buffer. Using a \texttt{volatile} pointer to the index of the buffer and ensuring all event processors do not read past the writer position, the implementation can be accomplished without locking. 
+Disruptors obtain their ultra fast design by utilising cache line structures and memory barriers present on modern \acrshort{cpu}'s. They are essentially queues implemented in ring buffers where the majority of access is completely unsynchronised - care needs to only be taken to ensure that threads have visibility of events on the buffer. Using a \texttt{volatile} pointer to the index of the buffer and ensuring all event processors do not read past the writer position, the implementation can be accomplished without locking. 
 \floatsetup[figure]{capposition=beside,capbesideposition={top,right}}
 \begin{figure}[h]
 \centering
-\caption{The ring buffer at the heart of the disruptor design. For clarity the writer and reader positions are illustrated as if they are concerns of the Producer and EventProcessor respectively - however this is not the case in implementation as the ring buffer owns the pointers in order to ensure \(writerPos < readerPos\)}
+\caption{The ring buffer at the heart of the disruptor design. For clarity the writer and reader positions are illustrated as if they are concerns of the Producer and EventProcessor respectively - however this is not the case in implementation as the ring buffer owns the pointers in order to ensure \(writerPos < readerPos\).}
 \includegraphics[scale=0.65, trim=0 10 0 0, clip=true] {ringbuffer.pdf}
 \label{fig:ringbuffer}
 \end{figure}
@@ -154,22 +181,22 @@ Disruptors obtain their ultra fast design by utilising cache line structures and
 In the one scenario where the reader and writer are pointing to the same index, CAS operations are used to \textit{busy wait} on mutual exclusivity of this pointer to avoid synchronising amongst multiple threads. Under low contention, CAS operations are extremely efficient. Furthermore, as long as the invariant of \(writerPos > readPos\) is held, unlike other cyclic buffers, no end pointer is needed as data can be overwritten when the buffer wraps around.
 
 \section{Machine Learning Applications at scale}
-One of the major fields to utilise such large quantities of data is Machine Learning. Tasked with finding systematic patterns in data and providing classifications and recommendations, ML techniques are used throughout large tech companies to enrich the user experience and provide business analytics. So much so that further abstractions have been provided on top of the data processing paradigms already discussed to enable quick implementations of standardised algorithms and techniques. Libraries such as Mahout\cite{mahout-site} run on top of the hadoop platform and provide scalable interfaces to Logistic Regressors, Random Forests, Collaborative Filtering, etc that engineers can use out of the box at scale. All they need do is chose an algorithm, direct it to the data they wish to be analysed with appropriate hyper parameters and the framework does the rest. Spark in fact is so popular with machine learners that it has bundled its MLlib library as part of the core kernel of the framework, focusing on ML at it's heart. When we move into the streaming implementations as provided by Spark's MLlib library for example, the same considerations mentioned earlier need to be applied in the development of how data is structured and processed at each stage of the computation.\\
+One of the major fields to utilise such large quantities of data is Machine Learning. Tasked with finding systematic patterns in data and providing classifications and recommendations, ML techniques are used throughout large tech companies to enrich the user experience and provide business analytics. So much so that further abstractions have been provided on top of the data processing paradigms already discussed to enable quick implementations of standardised algorithms and techniques. Libraries such as Mahout~\cite{mahout-site} run on top of the hadoop platform and provide scalable interfaces to Logistic Regressors, Random Forests, Collaborative Filtering, etc that engineers can use out of the box at scale. All they need do is chose an algorithm, direct it to the data they wish to be analysed with appropriate hyper parameters and the framework does the rest. Spark in fact is so popular with machine learners that it has bundled its MLlib library as part of the core kernel of the framework, focusing on ML at its heart. When we move into the streaming implementations as provided by Spark's MLlib library for example, the same considerations mentioned earlier need to be applied in the development of how data is structured and processed at each stage of the computation.\\
 
-Similarly, the popular scientific computing package MatLab offers parallel computing support via its Distributed Computing Toolbox that can utilise 64 CPU cores and beyond, exposing ML libraries to vertically scaled options.
+Similarly, the popular scientific computing package MatLab offers parallel computing support via its Distributed Computing Toolbox that can utilise 64 \acrshort{cpu} cores and beyond, exposing ML libraries to vertically scaled options.
 
 \chapter{Motivation \& Scope}
 As seen, there exists a plethora of frameworks and libraries that enable large machine learning applications to be developed at unprecedented scale. But these approaches all have their draw backs. With typical server instances costing upward of \$5K, even a modest Hadoop setup can cost in the order of \$50K. Any serious implementation also needs to consider fault tolerant deployments typically with hot-hot mirrored replications in geographically disparate locations. Assuming that data center and rack space need to be acquired, once ongoing maintenance pricing is also factored in, costs to build such an infrastructure can easily approach the \$500K mark. This investment is likely to be way out of reach for startups and other small institutions without serious seeding.
 
-To combat these extreme up front infrastructure costs, services such as Amazon's EC2 and Google's ComputeEngine enable clients to 'rent' capacity from their own internal cloud infrastructures. Instances can be acquired on an 'as-needed' basis where entire Hadoop or Storm topologies can be spun up in minutes. This proves extremely cost effective for the periodic applications\footnote{say a TV broadcast or sporting event requiring data capture} but for more long term applications, although the up front costs are lowers, long term costs can easily dwarf investing in dedicated hardware\footnote{Whilst working on EA's SimsSocial online game supported by a 200 node cluster, its yearly EC2 bill came to \$1.1M}. It could be said however that if such vast resources are required then presumably there is a business model in place to support it. The downside is that moving off such a platform is extremely difficult as migrating data and code from a cloud system without down time is a monumental effort.\
+To combat these extreme up front infrastructure costs, services such as Amazon's EC2 and Google's ComputeEngine enable clients to 'rent' capacity from their own internal cloud infrastructures. Instances can be acquired on an 'as-needed' basis where entire Hadoop or Storm topologies can be spun up in minutes. This proves extremely cost effective for the periodic applications\footnote{say a TV broadcast or sporting event requiring data capture.} but for more long term applications, although the up front costs are lower, long term costs can easily dwarf investing in dedicated hardware\footnote{Whilst working on EA's SimsSocial online game supported by a 200 node cluster, its yearly EC2 bill came to \$1.1M.}. It could be said however that if such vast resources are required then presumably there is a business model in place to support it. The downside is that moving off such a platform is extremely difficult as migrating data and code from a cloud system without down time is a monumental effort.\
 
-Cloud services are also not appropriate for certain types of applications. As they are typically virtualised, performance of a single instance is also dependent on other users congesting the resources surrounding it. CPU's, main memory contention, rack IO and network switching can all add unwanted variance to perceived performance making guaranteed response times difficult to predict. For real time applications to work properly, the stream of data in and out need to ideally operate at a consistent rate.\\
+Cloud services are also not appropriate for certain types of applications. As they are typically virtualised, performance of a single instance is also dependent on other users congesting the resources surrounding it. \acrshort{cpu}'s, main memory contention, rack \acrshort{io} and network switching can all add unwanted variance to perceived performance making guaranteed response times difficult to predict. For real time applications to work properly, the stream of data in and out need to ideally operate at a consistent rate.\\
 
 When considering bespoke, vertically scaled instances, cost is also the main inhabiting factor. A modest Cray XC30-AC retails at around the \$500M mark which again puts it out of the reach for all but the largest organizations. The difference between the two approaches however is that Hadoop is a platform for running on commodity mass produced hardware that can be scaled outwards as and when extra capacity is required. Once the XC30-AC is exhausted of capacity, expanding the system is a hugely expensive task. Furthermore, these sorts of systems require bespoke knowledge of the underlying hardware. Specialised engineers qualified to operate such machines further compound the expense of such solutions. 
 
 Dealing with such data is clearly a monumental effort and, as such, a reflective degree of supporting assets is clearly going to be required. As we have seen, one of the big advantages of distributed operating systems such as Hadoop and Spark is that they act in a very open domain - that is to say that they can solve a theoretically unbounded scope of problems. The ML libraries we discussed operate on these open domains and provide abstractions for a specific type of application - essentially restricting the domain. These layers of abstractions, although convenient from a development and resource sharing perspective, come at the cost of performance. As the applications that sit on top of the open domained platform are unknown, mechanical symphony is not possible even though the type of applications that use the machine learning libraries are constrained. Consequently, inefficiencies are rife in the world of the distributed platforms where the tradeoff between simplicity, performance and cost has been focused on the former at the expense of the others\footnote{There is an argument that, in large institutions, the cost of engineers and bug maintenance where the focus is on simplistic systems actually out ways the infrastructure costs.}\\
 
-Today's modern off the self servers now come equipped with multiple cores. A 12 core Dell PowerEdge R730xd retails at around \$10k which should be considered a sensible, reasonable and comparably modest investment by most standards meaning that such high CPU specs are possible on a budget. By both constraining the problem domain and employing code that encourages a symbiotic harmony between components whilst capitalising on all available CPU cores of the underlying infrastructure of modern commodity hardware, the scope of this project is to build an intelligent real time system that runs at big data scale without the enormous investment costs required by the existing solutions available. 
+Today's modern off the self servers now come equipped with multiple cores. A 12 core Dell PowerEdge R730xd retails at around \$10k which should be considered a sensible, reasonable and comparably modest investment by most standards meaning that such high \acrshort{cpu} specs are possible on a budget. By both constraining the problem domain and employing code that encourages a symbiotic harmony between components whilst capitalising on all available \acrshort{cpu} cores of the underlying infrastructure of modern commodity hardware, the scope of this project is to build an intelligent real time system that runs at big data scale without the enormous investment costs required by the existing solutions available. 
 
 To frame the task appropriately, the system is a real time classifier that, given a stream of labelled event data, builds a temporal model that reflects this input based on its its featureset. When an unseen and unlabelled event comes into the system, the event is offered a predicted label based on its internal model and the event's position in feature space. As the structure of the real world data changes, the model also reflects this change so that the classifications returned are representative of the current state of the environment. To provide an appropriate real world application for such a system, consider an adapted trending now feature like the one already discussed. This trending now provides a view into popularity of a site except with the additional ability to provide 'personalised' trends. To illustrate, consider a user that has a previous history of interactions with say technology. When a new iPhone is released, such an entity might triumph over the new One Direction album that maybe popular for other types of users at that moment in time. In this setting, the events that enter the system are user interactions with content. These events are reflected as a tuple of data that can define them in a feature space such as age, location, previous category of interests, time of day, gender etc. The label is then the named entities extracted from the content that they clicked on. When classification occurs for a given user on what their top trends are, the system then returns the top n labels that are most likely to be assigned. Figure \ref{fig:featurespace} represents the setting in a spatial context.
 
@@ -189,29 +216,29 @@ The system proposed is one that places a synergy between the hardware and softwa
 \begin{itemize}
 \item I/O bus
 \item Main Memory
-\item CPU cores
+\item \acrshort{cpu} cores
 \item L3, L2, \& L1 cache lines
 \end{itemize}
 To understand how these components can be specialised, it is important to discuss how they work and what their role is in the overarching design of the system 
 \subsection{Hardware components}
 \subsubsection{I/O bus}
-Like all internal system buses, the I/O bus is responsible for moving data from an auxiliary part of the computer to the CPU. I/O buses normally exclude main memory access and focus on components such as keyboard input, audio or, in the case interested in this project, network communication. Any data bound server instance like the one in question in this project requires extensive use of networking, so how IP packets are moved around the system is paramount to an efficient flow of data to other components. To ensure that this part of the system is as uncontended as possible, focus needs to be directed to reduce any overhead. In particular, this system keeps all marshalling and demarshalling as conservative as possible and uses the I/O bus to keep, as much as possible, incoming data away from main memory detours, favoring direct interaction with the CPU cores. Connectionless protocols like UDP could help to reduce handshaking responses whilst TCP can be made to work in a single connection fashion where remote event feeders can forward events through a dedicated and persistent connection without having to reconnect on each event. This means that something like HTTP would not be an appropriate transport mechanism and a more bespoke protocol would provide better results.
-\subsubsection{CPU Cores}
-In recent times we have seen Moores Law\footnote{A law describing the linear trend of core clock cycles/die-size over time} being upheld by the fact that, although clock speeds on single dies are plateauing due to physical constraints of heating and fixed atomic size, the number of clock cycles in a given CPU is still increasing due the addition of multiple cores on the same physical die. The Intel i7 CPU for example is fitted with up to 8 cores on a single die. Moreover, modern servers can be found with CPU setups pushing upward of 24 cores.
+Like all internal system buses, the I/O bus is responsible for moving data from an auxiliary part of the computer to the \acrshort{cpu}. I/O buses normally exclude main memory access and focus on components such as keyboard input, audio or, in the case of interest in this project, network communication. Any data bound server instance like the one in question in this project requires extensive use of networking, so how IP packets are moved around the system is paramount to an efficient flow of data to other components. To ensure that this part of the system is as uncontended as possible, focus needs to be directed to reduce any overhead. In particular, this system keeps all marshalling and demarshalling as conservative as possible and uses the I/O bus to keep, as much as possible, incoming data away from main memory detours, favoring direct interaction with the \acrshort{cpu} cores. Connectionless protocols like UDP\footnote{User Datagram Protocol~\cite{udp-rfc}.} could help to reduce handshaking responses whilst TCP\footnote{Transmission Control Protocol~\cite{tcp-rfc}.} can be made to work in a single connection fashion where remote event feeders can forward events through a dedicated and persistent connection without having to reconnect on each event. This means that something like HTTP would not be an appropriate transport mechanism and a more bespoke protocol would provide better results.
+\subsubsection{\acrshort{cpu} Cores}
+In recent times we have seen Moores Law\footnote{A law describing the linear trend of core clock cycles/die-size over time.} being upheld by the fact that, although clock speeds on single dies are plateauing due to physical constraints of heating and fixed atomic size, the number of clock cycles in a given \acrshort{cpu} is still increasing due the addition of multiple cores on the same physical die. The Intel i7 \acrshort{cpu} for example is fitted with up to 8 cores on a single die. Moreover, modern servers can be found with \acrshort{cpu} setups pushing upward of 24 cores.
 
-Traditional procedural programming is still possible on such architecture but limited to a single core. To utilise these extra cores, application logic needs to be considered in multiprocessing setting. A common technique is to use the threading model that conceptually isolates an atomic unit of work to occur concurrently with other threads. In a typical web server for example, the threading policy needs to be carefully tuned to obtain the maximum performance. Too few and the system is under utilised whilst too many results in contentious context switching. The problem with the threading model is it does not really reflect with is happening in the underlying hardware. Under the hood, processing is signaled using interrupts\footnote{In fact threading is achieved by \textit{multiplexing} these interrupts so that the illusion of atomic and concurrent units of work can be achieved} which tell the CPU which execution address to jump to next when IO events are received. The only real concurrent unit of work in a computer is what is actually executing on each CPU core at any one time. As such, the threading policy of this system should be such to mimic this behavior - 1 thread for each CPU\footnote{Ideally using thread affinity where the OS is instructed to only execute a given thread on a given core} with an event driven methodology to reflect the interrupt nature of the supporting buses.
+Traditional procedural programming is still possible on such architecture but limited to a single core. To utilise these extra cores, application logic needs to be considered in multiprocessing setting. A common technique is to use the threading model that conceptually isolates an atomic unit of work to occur concurrently with other threads. In a typical web server for example, the threading policy needs to be carefully tuned to obtain the maximum performance. Too few and the system is under utilised whilst too many results in contentious context switching. The problem with the threading model is it does not really reflect what is happening in the underlying hardware. Under the hood, processing is signaled using interrupts\footnote{In fact threading is achieved by \textit{multiplexing} these interrupts so that the illusion of atomic and concurrent units of work can be achieved.} which tell the \acrshort{cpu} which execution address to jump to next when \acrshort{io} events are received. The only real concurrent unit of work in a computer is what is actually executing on each \acrshort{cpu} core at any one time. As such, the threading policy of this system should be such to mimic this behavior - 1 thread for each \acrshort{cpu}\footnote{Ideally using thread affinity where the OS is instructed to only execute a given thread on a given core.} with an event driven methodology to reflect the interrupt nature of the supporting buses.
 
 \subsubsection{Main Memory and Caching}
 \floatsetup[figure]{capposition=bottom}
 \begin{figure}[h]
 \centering
-\caption{Illustration of the different cache visibilities based on a 2 CPU, 4 core setup. Visibility flows downward}
+\caption{Illustration of the different cache visibilities based on a 2 \acrshort{cpu}, 4 core setup. Visibility flows downward.}
 \includegraphics[scale=0.65] {cachelevels.pdf}
 \label{fig:corecachedesign}
 \end{figure}
-Modern CPU's gain extensive performance improvements by using dedicated caching that sits on top of the processing units. These small but extremely fast memory elements sit directly within the CPU die allowing for frequently required data to be accessed at a fraction of the cost of accessing main memory. Caches map main memory in the form of cache lines that are contiguous areas that exploit both temporal (items used at time \(t\) are likely to be used at time \(t+1\)) and spatial locality (items located near each other are likely to be used at a similar time). Data of a cache line is moved from slow main memory into fast cache memory as it is being accessed. To optimise it's use of memory, this system needs to exploit the locality principles of the cache lines, avoiding cache misses and keeping data as close to the CPU for as long as possible. 
+Modern \acrshort{cpu}'s gain extensive performance improvements by using dedicated caching that sits on top of the processing units. These small but extremely fast memory elements sit directly within the \acrshort{cpu} die allowing for frequently required data to be accessed at a fraction of the cost of accessing main memory. Caches map main memory in the form of cache lines that are contiguous areas that exploit both temporal (items used at time \(t\) are likely to be used at time \(t+1\)) and spatial locality (items located near each other are likely to be used at a similar time). Data of a cache line is moved from slow main memory into fast cache memory as it is being accessed. To optimise it's use of memory, this system needs to exploit the locality principles of the cache lines, avoiding cache misses and keeping data as close to the \acrshort{cpu} for as long as possible. 
 
-The downside with such design is that when data is sitting in cache lines, it is not guaranteed to be visible in other parts of the system. Data stored in the L2 cache of Core 1 of Figure \ref{fig:corecachedesign} cannot be seen in Core 2. Furthermore, data in the L3 cache of Core 3 cannot be seen by Core 2. Consequently, care has to be taken to set up correct memory barriers\footnote{In java for example, memory barriers are created using the \texttt{volatile} \& \texttt{sychronized} keywords and the \texttt{Sync} primitives from the concurrency package} when data is needed to be flushed back into main memory for other cores to see it.
+The downside with such design is that when data is sitting in cache lines, it is not guaranteed to be visible in other parts of the system. Data stored in the L2 cache of Core 1 of Figure \ref{fig:corecachedesign} cannot be seen in Core 2. Furthermore, data in the L3 cache of Core 3 cannot be seen by Core 2. Consequently, care has to be taken to set up correct memory barriers\footnote{In java for example, memory barriers are created using the \texttt{volatile} \& \texttt{sychronized} keywords and the \texttt{Sync} primitives from the concurrency package.} when data is needed to be flushed back into main memory for other cores to see it.
 
 \floatsetup[figure]{capposition=bottom,capbesideposition={top,right}}
 \begin{figure}[h!]
@@ -220,20 +247,20 @@ The downside with such design is that when data is sitting in cache lines, it is
 \includegraphics[scale=0.5] {cachelinespeed.png}
 \label{fig:cachelinespeeds}
 \end{figure}
-Another consideration that's worth highlighting is that within managed virtual environments such as java, although all these components can be exploited using careful consideration of the JVM contracts, nothing is guaranteed. The garbage collector in particular can become a catastrophic obstacle to such optimizations. Consequently, as much as possible, object pooling is used\footnote{Actually implemented transparently within the disruptor} and a precedence placed to avoid unnecessarily object creation.
+Another consideration that's worth highlighting is that within managed virtual environments such as java, although all these components can be exploited using careful consideration of the JVM contracts, nothing is guaranteed. The garbage collector in particular can become a catastrophic obstacle to such optimizations. Consequently, as much as possible, object pooling is used\footnote{Actually implemented transparently within the disruptor.} and a precedence placed to avoid unnecessarily object creation.
 \subsection{Software Architecture}
-As previously mentioned, in order to optimize all the hardware components mentioned above, an event driven design needs to be adopted, passing off to threading only to distribute the computational load across processing cores. To reduce the OS from interrupting the execution of a given thread on a particular CPU for another and thereby invalidating the CPU caches, the number of threads is set to \(-1\) the number of cores in the system\footnote{-1 is used to dedicate a core to the main scheduling thread of the system that deals with the IO coordination}. Once events have been handed over to a specific core, the thread that owns the event also \textit{owns} its visibility completely. That is to say that no other thread is expected to have read or write access to it whilst in this core's care. This allows the application to enforce locality benefits in the data without worrying about visibility to other threads and thus providing a setting that minimises the copying of cache lines to and from main memory and satisfies the desire to keep data as close to the Core as possible. When the core is finished with the event, a model of releasing ownership of a collection of events at once is adopted by \textit{pushing} these events downstream to another component where visibility is required. 
+As previously mentioned, in order to optimize all the hardware components mentioned above, an event driven design needs to be adopted, passing off to threading only to distribute the computational load across processing cores. To reduce the OS from interrupting the execution of a given thread on a particular \acrshort{cpu} for another and thereby invalidating the \acrshort{cpu} caches, the number of threads is set to \(-1\) the number of cores in the system\footnote{-1 is used to dedicate a core to the main scheduling thread of the system that deals with the \acrshort{io} coordination.}. Once events have been handed over to a specific core, the thread that owns the event also \textit{owns} its visibility completely. That is to say that no other thread is expected to have read or write access to it whilst in this core's care. This allows the application to enforce locality benefits in the data without worrying about visibility to other threads and thus providing a setting that minimises the copying of cache lines to and from main memory and satisfies the desire to keep data as close to the Core as possible. When the core is finished with the event, a model of releasing ownership of a collection of events at once is adopted by \textit{pushing} these events downstream to another component where visibility is required. 
 
-To facilitate the movement of these events from the input stream into the care of dedicated cores and finally, back into main memory, the use of the disruptor queues already mentioned is selected. Note only are these queues lightening fast but they also put in place the required memory barriers to, like a runner in a relay, pass off ownership of the event once it is finished with and providing the necessary visibility guarantees. Another side effect of this design, as will be seen, is that it is completely lockless, only relying on the CAS operations in the disruptor under busy load. Furthermore, there is only one custom \texttt{volatile} variable when running the system in \textit{Sync} mode. A rough architecture plan of the system is presented in Figure \ref{fig:architectureoverview}
+To facilitate the movement of these events from the input stream into the care of dedicated cores and finally, back into main memory, the use of the disruptor queues already mentioned is selected. Not only are these queues extremely fast but they also put in place the required memory barriers to, like a runner in a relay, pass off ownership of the event once it is finished with and providing the necessary visibility guarantees. Another side effect of this design, as will be seen, is that it is completely lockless, only relying on the CAS operations in the disruptor under busy load. Furthermore, there is only one custom \texttt{volatile} variable when running the system in \textit{Sync} mode. A rough architecture plan of the system is presented in Figure \ref{fig:architectureoverview}
 
 \floatsetup[figure]{capposition=bottom,capbesideposition={top,right}}
 \begin{figure}[h!]
 \centering
-\caption{The main modules and data flows of the system}
+\caption{The main modules and data flows of the system.}
 \includegraphics[scale=0.72, trim=35 50 0 13, clip=true] {architectureoverview.pdf}
 \label{fig:architectureoverview}
 \end{figure}
-Events flow into the system and feed into the \textbf{Dispatcher} module by a single main thread. Here the events are pushed into a series of disruptor queues, one for each CPU core using a simple uniform distribution. Each disruptor can be thought of as defining the work queue for a given core each with a dedicated thread that consumes the queue one event at a time. These worker threads then construct an accumulated view of a so called window of events. To aid in this, the \textbf{Accumulator} module exposes a highly cache efficient data structure that each thread has a \textit{local} instance of. These local instances are completely owned by their assigned thread permitting both read and write operations to fully exploit the cache-lines of the underlying associated core. In order to maximise temporal locality, a shared \textit{global} index that can be used within the local accumulator so that more long term insights into the data can be shared across threads. To avoid unnecessarily cache flushes, this shared instance is completely immutable allowing only read access across the workers. Enforced using \texttt{final} declarations, data access from the global indexes can be essentially copied into the cache lines of each worker thread, maintaining the single ownership properties required of the worker data accesses - In this respect, the global index can be thought of as a read only instance that each thread has a copy of\footnote{When a worker accesses an item in the global index, the OS is free to copy the data into the local cache of whatever core the thread is assigned to}.
+Events flow into the system and feed into the \textbf{Dispatcher} module by a single main thread. Here the events are pushed into a series of disruptor queues, one for each \acrshort{cpu} core using a simple uniform distribution. Each disruptor can be thought of as defining the work queue for a given core each with a dedicated thread that consumes the queue one event at a time. These worker threads then construct an accumulated view of a so called window of events. To aid in this, the \textbf{Accumulator} module exposes a highly cache efficient data structure that each thread has a \textit{local} instance of. These local instances are completely owned by their assigned thread permitting both read and write operations to fully exploit the cache-lines of the underlying associated core. In order to maximise temporal locality, a shared \textit{global} index that can be used within the local accumulator so that more long term insights into the data can be shared across threads. To avoid unnecessary cache flushes, this shared instance is completely immutable allowing only read access across the workers. Enforced using \texttt{final} declarations, data access from the global indexes can be essentially copied into the cache lines of each worker thread, maintaining the single ownership properties required of the worker data accesses - In this respect, the global index can be thought of as a read only instance that each thread has a copy of\footnote{When a worker accesses an item in the global index, the OS is free to copy the data into the local cache of whatever core the thread is assigned to.}.
 
 Once a window of events has been processed, the accumulated view is then pushed back into the main thread via the use of a single shared disruptor queue. The main thread then consumes these accumulated events and aggregates them together using a \textbf{Window Manager}. This module takes each of the accumulated events and combines them into a single \textit{window} which represents a combined view of the data for a particular interval of time. As the accumulator threads push more and more windows into the manager, so it also keeps track of each interval, accumulating further to produce a single overarching representation of all accumulator windows and intervals. This serves as the main aggregated model of the system. This aggregated model is not only exposed to the \textbf{Classifier} to produce predicted labels to unseen events, but also back into the global index so that the worker threads can profit from this longer sighted view of the data.
 
@@ -252,11 +279,11 @@ To coordinate the determination of when a window of events has been processed th
 		\includegraphics[scale=0.7]{async-mode2.pdf}
 		\caption{\(t+1\)}\label{fig:asyncmode.tplus1}		
 	\end{subfigure}
-	\caption{How ownership of the accumulators change during the end of an interval}
+	\caption{How ownership of the accumulators change during the end of an interval.}
 \end{figure}
-This is the most simplest mechanism to implement and revolves around a coordinator thread that, for the most part just sleeps. Every \(t\) seconds it wakes up and proceeds to read the contents of each accumulator, copying it into main memory before sending it into the window manager. The difficulty in this approach is that case needs to be taken when reading from the accumulator as this process not only needs to be visible (This is data owned by another thread and therefore offers no guarantees that the data will be in main memory and not on a cache line somewhere) but also atomic. Whilst we are reading from the accumulator we cant have that worker also updating it at the same time else data corruption becomes a risk. Consequently, if we use synchronization to coordinate the access any advantages of cache optimization are negated as the implicit memory barrier that comes with such locking will cause all writes to be written back into main memory, essentially throttling the event processing of the system. 
+This is the most simplest mechanism to implement and revolves around a coordinator thread that, for the most part just sleeps. Every \(t\) seconds it wakes up and proceeds to read the contents of each accumulator, copying it into main memory before sending it into the window manager. The difficulty in this approach is that care needs to be taken when reading from the accumulator as this process not only needs to be visible (this is data owned by another thread and therefore offers no guarantees that the data will be in main memory and not on a cache line somewhere) but also atomic. Whilst we are reading from the accumulator we cant have that worker also updating it at the same time else data corruption becomes a risk. Consequently, if we use synchronization to coordinate the access any advantages of cache optimization are negated as the implicit memory barrier that comes with such locking will cause all writes to be written back into main memory, essentially throttling the event processing of the system. 
 
-To avoid this, a setup up borrowed from \textit{hot-cold} DR topologies of server cluster is adopted where 2 copies exist of each local accumulator - one live and one staging. The purpose is that only one of these accumulators is owned by the worker thread. When the coordinator thread wakes up, it switches the live to staging and vice versa meaning that the worker thread relinquishes sole ownership of the live accumulator and takes on the staging one. Once the live accumulator is now staging, the coordinator thread can safely and atomically access the data in the accumulator. This can be implemented using just a single \texttt{volatile} bit mask that determines which accumulator is live. 
+To avoid this, a setup up borrowed from \textit{hot-cold} \acrshort{dr} topologies of server cluster is adopted where 2 copies exist of each local accumulator - one live and one staging. The purpose is that only one of these accumulators is owned by the worker thread. When the coordinator thread wakes up, it switches the live to staging and vice versa meaning that the worker thread relinquishes sole ownership of the live accumulator and takes on the staging one. Once the live accumulator is now staging, the coordinator thread can safely and atomically access the data in the accumulator. This can be implemented using just a single \texttt{volatile} bit mask that determines which accumulator is live. 
 \subsubsection{Sync}
 The other execution mode is one where there is no coordinator thread. Each worker is responsible for determining when a window is ready and the accumulated event should be pushed downstream as part of its actual processing task. This means there is no ownership transfer or extra memory impacting accumulator copies. One potential drawback of this approach is that, if there are no events in the system, the thread cannot check to see whether it current accumulator has expired and window intervals can become stale. To combat this, \textit{heart beat} events are added by the dispatcher at the boundary of each interval to ensure timely expiration of windows occurs. Because the main copying of the accumulators into main memory is performed on the work thread itself, this approach leads to short pauses in the event stream at window  
 \section{Naive Bayes}
@@ -277,58 +304,58 @@ To build the probability distribution using an accumulator methodology is simple
 \begin{figure}[h!]
 \begin{subfigure}[t]{2 in}
 \[p(C_k) = \frac{\nu(C_k)}{\sum_{i} \nu(C_i)}\]
-\caption{Prior term calculation}
+\caption{Prior term calculation.}
 \end{subfigure}
 \begin{subfigure}[t]{2 in}
 \[p(x_i | C_k) = \frac{\nu(x_i | C_k)}{\nu(C_k)}\]
-\caption{Posterior term calculation}
+\caption{Posterior term calculation.}
 \end{subfigure}
 \end{figure}
-For continuous values, distributions can be assumed to represent probability density functions. In the case of a normal distribution, for a given continuous feature or classification type, the prior and posteriors can be estimated by building online streamed based mean and standard deviations based on the event stream. 
+Continuous values can be assumed to be sourced from underlying distributions and their probabilities in the Naive Bayes setting sourced from probability density functions or PDF's. In the case where the underlying distribution for a given feature type follows a normal approximation, then for any given continuous feature or classification type, the prior and posterior PDF's can be estimated using the following
 
 \begin{figure}[h!]
 \begin{subfigure}[t]{2.5 in}
 \[p(C_k) = \frac{1}{\sigma(C)\sqrt{2\pi}}e^{-\frac{(C_k - \mu(C))^2}{2\sigma(C)^2}}\]
-\caption{Prior term calculation}
+\caption{Prior term calculation.}
 \end{subfigure}
 \begin{subfigure}[t]{2.5 in}
 \[p(x_i | C_k) = \frac{1}{\sigma(C_k)\sqrt{2\pi}}e^{-\frac{(x_i - \mu(C_k))^2}{2\sigma(C_k)^2}}\]
-\caption{Posterior term calculation}
+\caption{Posterior term calculation.}
 \end{subfigure}
 \end{figure}
-As it is not possible to store all event data in memory, calculation of the \(\mu\) and \(\sigma\) variables needs to be conducted in an online fashion\footnote{This online version proposed by Knuth\cite{knuth-aop} is an adaption of Welford's online variance method and is used due to its better handling of overflow} where just 3 variables can be used to capture the distribution parameters (namely \(n\), \(\mu\) and \(M_2\)). Each variable can occupy a single slot in the accumulator and are stored sequentially to exploit the spatial locality of cache lines.
+As it is not possible to store all event data in memory, calculation of the \(\mu\) and \(\sigma\) hyper parameters needs to be conducted in an online fashion\footnote{This online version proposed by Knuth~\cite{knuth-aop} is an adaption of Welford's online variance method and is used due to its better handling of overflow.} where just 3 variables can be used to capture the distribution parameters (namely \(n\), \(\mu\) and \(M_2\)). Each variable can occupy a single slot in the accumulator and are stored sequentially to exploit the spatial locality of cache lines.
 
 \captionsetup[subfigure]{labelfont=bf,textfont=normalfont,singlelinecheck=off,justification=centering,labelformat=simple, labelsep=colon}
 \begin{figure}[h!]
 \begin{subfigure}[t]{2.5 in}
 \[\mu_{i+1} = \mu_i + \frac{(x_i - \mu_i)}{(n_i)}\]
-\caption{Mean Calculation}
+\caption{Mean Calculation.}
 \end{subfigure}
 \begin{subfigure}[t]{2.5 in}
 \[M_{2_{i+1}} = M_{2_i} + (x_i - \mu_i)(x - \mu_{i+1})\]
-\caption{Intrim Calculation}
+\caption{Intrim Calculation.}
 \end{subfigure}
 \begin{subfigure}[t]{2.5 in}
 \[\sigma_i = \frac{M_{2_i}}{(n_i-1)}\]
-\caption{Variance Calculation}
+\caption{Variance Calculation.}
 \end{subfigure}
 \end{figure}
 
 The classifier needs to also handle the scenario where certain events may not have all features present. Handling missing features is done explicitly by the model as the counts for neither the numerator or denominator are incremented, assuming that this event for this feature/classification has never been observed. Because of the assumption of independence between posteriors, such an approach is possible but it worth mentioning that if, on the training set only a few events occur with a given feature, then this posterior maybe greatly biased as the laws of big numbers will not be applicable. The assumption here is that events needing classification will also be drawn from the same distribution of missing features and thus such a bias will not effect the overall performance.
-\section{IO}
-In order for events to enter the system, a sensible IO strategy is needed not just to transport the bytes but also to deserialize them into a format that can be made sense of. This deserialising is a major bottleneck in any IO heavy system so care needs to be taken to ensure it is as efficient as possible
+\section{\acrshort{io}}
+In order for events to enter the system, a sensible \acrshort{io} strategy is needed not just to transport the bytes but also to deserialize them into a format that can be made sense of. This deserialising is a major bottleneck in any \acrshort{io} heavy system so care needs to be taken to ensure it is as efficient as possible
 \subsection{Selectors}
-As previously mentioned, the IO bus on modern architectures relies on interrupts that occur when data is available. In order to mimic this as much as possible, the system utilises the selector mechanism of *nix operating systems that approximates a 1-1 mapping between these interrupts and a kernal event from the OS. Java's NIO module provides an interface to this system. Furthermore, normally memory is indexed in java using a specialised heap that the GC can maintain. Traditionally, all data accessed within the JVM need to be present in this heap but for networking, this means copying into main memory prior to being processed. For the stream based methodology that this system utilises, this unnecessary detour not only adds extra transfer time as data is proxied through the heap but also puts extra burden on the garbage collector.\\
-To limit this, advantage is taken of the off heap byte buffers of the NIO package. These abstractions ensure that data is taken directly from the network interface into the CPU for serialising, and thus avoids commuting to the heap.
+As previously mentioned, the \acrshort{io} bus on modern architectures relies on interrupts that occur when data is available. In order to mimic this as much as possible, the system utilises the selector mechanism of *nix operating systems that approximates a 1-1 mapping between these interrupts and a kernal event from the \acrshort{os}. Java's \acrshort{nio} module provides an interface to this system. Furthermore, normally memory is indexed in java using a specialised heap that the \acrshort{gc} can maintain. Traditionally, all data accessed within the \acrshort{jvm} need to be present in this heap but for networking, this means copying into main memory prior to being processed. For the stream based methodology that this system utilises, this unnecessary detour not only adds extra transfer time as data is proxied through the heap but also puts extra burden on the garbage collector.\\
+To limit this, advantage is taken of the off heap byte buffers of the \acrshort{nio} package. These abstractions ensure that data is taken directly from the network interface into the \acrshort{cpu} for serialising, and thus avoids commuting to the heap.
 \subsection{Protostuff}
-Serialisation that governs data interchange needs to be defined so that a contract of how events can be passed from up stream producers into the system. As deserialising is one of the main overheads of any high throughput system, one that focuses on both flexibility and speed is paramount. Consequently, Google's protobuf\cite{googleprotobuf} format is provided using the protostuff extension as a default implementation\footnote{The application is capable of supporting any demarshalling technology via the generic \texttt{EventMarshalBuffer} interface}. This was chosen because of it's external schema design, variable length encoding and sequential byte stream support that aids in good cache utilisation. Unfortunately, protostuff does not support proper off heap byte buffers so an extension was specifically created to exploit this\footnote{Now contributed back into the protostuff project}.
+Serialisation that governs data interchange needs to be defined so that a contract of how events can be passed from up stream producers into the system. As deserialising is one of the main overheads of any high throughput system, one that focuses on both flexibility and speed is paramount. Consequently, Google's protobuf~\cite{googleprotobuf} format is provided using the protostuff extension as a default implementation\footnote{The application is capable of supporting any demarshalling technology via the generic \texttt{EventMarshalBuffer} interface.}. This was chosen because of it's external schema design, variable length encoding and sequential byte stream support that aids in good cache utilisation. Unfortunately, protostuff does not support proper off heap byte buffers so an extension was specifically created to exploit this\footnote{Now contributed back into the protostuff project.}.
 \subsection{Transport}
-There are two main IP protocols in wide use namely TCP and UDP. TCP allows data to sent into packets or windows of data where each packet needs to receive a checksum response to ensure that each packet has been received correctly. This provides delivery guarantees at the expense of extra communication and checksumming. UDP on the other hand transfers as a large stream of data in a connectionless manner which may or may not reach the target destination. Unlike TCP, although no guarantees can be made on whether data corruptness has occurred, UDP is free of the extra handshaking overhead and so, in theory, is faster. The system supports both mechanisms as, if corruption does occur with UDP, as this is a high throughput system running under big data load, such random permutations will not affect the underlying distributions too much\footnote{Assuming the environment is stable (such as within a datacenter) error rates should be relatively low}. TCP however can be configured to establish a single connection to a remote machine of which multiple events can be sent down avoiding unnecessarily reestablishing of connections.
+There are two main IP protocols in wide use namely TCP and UDP. TCP allows data to sent into packets or windows of data where each packet needs to receive a checksum response to ensure that each packet has been received correctly. This provides delivery guarantees at the expense of extra communication and checksumming. UDP on the other hand transfers as a large stream of data in a connectionless manner which may or may not reach the target destination. Unlike TCP, although no guarantees can be made on whether data corruptness has occurred, UDP is free of the extra handshaking overhead and so, in theory, is faster. The system supports both mechanisms as, if corruption does occur with UDP, as this is a high throughput system running under big data load, such random permutations will not affect the underlying distributions too much\footnote{Assuming the environment is stable (such as within a datacenter) error rates should be relatively low.}. TCP however can be configured to establish a single connection to a remote machine of which multiple events can be sent down avoiding unnecessarily reestablishing of connections.
 \section{WindowManager}
 \floatsetup[figure]{capposition=bottom,capbesideposition={top,right}}
 \begin{figure}[h!]
 \centering
-\caption{Illustration of how a new window interval arriving into the Window Manager will push out an older interval}
+\caption{Illustration of how a new window interval arriving into the Window Manager will push out an older interval.}
 \includegraphics[scale=0.72, trim=0 0 0 12, clip=true] {window.pdf}
 \label{fig:rollingwindow}
 \end{figure}
@@ -344,7 +371,7 @@ The total view of the window manager is then maintained by a separate aggregated
 \sigma_c = \frac{(((n_1 -1) \sigma_1) + ((n_2-1) \sigma_2) + n_1(\mu_1 - \mu_c)^2) + n_2(\mu_2 - \mu_c)^2)}{n_c-1}
 \end{equation}
 \label{eq:combiningparamsadd}
-\captionof{myequations}{Addition of normal distribution parameters for each windows/intervals}
+\captionof{myequations}{Addition of normal distribution parameters for each windows/intervals.}
 \end{myequations}
 
 \begin{myequations}
@@ -355,15 +382,15 @@ The total view of the window manager is then maintained by a separate aggregated
 \sigma_s = \frac{(((n_1 -1) \sigma_1) - ((n_2-1) \sigma_2) - n_1(\mu_1 - \mu_c)^2) - n_2(\mu_2 - \mu_c)^2)}{n_c-1}
 \end{equation}
 \label{eq:combiningparamssub}
-\captionof{myequations}{Subtraction of normal distribution parameters for each windows/intervals}
+\captionof{myequations}{Subtraction of normal distribution parameters for each windows/intervals.}
 \end{myequations}
  
 \section{Accumulators}
-The accumulators are specifically tailored data structures used to optimize the cache layouts of the underlying hardware and represents the cornerstone of aggregating events into the accumulated models that make up each window. Essentially, they represents an indexable sequence of memory that focuses on structuring the indexes in such a way to exploit both the temporal and spatial qualities of the cache lines. This abstraction of position and value is the heart of the structure. The accumulator is essentially an expanding tree that indexes a leaf based on a given slot number that references the required value. Each leaf is actually a primitive array of integers created with a length equal to that of the cache line of the underlying CPU cores. The values that these slot numbers refer to relate to the variables needed for the naive bayes classifier and are determined by different lookup strategies according to the instance type of the accumulator. \\
+The accumulators are specifically tailored data structures used to optimize the cache layouts of the underlying hardware and represents the cornerstone of aggregating events into the accumulated models that make up each window. Essentially, they represents an indexable sequence of memory that focuses on structuring the indexes in such a way to exploit both the temporal and spatial qualities of the cache lines. This abstraction of position and value is the heart of the structure. The accumulator is essentially an expanding tree that indexes a leaf based on a given slot number that references the required value. Each leaf is actually a primitive array of integers created with a length equal to that of the cache line of the underlying \acrshort{cpu} cores. The values that these slot numbers refer to relate to the variables needed for the naive bayes classifier and are determined by different lookup strategies according to the instance type of the accumulator. \\
 \floatsetup[figure]{capposition=bottom,capbesideposition={top,right}}
 \begin{figure}[h!]
 \centering
-\caption{shows a trival example of indexing slot 10. Note that the left most outer leaf is not assigned demonstrating the expanding and space saving design}
+\caption{shows a trival example of indexing slot 10. Note that the left most outer leaf is not assigned demonstrating the expanding and space saving design.}
 \includegraphics[scale=0.72, trim=0 0 0 12, clip=true] {accumulator-lookup.pdf}
 \label{fig:accumulator-lookup}
 \end{figure}
@@ -373,14 +400,14 @@ The idea being that, most frequently accessed data sits together in the same lea
 \subsection{Index Instances}
 For each worker thread there exists a dedicated accumulator instance that it has complete ownership of. All reads and writes are solely for the purposes of the owner thread which allows the cache optimisations detailed previously to function. In the naive bayes framing, a particular prior or posterior pairing needs be assigned to a particular slot in order to index into the accumulator in a deterministic manner. This lookup follows a hierarchical model where a given feature or feature/classification pairing is first checked in a global instance. If the global instance returns a slot number then this is used to index the accumulator - if not, a local instance is used.
 \subsubsection{Local Instance}
-Local mode indexes as ones that are completely unique to a given worker and are mutable in that new indexes can be assigned. If a given feature or feature/classification pairing is not present in the index, it is subsequently added against the next available slot in the accumulator. When slots are determined from local indexes, only spatial locality can be exploited as, being on the critical event stream path of the system, they need to function as quickly as possible.
+Local mode instances are indexes completely unique to a given worker and are mutable in that new indexes can be assigned. If a given feature or feature/classification pairing is not present in the index, it is subsequently added against the next available slot in the accumulator. When slots are determined from local indexes, only spatial locality can be exploited as, being on the critical event stream path of the system, they need to function as quickly as possible.
 \subsubsection{Global Instance}
 This is a read only shared instance that all workers have access to. After every time the window manager is updated with a new interval, indexes for all seen required variables (both for discrete and continuous feature types) are re computed based on a ranking of how frequently they have been seen. If \(p(x_1 | C_1)\) is the most observed posterior and \(p(x_2 | C_2)\) is the second most observed, then these will be reshuffled into slots 0 and 1 respectively. By performing this reordering once every interval, temporal locality can be exploited by referencing the updates into the same leaf and therefore same underlying cache line. As this is a shared instance, a single \texttt{volatile} reference is shared amongst all workers and, as it is read only, no explicit locking is required, just the visibility guarantees. On each interval update, the window manager generates a new global index and reassigns the \texttt{volatile} reference to this new one for all the workers to see. To avoid boundary cases during updates, the global reference maintains its own namespace in the accumulators. This means that a given variable may be indexed from both a local and global slot and, as such, when constructing prior and posterior probability distributions, both need to be considered.
 
 \floatsetup[figure]{capposition=bottom,capbesideposition={top,right}}
 \begin{figure}[h!]
 \centering
-\caption{Show's the data flow between the global and local indexes and the local accumulators and window manager. Blackened arrows represent data pushes whereas grey arrows represent data fetches}
+\caption{Show's the data flow between the global and local indexes and the local accumulators and window manager. Blackened arrows represent data pushes whereas grey arrows represent data fetches.}
 \includegraphics[scale=0.35, trim=0 0 0 12, clip=true] {indexes.pdf}
 \label{fig:indexes}
 \end{figure}
@@ -390,28 +417,28 @@ This is a read only shared instance that all workers have access to. After every
 \section{Overview}
 The system is implemented on top of the java programming language and virtual machine allowing it to execute on commodity hardware and OS even if the certain architectural paradigms the system optimizes for are absent. The name of RCE (Realtime Classification Engine) has been adopted as a working title for the system. \\A number of design patterns are carefully chosen for this implementation in order to alleviate some of the thread safety and IO concerns that naturally arise in such a concurrent system. As this is an event driven application, there needs to be a clear distinction between data and logic. 
 \subsection{Data}
-Data is stored throughout in dumb 'model' objects\footnote{designated within com.haines.ml.rce.*.model.* packages} which can be considered to be the events. These lightweight objects contain no business logic and exist to simply define the schema of data used in the application. For the most part, this data is immutable and final to ensure that data is visible and sharable across threads. Areas where contentious access occurs, namely within the shared global accumulator state (\verb|NaiveBayesGlobalIndexes|), are handled with great consideration and, due to the live/staging methodologies already discussed, safe updating of such shared data need only use volatile variables\footnote{One example of this is in the shared \verb|VolatileNaiveBayesGlobalIndexesProvider| instance.}. 
+Data is stored throughout in dumb 'model' objects\footnote{Designated within com.haines.ml.rce.*.model.* packages.} which can be considered to be the events. These lightweight objects contain no business logic and exist to simply define the schema of data used in the application. For the most part, this data is immutable and final to ensure that data is visible and sharable across threads. Areas where contentious access occurs, namely within the shared global accumulator state (\verb|NaiveBayesGlobalIndexes|), are handled with great consideration and, due to the live/staging methodologies already discussed, safe updating of such shared data need only use volatile variables\footnote{One example of this is in the shared \verb|VolatileNaiveBayesGlobalIndexesProvider| instance.}. 
 
-The model objects that exist outside of the application domain that relate to the public API of the system are coded to interfaces. This allows any of the application code to be agnostic of serialization concerns of the implementing classes used to move the data from external clients in and out of the public API. The MVC patten is one that helps enforce this separation and is adopted throughout this application. Normally large scale applications take this concept of API and domain isolation further via the inclusion of a mapping layer that converts serialization objects from the controller into the application domain. However as such a technique incurs significant costs both in the copying of data between objects and the extra memory footprint for the garbage collector to work with, this coding to interface approach is deemed a sensible compromise. 
+The model objects that exist outside of the application domain that relate to the public \acrshort{api} of the system are coded to interfaces. This allows any of the application code to be agnostic of serialization concerns of the implementing classes used to move the data from external clients in and out of the public \acrshort{api}. The MVC\footnote{Model, View, Controller~\cite{mvc}.} patten is one that helps enforce this separation and is adopted throughout this application. Normally large scale applications take this concept of \acrshort{api} and domain isolation further via the inclusion of a mapping layer that converts serialization objects from the controller into the application domain. However as such a technique incurs significant costs both in the copying of data between objects and the extra memory footprint for the garbage collector (\acrshort{gc}) to work with, this coding to interface approach is deemed a sensible compromise. 
 
-When indexing data the gnu trove libraries are used in place of the java JDK collections framework to allow primitive values to be stored directly without the unnecessarily need to create wrapper objects that add to the footprint of the garbage collector process.
+When indexing data the gnu trove libraries are used in place of the java \acrshort{jdk} collections framework to allow primitive values to be stored directly without the unnecessary need to create wrapper objects that add to the footprint of the garbage collector process.
 
-In the rare scenarios where data needs to be transformed (i.e not changed but projected into a different structure), the delegation patten\cite{design-patterns} is used to transparently perform this task. The \verb|RCEConfig| object is an example of this.
+In the rare scenarios where data needs to be transformed (i.e not changed but projected into a different structure), the delegation patten~\cite{design-patterns} is used to transparently perform this task. The \verb|RCEConfig| object is an example of this.
 \subsection{Logic}
-Actual business logic is stored in classes in either two ways. More often than not, stateless \verb|Service| classes are used and are designed to be instantiated once as a shared global instance\footnote{although not implemented via the Singleton anti-pattern}. These instances then operate on supplied data model objects and coordinate flow based on the business logic each Service is responsible for. Due to the immutable contract of the model classes, some further classes where the control of data under contentious access is paramount, data and business logic is combined in a dedicated class. The Accumulators for instance contain both data (the accumulator structure) and business logic (how global and local indexes interact for example). These classes break this rule of data and logic separation to ensure thread safety without requiring costly object allocation. 
+Actual business logic is stored in classes in one of two ways. For the most part logic is encapsulated in stateless \verb|Service| classes and designed to be instantiated once as a shared global instance\footnote{Although not implemented via the Singleton anti-pattern.}. These instances then operate on supplied data model objects and coordinate flow based on the business logic each Service is responsible for. Due to the immutable contract of the model classes, some further classes where the control of data under contentious access is paramount, data and business logic is combined in a dedicated class. The Accumulators for instance contain both data (the accumulator structure) and business logic (how global and local indexes interact for example). These classes break this rule of data and logic separation to ensure thread safety without requiring costly object allocation. 
 \subsection{Application Instantiation}
-Because certain objects have affinity to specific threads (like the \verb|Accumulator| and supporting classes) whilst others are more global in nature (\verb|Service| instances), a patten is required to manage instantiation and wiring of these instances. For this, inversion of control\cite{ioc} is adopted where instances assume nothing about implementations and life cycles of their dependent components whilst a single IOC factory is then responsible for the instantiation and injection of an instance and its components. In the case of this project, the \verb|RCEApplicationFactory| provides the main entry point into the construction of the application. Originally Google's Guice\cite{guice} was planned to be used to handle this task but, due to the thready affinity requirements of large parts of the system, this became unwieldy to manage\footnote{See \verb|GuiceRCEApplicationFactory| and corresponding \verb|RCEConfigConfiguredInitiationModule| for an idea of the complexities}. Consequently, a bespoke IOC factory was implemented catering to the novel requirements of the system design whilst the \verb|ServiceLoader| framework of the JDK is used to bootstrap the construction. The package \verb|com.haines.ml.rce.main.factory| contains the IOC factories used to instantiate and configure the system which will be discussed in more detail later in this chapter.
+Because certain objects have affinity to specific threads (like the \verb|Accumulator| and supporting classes) whilst others are more global in nature (\verb|Service| instances), a patten is required to manage instantiation and wiring of these instances. For this, inversion of control~\cite{ioc} is adopted where instances assume nothing about implementations and life cycles of their dependent components whilst a single \acrshort{ioc} factory is then responsible for the instantiation and injection of an instance and its components. In the case of this project, the \verb|RCEApplicationFactory| provides the main entry point into the construction of the application. Originally Google's Guice~\cite{guice} was planned to be used to handle this task but, due to the thready affinity requirements of large parts of the system, this became unwieldy to manage\footnote{See \verb|GuiceRCEApplicationFactory| and corresponding \verb|RCEConfigConfiguredInitiationModule| for an idea of the complexities.}. Consequently, a bespoke \acrshort{ioc} factory was implemented catering to the novel requirements of the system design whilst the \verb|ServiceLoader| framework of the \acrshort{jdk} is used to bootstrap the construction. The package \verb|com.haines.ml.rce.main.factory| contains the \acrshort{ioc} factories used to instantiate and configure the system which will be discussed in more detail later in this chapter.
 \subsection{DataStructures}
-Apart from the bespoke structures already discussed, whenever the system needs to communicate a number of specific instances to downstream components, it does so using the most minimal building block of the Java collections API namely the \verb|Iterable| class. The reason for this is two fold. Firstly, the interface only allows read access which, even if implementing collections don't explicitly enforce immutability, the design of this API keeps access in a read only and thus thread safe manner by default\footnote{Technically care still needs to be taken to ensure visibility}. Secondly and more importantly it enables on demand manipulation of data in a functional manner. This can be extremely useful and performant especially in an event driven system such as this. Data that passes through may need to be manipulated in certain scenarios to downstream actors. Data could be manipulated in anticipation but what if downstream components dont need to use such data? This extra work would have been performed unnecessarily. A better approach is to wrap the iterable so that whenever a forEach construct is applied to it, on demand the translation function is executed during iteration. \\
-Prior to version 8 Java provides no natively functional constructs but this doesn't mean that such paradigms are impossible to implement. Because the system is designed to be compatible with as wide an infrastructure as possible, enforcing java 8 was something felt to be avoided. therefore, static and final instances of Google's Function class from the guava libraries are used to mimic functional behavior. Where multiple invocations of a given iterable are possible, to reduce the repeated invocation of a costly function, the \verb|com.haines.ml.util.CachedIterable| class is provided to wrap functional iterables to cache their results.
+Apart from the bespoke structures already discussed, whenever the system needs to communicate a number of specific instances to downstream components, it does so using the most minimal building block of the Java collections \acrshort{api} namely the \verb|Iterable| class. The reason for this is two fold. Firstly, the interface only allows read access which, even if implementing collections don't explicitly enforce immutability, the design of this \acrshort{api} keeps access in a read only and thus thread safe manner by default\footnote{Technically care still needs to be taken to ensure visibility.}. Secondly and more importantly it enables on demand manipulation of data in a functional manner. This can be extremely useful and performant especially in an event driven system such as this. Data that passes through may need to be manipulated in certain scenarios to downstream actors. Data could be manipulated in anticipation but what if downstream components dont need to use such data? This extra work would have been performed unnecessarily. A better approach is to wrap the iterable so that whenever a forEach construct is applied to it, on demand the translation function is executed during iteration. \\
+Prior to version 8 Java provides no natively functional constructs but this doesn't mean that such paradigms are impossible to implement. Because the system is designed to be compatible with as wide an infrastructure as possible, enforcing java 8 was something felt to be avoided. Therefore, static and final instances of Google's Function class from the guava libraries are used to mimic functional behavior. Where multiple invocations of a given iterable are possible, to reduce the repeated invocation of a costly function, the \verb|com.haines.ml.util.CachedIterable| class is provided to wrap functional iterables to cache their results.
 
 \section{Maven Modules}
-The system utilizes a number of different libraries and adopts a number of conceptual logical components. To manage the dependency tree's, versioning, lifecycles and build of these components, the Apache Maven project\cite{maven} is used. Maven allows versioned dependencies to be specified in an XML pom file and manages the build life cycle, including testing and packaging of various artifacts that make up the system. As the application is relative large, the reactor functionality of Maven is used to help define atomic units of functionality into separate modules that make up the application. 
+The system utilizes a number of different libraries and adopts a number of conceptual logical components. To manage the third party dependencies, versioning, lifecycles and build of these components, the Apache Maven project~\cite{maven} is used. Maven allows versioned dependencies to be specified in an XML pom file and manages the build life cycle, including testing and packaging of various artifacts that make up the system. As the application is relative large, the reactor functionality of Maven is used to help define atomic units of functionality into separate modules that make up the application. 
 
 \floatsetup[figure]{capposition=bottom,capbesideposition={top,right}}
 \begin{figure}[h!]
 \centering
-\caption{The main component structure of the RCE application}
+\caption{The main component structure of the RCE application.}
 \includegraphics[scale=0.35, trim=0 0 0 0, clip=true] {reactor-layout.pdf}
 \label{fig:indexes}
 \end{figure}
@@ -419,18 +446,18 @@ The system utilizes a number of different libraries and adopts a number of conce
 Two further modules exist within the reactor build that form the basis of acceptance testing of the application. \verb|rce-performance-test| is responsible for testing the classification performance whilst \verb|rce-loadtest| is tasked with performance throughput and latency analysis of the system.
 
 \subsection{The Components}
-\subsubsection[rce-model]{rce-model\protect\footnote{It is called \textit{model} to mimic the MVC definition that this component represents although it is understood that this might cause confusions when considering the implications of such a name in the machine learning universe}}
+\subsubsection[rce-model]{rce-model\protect\footnote{It is called \textit{model} to mimic the \newacronym{mvc} definition that this component represents although it is understood that this might cause confusions when considering the implications of such a name in the machine learning universe.}}
 This defines the data encapsulation interfaces or domain objects that all execution of the system interact with. That is not to say that all model objects are defined in this component. Other's exist to provide specific domain definitions for givens modules to function (like \verb|NaiveBayesDistributionCounts|) but all cross concern objects are defined here. Further to this, interfaces for some of the eventing mechanisms are also housed here such. All higher level components utilise such definitions as \verb|EventConsumer| without needing to be concerned about their implementation. This functions as the main data flow interface that allows modules to communicate with each other.
 
 \subsubsection{rce-dispatcher}
-This vertical module encapsulates all the queue and event driven paradigms that the other horizontal modules utilise. It uses provides an abstraction to the disruptor library to deal with message coordination along with the main thread affinity dispatcher to push events into dedicated CPU's.
+This vertical module encapsulates all the queue and event driven paradigms that the other horizontal modules utilise. It uses provides an abstraction to the disruptor library to deal with message coordination along with the main thread affinity dispatcher to push events into dedicated \acrshort{cpu}'s.
 
 \subsubsection{rce-accumulator}
 This defines the core accumulator datastructure with indexing types. When an event is received, which slots are to implemented from the indexes is determined by implementations of the \verb|AccumulatorLookupStrategy| interface. Using this design keeps the framework completely agnostic from it's application usage. Currently a naive bayes implementation exists that converts an event into slots for it's prior and posterior counts but this need not be the only model employed. A spatial model such as Radial Basis Functions would also fit well in this design along with an application completely divergent from an ML classification task\footnote{Consider a application used for alerting that warns if too many failures of a particular type have occurred.}\\
-To facilitate the different usages of discrete verses distribution based continuous accumulation, \verb|FeatureHandler| and \verb|ClassificationHandler| interfaces are provided that serve as the public API interaction with the accumulators along with two provided implementations namely \verb|SequentialDistributionFeatureHandler| and\\ \verb|DiscreteLookupAccumulatorHandler|\footnote{A third is also provided called \verb|BucketedFeatureHandler| that is discussed more in the Future Work chapter}
+To facilitate the different usages of discrete verses distribution based continuous accumulation, \verb|FeatureHandler| and \verb|ClassificationHandler| interfaces are provided that serve as the public \acrshort{api} interaction with the accumulators along with two provided implementations namely \verb|SequentialDistributionFeatureHandler| and\\ \verb|DiscreteLookupAccumulatorHandler|\footnote{A third is also provided called \verb|BucketedFeatureHandler| that is discussed more in the Future Work chapter.}
 
 \subsubsection{rce-naivebayes}
-This provides the naive bayes implementation for the classification task of this system. It includes a \verb|RONaiveBayesMapBasedLookupStrategy| implementation for determining which slots should be incremented for a given event. It also defines the classification service to classify unseen events using probability models defined by implementations of \verb|NaiveBayesProbabilitiesProvider|. \\In the scenario where the model has not seen any occurrences of a given feature value, it's posterior probability will be zero\footnote{More specifically this will be \(\infty\) once the \(\log\) is taken}. When calculating the final likelihood probability, this will also be evaluated to zero despite what its other feature values might be. To tackle this, a nominal probability is defined that is \(> 0\) that acts as a lower bound of any probability calculation to ensure that one posterior can't have too great an influence on the overall outcome.  
+This provides the naive bayes implementation for the classification task of this system. It includes a \verb|RONaiveBayesMapBasedLookupStrategy| implementation for determining which slots should be incremented for a given event. It also defines the classification service to classify unseen events using probability models defined by implementations of \verb|NaiveBayesProbabilitiesProvider|. \\In the scenario where the model has not seen any occurrences of a given feature value, it's posterior probability will be zero\footnote{More specifically this will be \(\infty\) once the \(\log\) is taken.}. When calculating the final likelihood probability, this will also be evaluated to zero despite what its other feature values might be. To tackle this, a nominal probability is defined that is \(> 0\) that acts as a lower bound of any probability calculation to ensure that one posterior can't have too great an influence on the overall outcome.  
 
 \subsubsection{rce-aggregator}
 This provides logic to aggregate multiple naive bayes counts together. This serves as the tooling for not only merging multiple local accumulator states together but also within the window manager as windows are added and removed.
@@ -445,26 +472,26 @@ This defines the controller and main processing loop of the system that takes ev
 Implements the domain model interfaces with protostuff serialising and deserialising instances which read directly off the bus rather than from the heap.
 
 \subsubsection{rce-main}
-Provides the IOC factory instances that actually build and configure the system. A main driver class for the application is also provided in the form of \verb|DefaultRCEApplication| but more bespoke invocations are possible such as the methodology used in the test cases as defined in \verb|RCEApplicationStartupTest|.
+Provides the \acrshort{ioc} factory instances that actually build and configure the system. A main driver class for the application is also provided in the form of \verb|DefaultRCEApplication| but more bespoke invocations are possible such as the methodology used in the test cases as defined in \verb|RCEApplicationStartupTest|.
 
 \section{Configuration}
-The system uses two fundamental configuration mechanisms - ServiceLoader invocation of custom pluggable objects and JAXB defined XML\footnote{JAXB also supports other serialization formats such as JSON but the default format the system uses is XML} property files.
+The system uses two fundamental configuration mechanisms - ServiceLoader invocation of custom pluggable objects and JAXB defined XML\footnote{JAXB also supports other serialization formats such as JSON but the default format the system uses is XML.} property files.
 
 \subsubsection{ServiceLoader}
-The java JDK contains a lightweight service provider loading facility named the ServiceLoader. The mechanism allows implementations of interfaces to be provided at runtime using definitions detailed in META-INF/service/* files as they appear on the runtime classpath. This allows additional behavior to be defined by simply including extra jars on the classpath and the ServiceLoader will reflectively instantiate them and add them into the IOC container. The system uses the ServiceLoader to allow 2 primary execution components to be extended or to provide pluggable additional functionality.\\
-The first is the actual application container itself. This allows different ways of configuring the system to be programmatically defined which gives users the ability to completely customize the internals of how the system fits together. A number of 'building blocks' of abstract classes are provided that can aid in providing a default configuration of the system. The most specific class being\\ \verb|ProtostuffNaiveBayesRCEApplicationFactory| which users will need to extend to define the \verb|Schema| of the protostuff messages that form the (de)seriliasation protocol of the input API\footnote{see \verb|com.haines.ml.rce.main.factory.StaticProtostuffNaiveBayesRCEApplicationFactory| for an example of a concrete factory that only allows String based discrete feature and classification values}.\\
+The java \acrshort{jdk} contains a lightweight service provider loading facility named the ServiceLoader. The mechanism allows implementations of interfaces to be provided at runtime using definitions detailed in META-INF/service/* files as they appear on the runtime classpath. This allows additional behavior to be defined by simply including extra jars on the classpath and the ServiceLoader will reflectively instantiate them and add them into the \acrshort{ioc} container. The system uses the ServiceLoader to allow 2 primary execution components to be extended or to provide pluggable additional functionality.\\
+The first is the actual application container itself. This allows different ways of configuring the system to be programmatically defined which gives users the ability to completely customize the internals of how the system fits together. A number of 'building blocks' of abstract classes are provided that can aid in providing a default configuration of the system. The most specific class being\\ \verb|ProtostuffNaiveBayesRCEApplicationFactory| which users will need to extend to define the \verb|Schema| of the protostuff messages that form the (de)seriliasation protocol of the input API\footnote{See \verb|com.haines.ml.rce.main.factory.StaticProtostuffNaiveBayesRCEApplicationFactory| for an example of a concrete factory that only allows String based discrete feature and classification values.}.\\
 
 The other place the ServiceLoader is used is in defining how different features and classification types are handled. If \(f_1\) should use a discrete modeling whilst \(f_2\) uses a continuous normal distribution fitting, one can programmatically define this functionality by implementing \verb|FeatureHandlerRepositoryFactory| and adding the appropriate jar onto the classpath. 
 
 \subsubsection{JAXB Config}
-For more parameter based configuration such as window sizes, accumulator bit depth etc, JAXB defined XML files detail these properties. Config files are determined at the IOC container level such as via the driver commandline argument of \verb|configOverrideLocation|. A default-config.xml is provided to define sensible defaults that are used if a user specific configuration file is omitting all or part of the configuration property set.
+For more parameter based configuration such as window sizes, accumulator bit depth etc, JAXB defined XML files detail these properties. Config files are determined at the \acrshort{ioc} container level such as via the driver commandline argument of \verb|configOverrideLocation|. A default-config.xml is provided to define sensible defaults that are used if a user specific configuration file is omitting all or part of the configuration property set.
 
 \section{Testing}
-There are 5 different test types that this project uses to verify semantic and performant correctness of the system. For all test types the Junit framework coordinates the test execution and integrates the results as part of the maven build configurations. Furthermore, the Cobertura code coverage tool can be invoked as part of the maven build using the \verb|site| target. This will produce reports detailing line-by-line coverage of tests. A summary is provided in Table \ref{tab:coverage}
+There are 5 different test types that this project uses to verify semantic and performant correctness of the system. For all test types the Junit framework coordinates the test execution and integrates the results as part of the maven build configurations. Furthermore, the Cobertura code coverage tool can be invoked as part of the maven build using the \verb|site| target. This will produce reports detailing line-by-line coverage of tests. A summary is provided in Table \ref{tab:coverage}.
 \begin{table}[h!]
 \rowcolors{2}{gray!5}{white}
 \begin{tabular}{l*{6}{c}r}
-Module              & No. Classes & No. Lines & Line Coverage & Branch Coverage & Complexity\footnote{Complexity an indication of how complex (no branch conditions) a module is. It uses the McCabe's cyclomatic code complexity routine\cite{mccabecc}} \\
+Module              & No. Classes & No. Lines & Line Coverage & Branch Coverage & Complexity\footnote{Complexity is an indication of how complex (no branch conditions) a module is. It uses the McCabe's cyclomatic code complexity routine~\cite{mccabecc}.} \\
 \hline
 rce-model & 28 & 168 & 0.762 & 0.706 & 1.638 \\
 rce-io-protostuff & 2 & 381 & 0.858 & 0.739 & 4.55 \\
@@ -485,43 +512,42 @@ For each conceptual unit of code, a unit test exists that asserts the functional
 \subsection{Functional Tests}
 This suite of tests verifies that multiple instances of units of functionality within a single component or module interact with each other correctly, performing the correct semantic behaviour.
 \subsection{Integration Tests}
-This suite of tests verifies that various configurations of the entire system operate correctly. They are blanket tests that test the system performs correctly at a broad level. The \verb|RCEApplicationStartupTest| is such a test that verifies two configurations (UDP and TCP) start up and process a number of events without error. At this stage, no effort is made to ensure that the performance of the classifier is acceptable
+This suite of tests verifies that various configurations of the entire system operate correctly. They are blanket tests that test the system performs correctly at a broad level. The \verb|RCEApplicationStartupTest| is such a test that verifies two configurations (UDP and TCP) start up and process a number of events without error. At this stage, no effort is made to ensure that the performance of the classifier is acceptable.
 \subsection{Performance Tests}
-This test suite is responsible for ensuring that the performance of the system is acceptable. The basis of these tests is to use known labelled datasets (input with expected output) and partition them into two disjoint subsets each using a fixed ratio. The larger of the subsets is deemed the training set and is used to train the classifier by pushing events into the main input of the system. The remaining set, known as the test set, is then used to see how well the learned classifier does at predicting these remaining labelled instances. To further the accuracy of the test, the test is repeated a total of \(n\) times with different partitions of the training and test sets known as n-fold cross validation whilst multi-class performance is evaluated using a 1 vs rest scheme\cite{flach}. A small framework has been built in \verb|rce-performance-test| that defines these datasets, performs this type of testing and produces reporting (precision, recall, accuracy, fmeasure, model size, time to train/test and AUC metrics) along with ROC\cite{roc-analysis} plots\footnote{see \verb|AbstractPerformanceTest| and the \verb|ReportGenerator| and \verb|ReportRenderer| class for details}. As precision/recall only gives an indication of how well the system performs with predicting correct positive or negative labels and does not consider how many false positives there where, particular focus is placed on AUC measures which reports TPR / FPR ratios. The 3 data sets are:
+This test suite is responsible for ensuring that the performance of the system is acceptable. The basis of these tests is to use known labelled datasets (input with expected output) and partition them into two disjoint subsets each using a fixed ratio. The larger of the subsets is deemed the training set and is used to train the classifier by pushing events into the main input of the system. The remaining set, known as the test set, is then used to see how well the learned classifier does at predicting these remaining labelled instances. To further the accuracy of the test, the test is repeated a total of \(n\) times with different partitions of the training and test sets known as n-fold cross validation whilst multi-class performance is evaluated using a 1 vs rest scheme~\cite{flach}. A small framework has been built in \verb|rce-performance-test| that defines these datasets, performs this type of testing and produces reporting (precision, recall, accuracy, fmeasure, model size, time to train/test and \acrshort{auc} metrics) along with ROC~\cite{roc-analysis} plots\footnote{See \verb|AbstractPerformanceTest| and the \verb|ReportGenerator| and \verb|ReportRenderer| class for details.}. As precision/recall only gives an indication of how well the system performs with predicting correct positive or negative labels and does not consider how many false positives there where, particular focus is placed on \acrshort{auc} measures which reports TPR / FPR ratios. The 3 data sets are:
 
 \subsubsection{Synthetic Dataset}
 This test set (implemented in \verb|SyntheticTestDataset|) is synthetic in that a mixture model of defined fixed parameter normal distributions are used to generate feature values and their corresponding classification labels. In addition to the distributions, a uniform random process is added to simulate noise and ensure that the model generalises. The task of the classifier is to learn the underlying distributions so that when unseen samples from the mixture model are taken, the system can predict the class.\\ This test is used to also observe how the application reacts to missing values (at a 10\% chance of a feature value to be missing), provides a good setting for continuous feature type tests and, as it is a generator, the number of instances can be increased to a level required for the load tests, mentioned later on.
 \floatsetup[figure]{capposition=bottom,capbesideposition={top,right}}
 \begin{figure}[h!]
 \centering
-\caption{An example of a 1 feature, 3 class mixture distribution model where probability densities are shown according to the class (colour). When adding more features, the distribution mixtures fan out into more dimensions according to their hyper parameters}
+\caption{An example of a 1 feature, 3 class mixture distribution model where probability densities are shown according to the class (colour). When adding more features, the distribution mixtures fan out into more dimensions according to their hyper parameters.}
 \includegraphics[scale=0.35, trim=0 0 0 0, clip=true] {synthetic-class-distributions.pdf}
 \label{fig:indexes}
 \end{figure}
 \subsubsection{Adults Earnings} 
-Taken from the 1994 Census database and hosted on the UCI repository, this dataset represents a real life 50k instance dataset to predict income levels of adults. This set is not only used to evaluate how the system performs in a real world setting but because it includes performence of other classifier approaches, it serves as a way to compare the RCE system with other state of the art techniques. The dataset primarily contains discrete features used to predict a binary classification label in the presence of some missing features.
+Taken from the 1994 Census database and hosted on the \acrshort{uci} repository, this dataset represents a real life 50k instance dataset to predict income levels of adults. This set is not only used to evaluate how the system performs in a real world setting but because it includes performance of other classifier approaches, it serves as a way to compare the RCE system with other state of the art techniques. The dataset primarily contains discrete features used to predict a binary classification label in the presence of some missing features.
 
 \subsubsection{Shuttle Statlog}
-This data set, again taken from the UCI repository represents statlog information taken over time. The data contains purely continuous features so gives a foundation for verifying accuracy of the continuous features of the system. Furthermore, the dataset provides a multi class label set to test the performance of the multi-class functionality of the classifier. 
+This data set, again taken from the \acrshort{uci} repository represents statlog information taken over time. The data contains purely continuous features so gives a foundation for verifying accuracy of the continuous features of the system. Furthermore, the dataset provides a multi class label set to test the performance of the multi-class functionality of the classifier. 
 
 \subsection{Load Tests}
-As the intension of the system is to not just provide a powerful classifier but also to do so under extreme load within a stream based setting, it is importantly that this is measured. Consequently a load testing framework called grinder\cite{grinder} is used to apply a distributed load from multiple injector instances onto a single deployment of the RCE system to determine the total amount of throughput it can handle including information on latency and error rates. The implementation is provided in the \verb|performance-test| module.
+As the intention of the system is to not just provide a powerful classifier but also to do so under extreme load within a stream based setting, it is importantly that this is measured. Consequently a load testing framework called grinder~\cite{grinder} is used to apply a distributed load from multiple injector instances onto a single deployment of the RCE system to determine the total amount of throughput it can handle including information on latency and error rates. The implementation is provided in the \verb|performance-test| module.
 
-\chapter{Performance}
+\chapter{Evaluation}
+This chapter presents the results of the evaluation and offers analytical commentary of their implications.
 \section{Classification Performance}
-The following section presents the results of both the performance and load tests as described in the previous chapter.
-\clearpage
 \subsection{Synthetic Test}
-To begin with, the synthetic test is used to evaluate a comparison of the discrete\footnote{The actual synthetic feature values are continuous in nature being drawn from means of the range of 0-300 with similar covariances. Discretization of the feature values occurs as the events are serialized from the test driver by casting to discrete integer values } and continuous feature handlers at fitting a normal mixture model of 10000 training instances.
+To begin with, the synthetic test is used to evaluate a comparison of the discrete\footnote{The actual synthetic feature values are continuous in nature being drawn from distributions with means of the range of 0-300 and similar covariances. Discretization of the feature values occurs as the events are serialized from the test driver by casting to discrete integer values.} and continuous feature handlers at fitting a normal mixture model of 10000 training instances.
 
 \begin{figure}[h!]
 \centering
-\caption{ROC of continuous and discrete feature handlers using 11000 labelled instances and a 5 fold cross validation. The synthetic dataset consists of 3 classification types and 6 feature types with distributed mean and covariances for each classification value. A 30\% probability that a given feature will be picked from a uniform distribution is also included to include an element of noise}
+\caption{\acrshort{roc} of continuous and discrete feature handlers using 11000 labelled instances and a 5 fold cross validation. The synthetic dataset consists of 3 classification types and 6 feature types with distributed mean and covariances for each classification value. A 30\% probability that a given feature will be picked from a uniform distribution is also included to include an element of noise.}
 \includegraphics[scale=0.45, trim=0 -25 0 0, clip=true] {10000-instance-training-1000-testing-synthetictest.png}
-\label{fig:indexes}
+\label{fig:syntheticresults1}
 \rowcolors{2}{gray!5}{white}
 \begin{tabular}{l*{60}{c}r}
-Test Type & AUC & Accuracy & Model Size (bytes)\\
+Test Type & \acrshort{auc} & Accuracy & Model Size (bytes)\\
 \hline
 
 Synthetic Continuous Feature Handlers & 0.869 & 0.812 & 4,972,574\\
@@ -530,33 +556,38 @@ Synthetic Discrete Feature Handlers & 0.906 & 0.810 & 6,125,066\\
 \end{tabular}
 \end{figure}
 \clearpage
-As the discrete and continuous feature handler tests are fairly comparable, another test is performed to see how the two approaches compare in the presence of limited samples\footnote{As the system was built with large scale datasets in mind, such a scenario is not really valid but included for completeness}
+As the discrete and continuous feature handler tests are fairly comparable, another test is performed to see how the two approaches compare in the presence of limited samples\footnote{As the system was built with large scale datasets in mind, such a scenario is not really valid but included for completeness.}.
 
 
 \begin{figure}[h!]
 \centering
-\caption{ROC of continuous and discrete feature handlers using 1100 synthentic instances and 5 fold cross validation}
+\caption{\acrshort{roc} of continuous and discrete feature handlers using 1100 synthentic instances and 5 fold cross validation.}
 \includegraphics[scale=0.45, trim=0 -25 0 0, clip=true] {1000-instance-training-100-testing-synthetictest2.png}
-\label{fig:indexes}
+\label{fig:syntheticresults2}
 \rowcolors{2}{gray!5}{white}
 \begin{tabular}{l*{6}{c}r}
-Test Type & AUC & Accuracy & Model Size (bytes)\\
+Test Type & \acrshort{auc} & Accuracy & Model Size (bytes)\\
 \hline
 Synthetic Continuous Feature Handlers & 0.859 & 0.807 & 2,391,697\\
 Synthetic Discrete Feature Handlers & 0.872 & 0.784 & 2,755,575\\
 
 \end{tabular}
 \end{figure}
-\clearpage
+
+\subsubsection{Analysis}
+This test showed that there is very little performance difference in accuracy between the continuous and discrete feature handlers when running on large normally distributed datasets. The performance reaches an accuracy of around 81\% for both configurations. This represents the fact that \(\approx80\%\) of the time, the correct classification in the test set is predicted. Here \acrshort{auc} of the \acrshort{roc} curve can be seen to show that the discrete feature values slightly beats the continuous configuration. As the accumulator just assigns a new slot for each integer value for the posterior and prior probabilities, the model is expected to occupy a larger memory footprint. This is verified in this test with the discrete feature configuration requiring 36\%\footnote{Note that the model sizes are subtracted from the \textit{at-rest} model size(ie just the empty datastructure setup) of 1,771,168 bytes.} more memory as it creates new accumulator lines as the tree grows to accommodate more slots.\\
+
+When considering a dataset of 10\% the size, the results show that the continuous setup offers slightly better accuracy. This is probably due to the distributions in the feature handlers converging to the real distribution parameters in light of reduced sample points whilst the discrete feature handler will end up with a lot missing posterior values when testing an unknown event and, for that particular feature/classification pairing, the nominal probability is used in the likelihood calculation. 
+
 \subsection{Adult Wages}
-Next the adult wages dataset is considered to offer a comparison of the classifier against other published known implementations. Configuring the system with all features being treated as discrete yields the following ROC curve.
+Next the adult wages dataset is considered to offer a comparison of the classifier against other published known implementations. Configuring the system with all features being treated as discrete yields the following \acrshort{roc} curve.
 \begin{figure}[h!]
 \centering
-\caption{ROC of all discrete feature handlers using adult wage test set. N-fold validation is not used in this test so that the provided training/test splits can be used to compare against the published results of different classifiers}
+\caption{\acrshort{roc} curve of all discrete feature handlers using adult wage test set. N-fold validation is not used in this test so that the provided training/test splits can be used to compare against the published results of different classifiers.}
 \includegraphics[scale=0.45, trim=0 -20 0 0, clip=true] {all_discrete_features_adult_earnings.png}
-\label{fig:indexes}
+\label{fig:adultwagesresults1}
 \begin{tabular}{l*{6}{c}r}
-Test Type & AUC & Accuracy \\
+Test Type & \acrshort{roc} & Accuracy \\
 \hline
 Adult Wage Discrete Feature Handlers & 0.858 & 0.837 \\
 \end{tabular}
@@ -565,12 +596,12 @@ Adult Wage Discrete Feature Handlers & 0.858 & 0.837 \\
 Next a comparison of the performance of the system is considered when the 4 numerical features are handled as being continuous.
 \begin{figure}[h!]
 \centering
-\caption{ROC of using individual feature types configured as continuous features with the rest defined as discrete features. Also includes corresponding model sizes as reported by the java.instrumentation package using a dedicated javaagent to instrument the heap used explicitly by the application. i.e.\ so this doesn't include heap used for the test harness}
+\caption{\acrshort{roc} curve of using individual feature types configured as continuous features with the rest defined as discrete features. Also includes corresponding model sizes as reported by the java.instrumentation package using a dedicated javaagent to instrument the heap used explicitly by the application. i.e.\ so this doesn't include heap used for the test harness.}
 \includegraphics[scale=0.50, trim=0 -25 0 2, clip=true] {continuous_features_adult_earnings.png}
-\label{fig:indexes}
+\label{fig:adultwagesresults2}
 \rowcolors{2}{gray!5}{white}
 \begin{tabular}{l*{6}{c}r}
-Test Type & AUC & Accuracy & Model Size (bytes)\\
+Test Type & \acrshort{auc} & Accuracy & Model Size (bytes)\\
 \hline
 \verb|capGain| Continuous Feature & 0.800 & 0.849 & 20,345,126 & \\
 \verb|age| Continuous Feature & 0.857 & 0.841 & 20,909,350\\
@@ -578,91 +609,22 @@ Test Type & AUC & Accuracy & Model Size (bytes)\\
 \verb|capLoss| Continuous Feature & 0.838 & 0.834 & 21,084,010\\
 All Continuous Features & 0.767 & 0.829 & 18,360,056\\
 All Discrete Features & 0.858 & 0.838 & 24,542,576\\
-Random & 0.500 & 0.498 & 1,771,168\footnote{This is the \it{'at rest'} model size which has seen no actual events}
+Random & 0.500 & 0.498 & 1,771,168\footnote{This is the \it{'at rest'} model size which has seen no actual events.}
 \end{tabular}
 \end{figure}
-\clearpage
-\subsection{Space Shuttle}
-The Shuttle Satlog test results are detailed as follows 
-\begin{figure}[h!]
-\centering
-\caption{ROC of different feature handlers using the shuttle data set. When one of the features is configured to use a continuous feature handler, all others are set to using discrete ones. This test uses 5 fold validation}
-\includegraphics[scale=0.55, trim=0 -25 0 2, clip=true] {features_shuttle.png}
-\label{fig:indexes}
-\rowcolors{2}{gray!5}{white}
-\begin{tabular}{l*{6}{c}r}
-Test Type & AUC & Accuracy & Model Size (bytes)\\
-\hline
-Feature 1 Continuous Handler & 0.998 & 0.997 & 9,501,811\\
-Feature 2 Continuous Handler & 0.997 & 0.994 & 9,472,540\\
-Feature 3 Continuous Handler & 0.995 & 0.996 & 9,502,359\\
-Feature 4 Continuous Handler & 0.998 & 0.997 & 9,487,710\\
-Feature 5 Continuous Handler & 0.996 & 0.993 & 9,470,904\\
-Feature 6 Continuous Handler & 0.997 & 0.996 & 9,327,275\\
-Feature 7 Continuous Handler & 0.997 & 0.997 & 9,453,584\\
-Feature 8 Continuous Handler & 0.997 & 0.995 & 9,357,764\\
-Feature 9 Continuous Handler & 0.991 & 0.991 & 9,479,764\\
-All Features using Continuous Handlers & 0.955 & 0.900 & 5,511,391\\
-All Discrete Feature Handler & 0.997 & 0.997 & 11,695,553
-\end{tabular}
-\end{figure}
-\clearpage
-
-\section{Throughput Performance}
-\subsection{UDP}
-The following shows the results of gradually ramping up UDP RPS of injectors onto a candidate instance of the RCE application.
-
-\begin{figure}[h!]
-\centering
-\caption{Throughput and latency over time as injectors are ramped up. Each injector process/thread waits for a uniformly random amount of time up to 100ms before making an additional request to ensure that request do not saturate the network bus. An additional injector thread/process is added to the injector pool every 800ms to gradually ramp up load on the candidate instance. There are 30 processes each feeding 100 threads (3000 total event feeder workers running for 390 repeats of the event dataset)}
-\includegraphics[scale=0.6, trim=0 -25 0 2, clip=true] {UDP_throughput.png}
-\label{fig:udpthroughput}
-\begin{tabular}{l*{6}{c}r}
-Mean Response Time (ms) & Max Throughput(RPS) & error rate(\%)\\
-\hline
-18\footnote{\label{UDP_errors}With UDP, as there is no response packet, errors and timing are not possible to accurately track} & 13,824 & 0.0\footnoteref{UDP_errors}
-\end{tabular}
-\end{figure}
-\clearpage
-
-\subsection{TCP}
-
-\iffalse
-mean response time between 40 and 120 is 41.389\fi
-The following shows the results of gradually ramping up TCP RPS of injectors using a persistent connection on each injector thread onto a candidate instance of the RCE application.
-\begin{figure}[h!]
-\centering
-\caption{Throughput and latency over time as injectors are ramped up. Each injector process/thread waits for a uniformly random amount of time up to 100ms before making an additional request to ensure that request do not saturate the network bus. An additional injector thread/process is added to the injector pool every 800ms to gradually ramp up load on the candidate instance. There are 30 processes each feeding 100 threads (3000 total event feeder workers running for 390 repeats of the event dataset}
-\includegraphics[scale=0.6, trim=0 -25 0 2, clip=true] {TCP_throughput.png}
-\label{fig:udpthroughput}
-\begin{tabular}{l*{6}{c}r}
-Mean Resp Time (ms) & Max RPS & error rate(\%)\\
-\hline
-93.63 (41.40\footnote{After the disruptor buffers have been initalized and warmed up into the CPU cache lines, latency is observed to drop to this level}) & 20,814 & 0.01539
-\end{tabular}
-\end{figure}
-\clearpage
-
-\chapter{Conclusions}
-\section{Results}
-The following section provides commentary on the results already detailed in the previous chapter
-\subsection{Synthetic Test}
-This test showed how there is very little performance difference in accuracy between the continuous and discrete feature handlers when running on large normally distributed datasets. The performance reaches an accuracy of around 81\% for both configurations. This represents the fact that \(\approx80\%\) of the time, the correct classification in the test set is predicted. Here AUC of the ROC curve can be seen to show that the discrete feature values slightly beats the continuous configuration. As the accumulator just assigns a new slot for each integer value for the posterior and prior probabilities, the model is expected to occupy a larger memory footprint. This is verified in this test with the discrete feature configuration requiring 36\%\footnote{Note that the model sizes are subtracted from the \textit{at-rest} model size(ie just the empty datastructure setup) of 1,771,168 bytes} more memory as it creates new accumulator lines as the tree grows to accommodate more slots.
-\\
-When considering a dataset of 10\% the size, the results show that the continuous setup offers slightly better accuracy. This is probably due to the distributions in the feature handlers converging to the real distribution parameters in light of reduced sample points whilst the discrete feature handler will end up with a lot missing posterior values when testing an unknown event and, for that particular feature/classification pairing, the nominal probability is used in the likelihood calculation. 
-\subsection{Adult Wages}
+\subsubsection{Analysis}
 The results of this test showed that the best performance was actually from the discrete configuration of all feature handlers whereas accuracy was slightly improved when using a continuous feature handler for the \verb|capGain| features type. To investigate why this was the case the distributions of the training data features were analysed as in Figure \ref{fig:adultwagefeaturedist}. 
 \floatsetup[figure]{capposition=bottom,capbesideposition={top,right}}
 \begin{figure}[h!]
 \centering
-\caption{Distribution analysis of numerical features in Adult Wage dataset}
+\caption{Distribution analysis of numerical features in Adult Wage dataset.}
 \includegraphics[scale=0.37, trim=0 0 0 0, clip=true] {AdultWageFeatureDistributions.png}
 \label{fig:adultwagefeaturedist}
 \end{figure}
 
-This offers an indication as to why using the continuous feature handler on this feature yields better performance. As opposed to the other features, the \verb|age| and \verb|hrPerWeek| values represent the most Gaussian shapes even if somewhat negatively skewed in the case of \verb|age|. The underlying parameters that get learnt for this feature will approximate to the real distribution better than with the other features that seem to resemble a power law setting, explaining the improved AUC metrics.\\
-\clearpage
-When looking at the accuracy performance in relation to the published results the system scores reasonably well although it is a shame these implementations were not reported with AUC measures which would offer a better picture. Considering the realtime and high throughput nature of the system, and the fact that these results are only 1\% off from the top ranking implementation, these results are encouraging.
+This offers an indication as to why using the continuous feature handler on this feature yields better performance. As opposed to the other features, the \verb|age| and \verb|hrPerWeek| values represent the most Gaussian shapes even if somewhat negatively skewed in the case of \verb|age|. The underlying parameters that get learnt for this feature will approximate to the real distribution better than with the other features that seem to resemble a power law setting, explaining the improved \acrshort{auc} metrics.\\
+
+When looking at the accuracy performance in relation to the published results the system scores reasonably well, even better the reference Naive Bayes reference implementation\footnote{It is a shame these implementations were not reported with \acrshort{auc} measures which would offer a better picture.}. Considering the realtime and high throughput nature of the system, and the fact that these results are only 1\% off from the top ranking implementation, these results are encouraging.
 
 \begin{table}[h!]
 \rowcolors{2}{gray!5}{white}
@@ -692,52 +654,321 @@ Nearest-neighbor (1) & 78.58
 maximum accuracy when missing value rows are removed is 0.843\fi
 
 \end{tabular}
-\caption{Ranking of RCE performance of Adult Wages dataset in relation to published performance of known classifiers}
+\caption{Ranking of RCE performance of Adult Wages dataset in relation to published performance of known classifiers.}
 \label{tab:classiferrank}
 \end{table}
 As a further sanity test, the results were rerun to remove records where any feature had a missing value to investigate whether the missing feature facility of the system improved performance. The result showed that the best configuration demonstrated that accuracy dropped slightly to 84.3\% implying that the system's ability to function in the presence of missing values is working.
 \clearpage
-\subsection{Shuttle StatLog}
-The final performance test shows that for multiple class classification, RCE is also able to perform well resulting in accuracies in the expected 99\% range documented with the dataset. What is more interesting however is the major impact in how the continuous features effect model size. When using an all continuous features setup a 62.31\% reduction in memory footprint is observed over a discrete configuration. Although the performance is notably poorer using the continuous setup this test also shows that if more adaptable continuous feature handlers can be built to better model the underlying distributions of these real numbers, then the space saving advantages are worth exploiting. 
-\subsection{Load Test}
-Finally the results of the load test show that the system can operate at extreme loads of data. It is worth mentioning that the test hardware instance was actually a 4-core i7 macbook pro that hosted both the candidate instance and the injectors. This is not really a very good way of testing such an application as context switching of threads from the injector will be invalidating the caches of the application's workers whilst also contending file handles on the IO stack. Nonetheless, comparison against a Tomcat\footnote{An industry standard http container for serving dynamic web application} reference implementation\footnote{see \verb|ReferenceHelloWorldServlet|} as per Figure \ref{fig:tomcatthroughput} can be considered as a naive comparison. The actual servlet mimics the serialisation of the system but does nothing else with the events therefore providing an upper bound baseline. 
+\subsection{Space Shuttle}
+The Shuttle Satlog test results are detailed as follows:
+\begin{figure}[h!]
+\centering
+\caption{ROC of different feature handlers using the shuttle data set. When one of the features is configured to use a continuous feature handler, all others are set to using discrete ones. This test uses 5 fold validation.}
+\includegraphics[scale=0.55, trim=0 -25 0 2, clip=true] {features_shuttle.png}
+\label{fig:spaceshuttleresults}
+\rowcolors{2}{gray!5}{white}
+\begin{tabular}{l*{6}{c}r}
+Test Type & \acrshort{auc} & Accuracy & Model Size (bytes)\\
+\hline
+Feature 1 Continuous Handler & 0.998 & 0.997 & 9,501,811\\
+Feature 2 Continuous Handler & 0.997 & 0.994 & 9,472,540\\
+Feature 3 Continuous Handler & 0.995 & 0.996 & 9,502,359\\
+Feature 4 Continuous Handler & 0.998 & 0.997 & 9,487,710\\
+Feature 5 Continuous Handler & 0.996 & 0.993 & 9,470,904\\
+Feature 6 Continuous Handler & 0.997 & 0.996 & 9,327,275\\
+Feature 7 Continuous Handler & 0.997 & 0.997 & 9,453,584\\
+Feature 8 Continuous Handler & 0.997 & 0.995 & 9,357,764\\
+Feature 9 Continuous Handler & 0.991 & 0.991 & 9,479,764\\
+All Features using Continuous Handlers & 0.955 & 0.900 & 5,511,391\\
+All Discrete Feature Handler & 0.997 & 0.997 & 11,695,553
+\end{tabular}
+\end{figure}
+\subsubsection{Analysis}
+This final performance test shows that for multiple class classification, RCE is also able to perform well resulting in accuracies in the expected 99\% range documented with the dataset. What is more interesting however is the major impact in how the continuous features effect model size. When using an all continuous features setup a 62.31\% reduction in memory footprint is observed over a discrete configuration. Although the performance is notably poorer using the continuous setup this test also shows that if more adaptable continuous feature handlers can be built to better model the underlying distributions of these real numbers, then the space saving advantages are worth exploiting. 
+\clearpage
+
+\section{Throughput Performance}
+\subsection{\acrshort{udp}}
+The following shows the results of gradually ramping up the requests per second (\acrshort{rps}) of \acrshort{udp} packets from injectors onto a candidate instance of the RCE application.
 
 \begin{figure}[h!]
 \centering
-\caption{Throughput and latency of a simple Tomcat web container that serialises and deserialises the protostuff event payloads using same injector settings as previous UDP and TCP tests}
+\caption{Throughput and latency over time as injectors are ramped up. Each injector process/thread waits for a uniformly random amount of time up to 100ms before making an additional request to ensure that request do not saturate the network bus. An additional injector thread/process is added to the injector pool every 800ms to gradually ramp up load on the candidate instance. There are 30 processes each feeding 100 threads (3000 total event feeder workers running for 390 repeats of the event dataset).}
+\includegraphics[scale=0.6, trim=0 -25 0 2, clip=true] {UDP_throughput.png}
+\label{fig:udpthroughput}
+\begin{tabular}{l*{6}{c}r}
+Mean Response Time (ms) & Max Throughput(\acrshort{rps}) & error rate(\%)\\
+\hline
+18\footnote{\label{UDP_errors}With \acrshort{udp}, as there is no response packet, errors and timing are not possible to accurately track.} & 13,824 & 0.0\footnoteref{UDP_errors}
+\end{tabular}
+\end{figure}
+\clearpage
+
+\subsection{\acrshort{tcp}}
+
+\iffalse
+mean response time between 40 and 120 is 41.389\fi
+The following shows the results of gradually ramping up \acrshort{tcp} \acrshort{rps} of injectors using a persistent connection on each injector thread onto a candidate instance of the RCE application.
+\begin{figure}[h!]
+\centering
+\caption{Throughput and latency over time as injectors are ramped up. Each injector process/thread waits for a uniformly random amount of time up to 100ms before making an additional request to ensure that request do not saturate the network bus. An additional injector thread/process is added to the injector pool every 800ms to gradually ramp up load on the candidate instance. There are 30 processes each feeding 100 threads (3000 total event feeder workers running for 390 repeats of the event dataset.}
+\includegraphics[scale=0.6, trim=0 -25 0 2, clip=true] {TCP_throughput.png}
+\label{fig:udpthroughput}
+\begin{tabular}{l*{6}{c}r}
+Mean Resp Time (ms) & Max \acrshort{rps} & error rate(\%)\\
+\hline
+93.63 (41.40\footnote{After the disruptor buffers have been initalized and warmed up into the \acrshort{cpu} cache lines, latency is observed to drop to this level.}) & 20,814 & 0.01539
+\end{tabular}
+\end{figure}
+\subsubsection{Analysis}
+These results demonstrate that the system can operate at extreme loads of data. It is worth mentioning that the test hardware instance was actually a 4-core i7 macbook pro that hosted both the candidate instance and the injectors. This is not really a very good way of testing such an application as context switching of threads from the injector will be invalidating the caches of the application's workers whilst also contending file handles on the IO stack. Nonetheless, comparison against a Tomcat\footnote{An industry standard http container for serving dynamic web applications.} reference implementation\footnote{See \verb|ReferenceHelloWorldServlet|.} as per Figure \ref{fig:tomcatthroughput} can be considered as a naive comparison. The actual servlet mimics the serialisation of the system but does nothing else with the events therefore providing an upper bound baseline. 
+
+\begin{figure}[h!]
+\centering
+\caption{Throughput and latency of a simple Tomcat web container that serialises and deserialises the protostuff event payloads using same injector settings as previous UDP and TCP tests.}
 \includegraphics[scale=0.6, trim=0 -25 0 2, clip=true] {TomcatThroughput.png}
 \label{fig:tomcatthroughput}
 \begin{tabular}{l*{6}{c}r}
-Mean Resp Time (ms) & Max RPS & Mean RPS\footnote{As the throughput fluctuates so much, this value represents the average throughput once all injectors has started up (at \(\approx100\) seconds) until the first one finishes at 400 seconds} & error rate(\%)\\
+Mean Resp Time (ms) & Max \acrshort{rps} & Mean RPS\footnote{As the throughput fluctuates so much, this value represents the average throughput once all injectors has started up (at \(\approx100\) seconds) until the first one finishes at 400 seconds.} & error rate(\%)\\
 \hline
 846.22 & 4,719 & 2,646 & 0.001
 \end{tabular}
 \end{figure}
 
-With the RCE application the throughput and latency not only dwarfs that of the hollow Tomcat reference by 686\% whilst offering consistently 88\% better sub-second response times, but it is also far more predictable. Once all injectors have started\footnote{At around 100 seconds into the test}, the throughput and latencies alternate wildly with the Tomcat implementation. The difference is due to the reduction in TCP handshaking with RCE's connection reuse and also the direct buffer serialisation that prevents GC stalls. It is almost certainly the later that is causing the latency fluctuations in the Tomcat reference. Both the RCE and Tomcat tests return very few errors implying that this is not the physical limit of either application's capacity. As events are not being rejected it means that further throughput is possible on both setups but the OS cannot create enough load to reach this point. Having dedicated injector hardware would solve this problem. \\
+With the RCE application the throughput and latency not only dwarfs that of the hollow Tomcat reference by 686\% whilst offering consistently 88\% better sub-second response times, but it is also far more predictable. Once all injectors have started\footnote{At around 100 seconds into the test.}, the throughput and latencies alternate wildly with the Tomcat implementation. The difference is due to the reduction in TCP handshaking with RCE's connection reuse and also the direct buffer serialisation that prevents GC stalls. It is almost certainly the later that is causing the latency fluctuations in the Tomcat reference. Both the RCE and Tomcat tests return very few errors implying that this is not the physical limit of either application's capacity. As events are not being rejected it means that further throughput is possible on both setups but the OS cannot create enough load to reach this point. Having dedicated injector hardware would solve this problem. \
 
 The other interesting result from this test is how UDP doesn't function as well as the TCP setup. The reason for this is unknown but as the only difference is the network handling, this must be related to a property at the OS level, possibly due to broadcast packets flooding the IO bus and causing contention. \\
 
-Answering the question of whether the system meets the goal of running at 'big data' scale on a single commodity instance is difficult given the resources available. Really this test should be conducted using multiple and disparate injectors sending events to a dedicated server instance running a headless OS. However, as a rough estimate, the results can be taken as is with the assumption that performance scales linearly with the number of CPU's. Assuming this, a 12 core instance would yield a throughput of approximately 76,318 RPS\footnote{Calculated by taking the 3 worker threads and projecting them to 11 - 1 of the CPU's is reserved for the controller thread}. When considering that this translates to 274.7M RPH, this is very much in the big data realm.
-\clearpage
+Answering the question of whether the system meets the goal of running at 'big data' scale on a single commodity instance is difficult given the resources available. Really this test should be conducted using multiple and disparate injectors sending events to a dedicated server instance running a headless OS. However, as a rough estimate, the results can be taken as is with the assumption that performance scales linearly with the number of \acrshort{cpu}'s. Assuming this, a 12 core instance would yield a throughput of approximately 76,318 RPS\footnote{Calculated by taking the results of the 3 worker threads and projecting them linearly to 11 workers - NB. one of the \acrshort{cpu}'s is reserved for the controller thread.}. When considering that this translates to 274.7M \acrshort{rph}, this is very much in the big data realm.
+
+\chapter{Conclusions}
+\section{Summary}
+The purpose of this project was to take techniques used in multiple disciplines of high scale computing and investigate whether a classifier can be built to run at web scale using a single server instance. The results support the conclusion that such a system is indeed possible. Rather than building solutions on top of existing platforms as has been the trend in recent years, by taking a step back at the problem and constructing a bespoke application that synergies with the underlying hardware, the RCE project has demonstrated that systems built on top of vast arrays of machinery costing millions of dollars can indeed be reduced to a modest setup of a single server instance. 
 
 \section{Limitations}
 The application is clearly successful within the scope of the original project to produce a highly accurate classifier, running at big data scale on a single multicore instance. However, this is not without it's limitations. Firstly the system is just a classifier that assumes labelled featured instances. Labelled event data can be provided to the system fairly easily for most applications by event data triggered by user interactions. In the case of a personalized trending now application, labelled event data can be sourced by users clicking on certain news articles that have been instrumented with named entities. Each user click is a labelled featured event where the user's projection in feature space is the features of the event whilst the named entity of the article they click on is the label. The problem is that this setting makes a huge assumption - that the features have already been precomputed. Such a task can be performed offline in a batch processing system and updated only when major changes occur to the users profile but it is worth mentioning that this system makes no attempt to perform feature extraction. In the case of a more complex application where features are latent properties of the click (such as time of day/week) then these features would need to be extracted by some upstream process. 
 \section{Future Work}
 With a project such as this there is obviously potential for a broad scope of extra requirements and features as well as additional analysis into performance. 
 \subsection{Additional Features}
-The system currently supports a single continuous feature handler. As as been shown, assuming normally distributed data is only going to be performant if the feature type exhibits such a structure. If not, real value data has to be discretized into integer bins which runs the risk of overfitting at the cost of a large memory footprint. To tackle this, other distributions could be introduced, such as log normal ones that can match the skewed shapes seen in the test datasets. To allow both non standard distributions or ones that represent mixture models due to poor feature engineering, a bucketed feature handler could be introduced that recursively bins different FeatureHandlers together based on some split criteria of the feature value\footnote{See \verb|BucketedFeatureHandler| for a rough and untested implementation}.\\
-The system also currently utilises a single naive bayes classifier but in theory this need not be the only one. Any classifier that's state can be implemented in a temporally sensitive maner can capitalise on the cache efficient nature of the system. Spatial models such as RBF's for example could be represented as centroid values in the accumulator where events iteratively move the centroid's location based on most frequently seen event features. Then in the accumulator layer, two centroids\footnote{One being the window centroid and the other being a new a interval centroid} can be combined to a new position based on an interpolated distance between the two according to frequency of the feature values.\\
-As the accumulators are essentially contiguous arrays, another potential addition to the system is to utilise GPU instructions which could further the computational throughput of the application.
+The system currently supports a single continuous feature handler. As as been shown, assuming normally distributed data is only going to be performant if the feature type exhibits such a structure. If not, real value data has to be discretized into integer bins which runs the risk of overfitting at the cost of a large memory footprint. To tackle this, other distributions could be introduced, such as log normal ones that can match the skewed shapes seen in the test datasets. To allow both non standard distributions or ones that represent mixture models due to poor feature engineering, a bucketed feature handler could be introduced that recursively bins different FeatureHandlers together based on some split criteria of the feature value\footnote{See \verb|BucketedFeatureHandler| for a rough and untested implementation.}. \
+
+The system also currently utilises a single Naive Bayes classifier but in theory this need not be the only one. Any classifier that's state can be implemented in a temporally sensitive maner can capitalise on the cache efficient nature of the system. Spatial models such as RBF's for example could be represented as centroid values in the accumulator where events iteratively move the centroid's location based on most frequently seen event features. Then in the accumulator layer, two centroids\footnote{One being the window centroid and the other being a new a interval centroid.} can be combined to a new position based on an interpolated distance between the two according to frequency of the feature values.\
+
+As the accumulators are essentially contiguous arrays, another potential addition to the system is to utilise \acrshort{gpu} instructions which could further the computational throughput of the application.\
+
+Given the stream based nature of the application it is also important to mention that this system does not handle fault tolerance nor does it allow it's model state to be persisted for recall in the event of a restart. To handle both these issues serialisation of the window manager would be very possible in a periodic manner with very little changes to the code. In fact, the window manager update loop would be a perfect place to implement such a feature as it is already in a dedicated low priority thread of work and therefore writes to disk should not impact performance of the event aggregation stages.
 \subsection{Further Analysis}
 The inadequacies of the load test have already been discussed but there are other tests that could be conducted. For instance, the accumulator datastructure used to optimize cache misses is assumed to be aiding in the systems throughput. In order to validate this, static analysis of the underlying instructions would need to be considered which shows main memory from cache fetches.\
-The other test that could be of value is how the temporal aspects of the input data change and are captured over time. In the synthetic test the distribution remained static but in a trending now application, this is not going to be the case by it's very nature. To evaluate this, a longer running test could be devised that alters the underlying distribution parameters of the test and training sets to see how well the system reacts. 
- 
+The other test that could be of value is how the temporal aspects of the input data change and are captured over time. In the synthetic test the distribution remained static but in a trending now application, this is not going to be the case by it's very nature. To evaluate this, a longer running test could be devised that alters the underlying distribution parameters of the test and training sets to see how well the system reacts.
+
 \par\needspace{1\baselineskip}%
 \null\vfill
 
 \parbox{\textwidth}{All code available at https://github.com/andrew-haines/RCE}
 
 \printbibliography
+
+\chapter{Appendix}
+\glossarystyle{list}
+\printglossary[type=\acronymtype,title=Abreviations,nonumberlist]
+\section{Test Run Reports}
+\subsection{10000 Synthetic Test Results}
+\begin{verbatim}
+			 --------Report SyntheticData_dicrete completed--------
+			| classifier accuracy: 0.8103409090909091              |
+			| classifier fmeasure: 0.4475688963841299              |
+			| classifier auc: 0.906902394130743                    |
+			| classifier model Size: 6125066                       |
+			| Time in Millis to train: 6                           |
+			| Time in Millis to test: 14                           |
+			 -------------------Report completed-------------------
+			
+			 --------Report SyntheticData_dicrete completed--------
+			| classifier accuracy: 0.8115056818181818              |
+			| classifier fmeasure: 0.4519886496454869              |
+			| classifier auc: 0.8692681062558885                   |
+			| classifier model Size: 4972574                       |
+			| Time in Millis to train: 4                           |
+			| Time in Millis to test: 12                           |
+			 -------------------Report completed-------------------
+\end{verbatim}			
+\subsection{1000 Synthetic Test Results}
+\begin{verbatim}
+			 --------Report SyntheticData_dicrete completed--------
+			| classifier accuracy: 0.8197443181818183              |
+			| classifier fmeasure: 0.4543072236121888              |
+			| classifier auc: 0.8810913944761684                   |
+			| classifier model Size: 2920970                       |
+			| Time in Millis to train: 0                           |
+			| Time in Millis to test: 1                            |
+			 -------------------Report completed-------------------
+			
+			 --------Report SyntheticData_dicrete completed--------
+			| classifier accuracy: 0.8022727272727272              |
+			| classifier fmeasure: 0.4356421243597129              |
+			| classifier auc: 0.8608825357829709                   |
+			| classifier model Size: 2562790                       |
+			| Time in Millis to train: 0                           |
+			| Time in Millis to test: 1                            |
+			 -------------------Report completed-------------------
+\end{verbatim}			
+\subsection{Adult Wages Test Results}
+\begin{verbatim}
+			 ---------------Report capGainC completed--------------
+			| classifier accuracy: 0.8493335790184878              |
+			| classifier fmeasure: 0.6241204488148813              |
+			| classifier auc: 0.8007665417443371                   |
+			| classifier model Size: 29677330                      |
+			| Time in Millis to train: 77                          |
+			| Time in Millis to test: 167                          |
+			 -------------------Report completed-------------------
+
+			 ----------------Report ageC completed-----------------
+			| classifier accuracy: 0.8409802837663534              |
+			| classifier fmeasure: 0.6241204488148813              |
+			| classifier auc: 0.8567002103221284                   |
+			| classifier model Size: 29709696                      |
+			| Time in Millis to train: 29                          |
+			| Time in Millis to test: 145                          |
+			 -------------------Report completed-------------------
+			
+			 ----------------Report hrPerWkC completed-------------
+			| classifier accuracy: 0.8388305386647011              |
+			| classifier fmeasure: 0.6241204488148813              |
+			| classifier auc: 0.8584213204933251                   |
+			| classifier model Size: 35705574                      |
+			| Time in Millis to train: 64                          |
+			| Time in Millis to test: 147                          |
+			 -------------------Report completed-------------------
+
+			 ----------------Report discrete completed-------------
+			| classifier accuracy: 0.837847798046803               |
+			| classifier fmeasure: 0.6241204488148813              |
+			| classifier auc: 0.8583287622005934                   |
+			| classifier model Size: 29846898                      |
+			| Time in Millis to train: 20                          |
+			| Time in Millis to test: 161                          |
+			 -------------------Report completed-------------------
+			
+			 ----------------Report capLossC completed-------------
+			| classifier accuracy: 0.8338093483201277              |
+			| classifier fmeasure: 0.6241204488148813              |
+			| classifier auc: 0.8370930403822058                   |
+			| classifier model Size: 30142622                      |
+			| Time in Millis to train: 36                          |
+			| Time in Millis to test: 134                          |
+			 -------------------Report completed-------------------
+			
+			 -------------Report allContinuous completed-----------
+			| classifier accuracy: 0.8318899330507954              |
+			| classifier fmeasure: 0.6241204488148813              |
+			| classifier auc: 0.7734441445784626                   |
+			| classifier model Size: 27239244                      |
+			| Time in Millis to train: 40                          |
+			| Time in Millis to test: 150                          |
+			 -------------------Report completed-------------------
+\end{verbatim}
+
+\subsection{Shuttle Test Results}
+\begin{verbatim}
+			 ---------------Report feature7 completed--------------
+			| classifier accuracy: 0.9974245689655172              |
+			| classifier fmeasure: 0.1185356539590244              |
+			| classifier auc: 0.9969730761455783                   |
+			| classifier model Size: 9453584                       |
+			| Time in Millis to train: 35                          |
+			| Time in Millis to test: 190                          |
+			 -------------------Report completed-------------------
+
+			 ----------------Report feature4 completed-------------
+			| classifier accuracy: 0.9973275862068967              |
+			| classifier fmeasure: 0.11802156309979164             |
+			| classifier auc: 0.9976072675500331                   |
+			| classifier model Size: 9487710                       |
+			| Time in Millis to train: 26                          |
+			| Time in Millis to test: 196                          |
+			 -------------------Report completed-------------------
+			
+			 ----------------Report feature8 completed-------------
+			| classifier accuracy: 0.9958351293103449              |
+			| classifier fmeasure: 0.11812687710905267             |
+			| classifier auc: 0.9967100364653481                   |
+			| classifier model Size: 9357764                       |
+			| Time in Millis to train: 26                          |
+			| Time in Millis to test: 181                          |
+			 -------------------Report completed-------------------
+
+			 ----------------Report feature1 completed-------------
+			| classifier accuracy: 0.9974084051724137              |
+			| classifier fmeasure: 0.11827210380195946             |
+			| classifier auc: 0.997853737092149                    |
+			| classifier model Size: 9501811                       |
+			| Time in Millis to train: 30                          |
+			| Time in Millis to test: 192                          |
+			 -------------------Report completed-------------------
+			 
+			 ----------------Report feature5 completed-------------
+			| classifier accuracy: 0.9933997844827587              |
+			| classifier fmeasure: 0.11823838286962839             |
+			| classifier auc: 0.9955213015304982                   |
+			| classifier model Size: 9470904                       |
+			| Time in Millis to train: 25                          |
+			| Time in Millis to test: 199                          |
+			 -------------------Report completed-------------------
+			 
+			 ----------------Report feature9 completed-------------
+			| classifier accuracy: 0.9906034482758621              |
+			| classifier fmeasure: 0.1183719376824548              |
+			| classifier auc: 0.9908268599834478                   |
+			| classifier model Size: 9479764                       |
+			| Time in Millis to train: 28                          |
+			| Time in Millis to test: 199                          |
+			 -------------------Report completed-------------------
+			 
+			 ----------------Report feature2 completed-------------
+			| classifier accuracy: 0.9942349137931035              |
+			| classifier fmeasure: 0.11811641494930711             |
+			| classifier auc: 0.996531068658769                    |
+			| classifier model Size: 9472540                       |
+			| Time in Millis to train: 27                          |
+			| Time in Millis to test: 199                          |
+			 -------------------Report completed-------------------
+
+			 ----------------Report feature6 completed-------------
+			| classifier accuracy: 0.9964439655172415              |
+			| classifier fmeasure: 0.11807211683320878             |
+			| classifier auc: 0.9971947395605396                   |
+			| classifier model Size: 9327275                       |
+			| Time in Millis to train: 25                          |
+			| Time in Millis to test: 197                          |
+			 -------------------Report completed-------------------
+			 
+			 ----------------Report feature3 completed-------------
+			| classifier accuracy: 0.9963846982758622              |
+			| classifier fmeasure: 0.11847389511709364             |
+			| classifier auc: 0.9950396132627375                   |
+			| classifier model Size: 9502359                       |
+			| Time in Millis to train: 32                          |
+			| Time in Millis to test: 199                          |
+			 -------------------Report completed-------------------
+			 
+			 ----------------Report discrete completed-------------
+			| classifier accuracy: 0.9973383620689655              |
+			| classifier fmeasure: 0.1181483676434488              |
+			| classifier auc: 0.9974519666776949                   |
+			| classifier model Size: 11695553                      |
+			| Time in Millis to train: 38                          |
+			| Time in Millis to test: 226                          |
+			 -------------------Report completed-------------------
+			
+			 -------------Report allContinuous completed-----------
+			| classifier accuracy: 0.8996282327586207              |
+			| classifier fmeasure: 0.11820642410445363             |
+			| classifier auc: 0.9548538500426715                   |
+			| classifier model Size: 5511391                       |
+			| Time in Millis to train: 27                          |
+			| Time in Millis to test: 217                          |
+			 -------------------Report completed-------------------
+\end{verbatim}
 
 \end{document}

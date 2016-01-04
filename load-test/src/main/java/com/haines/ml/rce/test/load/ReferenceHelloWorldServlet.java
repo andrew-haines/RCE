@@ -10,6 +10,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.io.IOUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.haines.ml.rce.io.protostuff.ProtostuffEventMarshalBuffer;
 import com.haines.ml.rce.transport.Event;
@@ -21,6 +23,7 @@ import com.haines.ml.rce.transport.Event;
  */
 public class ReferenceHelloWorldServlet extends HttpServlet {
 
+	private static final Logger LOG = LoggerFactory.getLogger(ReferenceHelloWorldServlet.class);
 	@Override
 	  public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 	      // Set response content type
@@ -39,7 +42,7 @@ public class ReferenceHelloWorldServlet extends HttpServlet {
 	      
 	      Event event = buffer.buildEventAndResetBuffer();
 	      
-	      System.out.println(event);
+	      LOG.debug("event recieved: "+event);
 	      
 	      out.println("<h1>" + request.getParameter("message") + "</h1>");
 	  }
